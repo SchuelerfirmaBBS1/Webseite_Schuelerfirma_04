@@ -61,7 +61,7 @@ dotnet ef database update --project <Projekt>
 - Styling mit Tailwind-Utility-Klassen; eigenes CSS nur, wenn Tailwind nicht reicht. Tailwind 4 wird über `@import "tailwindcss";` in `src/assets/main.css` und das Vite-Plugin eingebunden (keine `tailwind.config.js`).
 - Import-Alias `@` → `frontend/src`.
 - Globaler Zustand in Pinia-Stores (`src/stores/`), Routen in `src/router/index.ts`.
-- Formatierung per Prettier: keine Semikolons, Single Quotes, Zeilenbreite 100. Vor dem Commit `npm run lint` und `npm run build` ausführen.
+- Prettier (`npm run format`) ist optional und wird in der CI nicht geprüft. Keine reinen Formatierungsänderungen an Dateien vornehmen, die man sonst nicht anfasst. Vor dem Commit `npm run lint`, `npm test` und `npm run build` ausführen.
 
 ### Backend
 
@@ -86,7 +86,7 @@ dotnet ef database update --project <Projekt>
 
 ## CI und Releases
 
-- `.github/workflows/ci.yml` läuft bei Pushes und PRs auf `main`/`dev`. Frontend: oxlint, eslint, Prettier-Check (ohne `--fix`), Type-Check, `npm test`, Build. Backend: `dotnet build` + `dotnet test`, sobald unter `backend/` ein Projekt liegt. Vor dem Push dieselben Checks lokal ausführen.
+- `.github/workflows/ci.yml` läuft bei Pushes und PRs auf `main`/`dev`. Die CI prüft nur, ob alles technisch funktioniert, nicht den Code-Stil. Frontend: oxlint und eslint (ohne `--fix`), Type-Check, `npm test`, Build. Backend: `dotnet build` + `dotnet test`, sobald unter `backend/` ein Projekt liegt. Vor dem Push dieselben Checks lokal ausführen.
 - `.github/workflows/release.yml` nutzt release-please mit getrennter Config pro Branch:
   - `dev` → `release-please-config.dev.json` / `.release-please-manifest.dev.json`, Minor-Bump (v1.1.0 → v1.2.0), kein CHANGELOG, nur GitHub-Release-Notes.
   - `main` → `release-please-config.json` / `.release-please-manifest.json`, Major-Bump (v1.2.0 → v2.0.0), schreibt `CHANGELOG.md`.

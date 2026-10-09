@@ -39,9 +39,6 @@ jobs:
       - name: Lint (eslint)
         run: npx eslint .
 
-      - name: Check formatting
-        run: npx prettier --check --experimental-cli src/
-
       - name: Type-check
         run: npm run type-check
 
