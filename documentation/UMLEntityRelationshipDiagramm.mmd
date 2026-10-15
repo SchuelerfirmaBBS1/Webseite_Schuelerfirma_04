@@ -28,8 +28,8 @@ erDiagram
         int ProductId PK
         int CategoryId FK
         string Name
-        string Description
-        decimal Price
+        string? Description
+        decimal? Price
         bool IsActive
     }
 
@@ -37,7 +37,7 @@ erDiagram
         int ProductImageId PK
         int ProductId FK
         string FileName
-        string Description
+        string? Description
         string ContentType
         string FilePath
         int SortOrder
@@ -47,7 +47,7 @@ erDiagram
     EVENTS {
         int EventId PK
         string Name
-        string Description
+        string? Description
         string Location
         datetime StartDateTime
         datetime EndDateTime
@@ -57,7 +57,7 @@ erDiagram
         int EventImageId PK
         int EventId FK
         string FileName
-        string Description
+        string? Description
         string ContentType
         string FilePath
         int SortOrder
