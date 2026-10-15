@@ -31,7 +31,7 @@ class Product {
     +int ProductId
     +int CategoryId
     +string Name
-    +string Description
+    +string? Description
     +decimal? Price
     +bool IsActive
 }
@@ -40,7 +40,7 @@ class ProductImage {
     +int ProductImageId
     +int ProductId
     +string FileName
-    +string Description
+    +string? Description
     +string ContentType
     +string FilePath
     +int SortOrder
@@ -53,7 +53,7 @@ Product "1" --> "*" ProductImage
 class Event {
     +int EventId
     +string Name
-    +string Description
+    +string? Description
     +string Location
     +DateTime StartDateTime
     +DateTime? EndDateTime
@@ -63,7 +63,7 @@ class EventImage {
     +int EventImageId
     +int EventId
     +string FileName
-    +string Description
+    +string? Description
     +string ContentType
     +string FilePath
     +int SortOrder
