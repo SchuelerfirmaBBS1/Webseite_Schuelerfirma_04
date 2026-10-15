@@ -1,0 +1,88 @@
+classDiagram
+
+class User {
+    +int UserId
+    +string Username
+    +string Email
+    +string PasswordHash
+    +bool IsActive
+}
+
+class Role {
+    +int RoleId
+    +string Name
+}
+
+class UserRole {
+    +int UserId
+    +int RoleId
+}
+
+User "1" -- "*" UserRole
+Role "1" -- "*" UserRole
+
+class Category {
+    +int CategoryId
+    +string Name
+    +bool IsVisible
+}
+
+class Product {
+    +int ProductId
+    +int CategoryId
+    +string Name
+    +string Description
+    +decimal? Price
+    +bool IsActive
+}
+
+class ProductImage {
+    +int ProductImageId
+    +int ProductId
+    +string FileName
+    +string Description
+    +string ContentType
+    +string FilePath
+    +int SortOrder
+    +bool IsPrimary
+}
+
+Category "1" --> "*" Product
+Product "1" --> "*" ProductImage
+
+class Event {
+    +int EventId
+    +string Name
+    +string Description
+    +string Location
+    +DateTime StartDateTime
+    +DateTime? EndDateTime
+}
+
+class EventImage {
+    +int EventImageId
+    +int EventId
+    +string FileName
+    +string Description
+    +string ContentType
+    +string FilePath
+    +int SortOrder
+}
+
+Event "1" --> "*" EventImage
+
+class ContactRequest {
+    +int ContactRequestId
+    +string FirstName
+    +string LastName
+    +string Email
+    +string Subject
+    +string Message
+    +DateTime CreatedAt
+    +string Status
+}
+
+class ApplicationSettings {
+    +int ApplicationSettingsId
+    +string ContactEmail
+}
