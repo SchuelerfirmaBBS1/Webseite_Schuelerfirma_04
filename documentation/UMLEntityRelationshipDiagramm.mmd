@@ -7,11 +7,24 @@ erDiagram
         string Email
         string PasswordHash
         bool IsActive
+        int FailedLoginCount
+        datetime? LockoutEnd
+        bool MustChangePassword
+        datetime CreatedAt
+        datetime? LastLoginAt
     }
 
     ROLES {
         int RoleId PK
         string Name
+    }
+
+    USER_SESSIONS {
+        string SessionKeyHash PK
+        int UserId FK
+        byte[] Ticket
+        datetime CreatedAt
+        datetime ExpiresAt
     }
 
     CATEGORIES {
@@ -80,3 +93,4 @@ erDiagram
     EVENTS ||--o{ EVENT_IMAGES : has
 
     ROLES ||--o{ USERS : assigned_to
+    USERS ||--o{ USER_SESSIONS : has
