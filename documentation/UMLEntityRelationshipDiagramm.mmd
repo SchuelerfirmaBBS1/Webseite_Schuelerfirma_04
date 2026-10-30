@@ -1,0 +1,82 @@
+erDiagram
+
+    USERS {
+        int UserId PK
+        int RoleId FK
+        string Username
+        string Email
+        string PasswordHash
+        bool IsActive
+    }
+
+    ROLES {
+        int RoleId PK
+        string Name
+    }
+
+    CATEGORIES {
+        int CategoryId PK
+        string Name
+        bool IsVisible
+    }
+
+    PRODUCTS {
+        int ProductId PK
+        int CategoryId FK
+        string Name
+        string? Description
+        decimal? Price
+        bool IsActive
+    }
+
+    PRODUCT_IMAGES {
+        int ProductImageId PK
+        int ProductId FK
+        string FileName
+        string? Description
+        string ContentType
+        string FilePath
+        int SortOrder
+        bool IsPrimary
+    }
+
+    EVENTS {
+        int EventId PK
+        string Name
+        string? Description
+        string Location
+        datetime StartDateTime
+        datetime? EndDateTime
+    }
+
+    EVENT_IMAGES {
+        int EventImageId PK
+        int EventId FK
+        string FileName
+        string? Description
+        string ContentType
+        string FilePath
+        int SortOrder
+    }
+
+    CONTACT_REQUESTS {
+        int ContactRequestId PK
+        string FirstName
+        string LastName
+        string Email
+        string Subject
+        string Message
+        datetime CreatedAt
+        string Status
+    }
+
+    APPLICATION_SETTINGS {
+        int ApplicationSettingsId PK
+        string ContactEmail
+    }
+
+    CATEGORIES ||--o{ PRODUCTS : contains
+    PRODUCTS ||--o{ PRODUCT_IMAGES : has
+    EVENTS ||--o{ EVENT_IMAGES : has
+
+    ROLES ||--o{ USERS : assigned_to
