@@ -18,11 +18,14 @@ Das Datenmodell ist in `documentation/Models.drawio` beschrieben (draw.io-XML). 
 | Bereich   | Technik                                                                   | Ordner           |
 | --------- | ------------------------------------------------------------------------- | ---------------- |
 | Frontend  | Vue 3 (`<script setup lang="ts">`), TypeScript, Vite, Tailwind CSS 4, Pinia, Vue Router | `frontend/`      |
-| Backend   | C# / ASP.NET Core (Web API), Entity Framework Core                        | `backend/` (noch nicht angelegt) |
+| Backend   | C# / ASP.NET Core (Web API), Entity Framework Core                        | `backend/`       |
 | Datenbank | MySQL (über EF Core, Provider z. B. `Pomelo.EntityFrameworkCore.MySql`)  | –                |
 | Doku      | draw.io-Diagramme                                                         | `documentation/` |
 
-Das Backend existiert noch nicht. Wenn es angelegt wird: unter `backend/` mit einer `.sln`, einem Web-API-Projekt und einem separaten Testprojekt (xUnit). Danach diese Datei um die konkreten Pfade und Befehle ergänzen.
+Das Backend liegt unter `backend/` (.NET 10, Solution `Schuelerfirma.slnx`):
+
+- `backend/src/Schuelerfirma.Api/` – Web-API mit Controllern. Ordner: `Domain/` (Entities), `Application/` (Services, Interfaces), `Infrastructure/` (technische Umsetzung, z. B. `Http/` für Security-Header und Proxy-Handling), `Controllers/`, `Contracts/` (Request-/Response-DTOs).
+- `backend/tests/Schuelerfirma.Api.Tests/` – xUnit; Integrationstests laufen über `WebApplicationFactory<Program>` (`Integration/`).
 
 ## Befehle
 
@@ -43,14 +46,14 @@ npm run format       # prettier auf src/
 
 Tests liegen in `__tests__/`-Ordnern neben dem getesteten Code (`*.spec.ts`), z. B. `src/stores/__tests__/counter.spec.ts`. Vitest läuft mit `jsdom`, Komponenten werden mit `@vue/test-utils` gemountet.
 
-### Backend (sobald vorhanden, `cd backend`)
+### Backend (`cd backend`)
 
 ```bash
 dotnet build
 dotnet test
-dotnet run --project <WebApi-Projekt>
-dotnet ef migrations add <Name> --project <Projekt>
-dotnet ef database update --project <Projekt>
+dotnet run --project src/Schuelerfirma.Api
+dotnet ef migrations add <Name> --project src/Schuelerfirma.Api   # erst mit EF Core (#22)
+dotnet ef database update --project src/Schuelerfirma.Api           # erst mit EF Core (#22)
 ```
 
 ## Konventionen
@@ -65,7 +68,9 @@ dotnet ef database update --project <Projekt>
 
 ### Backend
 
-- ASP.NET Core Web API mit Controllern (oder Minimal APIs – konsistent bei einer Variante bleiben).
+- ASP.NET Core Web API mit Controllern (keine Minimal APIs).
+- Frontend und API laufen unter derselben Domain (Reverse Proxy); deshalb gibt es kein CORS.
+- Fehlerantworten sind ProblemDetails ohne Stacktraces. Zeitabhängige Logik nutzt den injizierten `TimeProvider`, nicht `DateTime.UtcNow`.
 - EF Core mit MySQL; Schemaänderungen ausschließlich über Migrations, nie manuell an der Datenbank.
 - Connection-Strings und Secrets (DB-Passwort, SMTP-Zugangsdaten) nie committen – lokal über `dotnet user-secrets` bzw. Umgebungsvariablen, in `appsettings.json` nur Platzhalter.
 - XML-Doc-Comments für öffentliche Klassen und Methoden.
