@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Schuelerfirma.Api.Infrastructure.InMemory;
 
 namespace Schuelerfirma.Api.Tests.Integration;
 
@@ -108,7 +109,11 @@ public class SkeletonTests(ApiFactory factory) : IClassFixture<ApiFactory>
     {
         builder.UseEnvironment("Production");
         builder.ConfigureServices(services =>
-            services.AddControllers().AddApplicationPart(typeof(ThrowingController).Assembly));
+        {
+            // Production has no storage yet; these tests are about the HTTP pipeline, not about data.
+            services.AddInMemoryPersistence();
+            services.AddControllers().AddApplicationPart(typeof(ThrowingController).Assembly);
+        });
     });
 
     private static void AssertSecurityHeaders(HttpResponseMessage response)
