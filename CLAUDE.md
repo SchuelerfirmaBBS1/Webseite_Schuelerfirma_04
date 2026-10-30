@@ -70,6 +70,8 @@ dotnet ef database update --project src/Schuelerfirma.Api           # erst mit E
 
 - ASP.NET Core Web API mit Controllern (keine Minimal APIs).
 - Frontend und API laufen unter derselben Domain (Reverse Proxy); deshalb gibt es kein CORS.
+- Datenzugriff nur über die Repository-Interfaces in `Application/Abstractions/` (nie direkt über einen `DbContext` in Services/Controllern). Bis die EF-Core-Implementierung (#22) existiert, laufen in Development die In-Memory-Repositories aus `Infrastructure/InMemory/`; außerhalb von Development startet die App ohne registrierte Repositories nicht. Neue Repositories bekommen abstrakte Contract-Tests in `tests/.../Persistence/`, die für jede Implementierung abgeleitet werden.
+- Zeitpunkte sind UTC (`DateTime`); Repositories lesen keine Uhr, der Aufrufer übergibt die Zeit.
 - Fehlerantworten sind ProblemDetails ohne Stacktraces. Zeitabhängige Logik nutzt den injizierten `TimeProvider`, nicht `DateTime.UtcNow`.
 - EF Core mit MySQL; Schemaänderungen ausschließlich über Migrations, nie manuell an der Datenbank.
 - Connection-Strings und Secrets (DB-Passwort, SMTP-Zugangsdaten) nie committen – lokal über `dotnet user-secrets` bzw. Umgebungsvariablen, in `appsettings.json` nur Platzhalter.
