@@ -2,17 +2,19 @@ classDiagram
 
 class User {
     +int UserId
+    +string Username
     +int RoleId
-    +string Username
-    +string Email
-    +string PasswordHash
-    +bool IsActive
-    +int UserId
-    +string Username
     +string Email
     +string PasswordHash
     +bool IsActive
 }
+
+class Role {
+    +int RoleId
+    +int Rolename
+}
+
+User "*" --> "1" Role
 
 class Category {
     +int CategoryId
