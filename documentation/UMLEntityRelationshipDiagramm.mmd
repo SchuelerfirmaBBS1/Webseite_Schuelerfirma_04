@@ -2,6 +2,7 @@ erDiagram
 
     USERS {
         int UserId PK
+        int RoleId FK
         string Username
         string Email
         string PasswordHash
@@ -11,11 +12,6 @@ erDiagram
     ROLES {
         int RoleId PK
         string Name
-    }
-
-    USER_ROLES {
-        int UserId PK, FK
-        int RoleId PK, FK
     }
 
     CATEGORIES {
@@ -83,5 +79,4 @@ erDiagram
     PRODUCTS ||--o{ PRODUCT_IMAGES : has
     EVENTS ||--o{ EVENT_IMAGES : has
 
-    USERS ||--o{ USER_ROLES : assigned
-    ROLES ||--o{ USER_ROLES : contains
+    ROLES ||--o{ USERS : assigned_to
