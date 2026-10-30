@@ -14,7 +14,7 @@ class Role {
     +string Rolename
 }
 
-User "*" --> "1" Role
+Role "1" --> "*" User
 
 class Category {
     +int CategoryId
