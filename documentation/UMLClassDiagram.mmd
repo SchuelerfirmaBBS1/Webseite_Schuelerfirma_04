@@ -14,16 +14,6 @@ class User {
     +bool IsActive
 }
 
-class Role {
-    +int RoleId
-    +string Name
-}
-
-class UserRole {
-    +int UserId
-    +int RoleId
-}
-
 User "1" -- "*" UserRole
 Role "1" -- "*" UserRole
 
