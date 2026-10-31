@@ -1,4 +1,6 @@
+using Schuelerfirma.Api.Infrastructure;
 using Schuelerfirma.Api.Infrastructure.Http;
+using Schuelerfirma.Api.Infrastructure.InMemory;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,7 +9,16 @@ builder.Services.AddProblemDetails();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddProxyHeaderHandling();
 
+// Until the EF Core repositories exist (#22) there is no real storage; outside Development the
+// startup check below stops the application instead of running without a database.
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddInMemoryPersistence();
+}
+
 var app = builder.Build();
+
+app.Services.EnsurePersistenceRegistered();
 
 app.UseSecurityHeaders();
 app.UseForwardedHeaders();
