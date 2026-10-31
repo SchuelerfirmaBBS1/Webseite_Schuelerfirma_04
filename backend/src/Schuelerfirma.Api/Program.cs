@@ -1,4 +1,5 @@
 using Schuelerfirma.Api.Infrastructure;
+using Schuelerfirma.Api.Infrastructure.Auth;
 using Schuelerfirma.Api.Infrastructure.Http;
 using Schuelerfirma.Api.Infrastructure.InMemory;
 
@@ -8,6 +9,7 @@ builder.Services.AddControllers();
 builder.Services.AddProblemDetails();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddProxyHeaderHandling();
+builder.Services.AddPasswordSecurity();
 
 // Until the EF Core repositories exist (#22) there is no real storage; outside Development the
 // startup check below stops the application instead of running without a database.
