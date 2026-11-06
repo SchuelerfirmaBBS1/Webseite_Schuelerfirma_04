@@ -83,7 +83,8 @@ dotnet ef database update --project src/Schuelerfirma.Api           # erst mit E
 - XML-Doc-Comments für öffentliche Klassen und Methoden.
 - API-Bereiche: Öffentliche Endpunkte erben von `PublicApiController` (`/api/public/...`, anonym), Verwaltungsendpunkte von `AdminApiController` (`/api/admin/...`, nicht cachebar). Jeder Verwaltungsendpunkt bekommt `[HasPermission(Permissions.…)]`, nie `[AllowAnonymous]`; öffentliche schreibende Endpunkte brauchen `[EnableRateLimiting]`. Andere Pfade außer `/api/auth` gibt es nicht. `ApiAreaRulesTests` prüft das für alle Endpunkte.
 - Öffentliche Endpunkte bekommen eigene Response-DTOs, nie dieselben wie der Verwaltungsbereich – so wird ein internes Feld nicht versehentlich öffentlich.
-- Berechtigungen: Namen stehen im Katalog `Application/Auth/Permissions.cs`, die Zuordnung zu Rollen in `appsettings.json` unter `Authorization:RolePermissions` (nie im Code). Eine neue Berechtigung in beiden eintragen. Mehrere `[HasPermission]` an einem Endpunkt müssen alle erfüllt sein.
+- Berechtigungen: Namen stehen im Katalog `Application/Auth/Permissions.cs`, die Zuordnung zu Rollen in `appsettings.json` unter `Authorization:RolePermissions` (nie im Code). Eine neue Berechtigung in beiden eintragen. Mehrere `[HasPermission]` an einem Endpunkt müssen alle erfüllt sein. Solange `User.MustChangePassword` gesetzt ist (Claim `sf:must_change_password`), gewährt `[HasPermission]` nichts; deshalb nie Funktionen für angemeldete Benutzer ohne `[HasPermission]` bauen, außer den Endpunkten unter `/api/auth`.
+- Passwortwechsel beendet alle Sessions des Benutzers inklusive der aktuellen; der Benutzer meldet sich neu an. Grund: Der Cookie-Handler kann innerhalb eines angemeldeten Requests keinen neuen Session-Schlüssel ausstellen (er erneuert bei `SignInAsync` den alten).
 - Eingaben aus dem Kontaktformular validieren.
 
 ### Sprache

@@ -59,7 +59,12 @@ Auf dem Server heißen die Variablen `Bootstrap__AdminUsername`, `Bootstrap__Adm
 - `GET /api/auth/csrf` → `204`, setzt die CSRF-Cookies (siehe unten); ohne Anmeldung erreichbar.
 - `POST /api/auth/login` mit `{ "username": "...", "password": "..." }` → `204` und Cookie `__Host-sf.session`, sonst `401`. Alle Fehlerfälle (unbekannter Benutzer, falsches Passwort, gesperrtes oder deaktiviertes Konto) liefern dieselbe Antwort. Höchstens 5 Versuche pro Minute und IP, danach `429` mit `Retry-After`.
 - `POST /api/auth/logout` → `204`, beendet die Session auf dem Server.
-- `GET /api/auth/me` → angemeldeter Benutzer (`userId`, `username`, `email`, `role`, `permissions`), ohne Login `401`. `permissions` sind die Berechtigungen der Rolle (alphabetisch, `*` bereits aufgelöst); das Frontend blendet damit Menüpunkte und Buttons aus, die API prüft trotzdem selbst.
+- `GET /api/auth/me` → angemeldeter Benutzer (`userId`, `username`, `email`, `role`, `permissions`, `mustChangePassword`), ohne Login `401`. `permissions` sind die Berechtigungen, die der Benutzer gerade nutzen kann (alphabetisch, `*` bereits aufgelöst; leer, solange `mustChangePassword` gesetzt ist); das Frontend blendet damit Menüpunkte und Buttons aus, die API prüft trotzdem selbst.
+- `POST /api/auth/change-password` mit `{ "currentPassword": "...", "newPassword": "..." }` → `204`. Danach sind **alle** Sessions des Benutzers beendet, auch die aktuelle; er meldet sich mit dem neuen Passwort neu an. Fehler: `400` mit der Meldung am Feld (`errors.CurrentPassword` bzw. `errors.NewPassword`, z. B. Passwortrichtlinie verletzt oder neues gleich altem Passwort). Ein falsches aktuelles Passwort zählt zur Kontosperre; löst es die Sperre aus, kommt `401` („Konto gesperrt“) und alle Sessions enden. Teilt sich das Limit von 5 Versuchen pro Minute mit dem Login.
+
+### Temporäre Passwörter
+
+Der erste Admin (und später jeder Benutzer mit einem vom Admin vergebenen Passwort, #36) muss das Passwort nach der ersten Anmeldung ändern. Solange `mustChangePassword` in `/api/auth/me` `true` ist, funktionieren nur `/api/auth/me`, `/api/auth/change-password` und `/api/auth/logout`; alle Verwaltungsendpunkte antworten mit `403`. Ablauf im Frontend: nach dem Login `/me` abfragen → bei `mustChangePassword` direkt das Formular „Passwort ändern“ zeigen → nach `204` „Passwort geändert, bitte neu anmelden“ und zurück zum Login.
 - Alle Endpunkte außer den ausdrücklich mit `[AllowAnonymous]` markierten verlangen eine Anmeldung; das gilt auch für unbekannte Pfade (`401` statt `404`).
 
 ### API-Bereiche und Rollenrechte
