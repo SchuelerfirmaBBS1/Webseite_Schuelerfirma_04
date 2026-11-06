@@ -11,7 +11,7 @@ Webseite der Schülerfirma der BBS1 Lüneburg. Öffentliche Seite plus Admin-Ber
 - Eingegangene Kontaktformulare einsehen
 - E-Mail-Adresse ändern, an die Kontaktformulare weitergeleitet werden
 
-Das Datenmodell ist in `documentation/Models.drawio` beschrieben (draw.io-XML). Vor Änderungen an Entities dort nachsehen und das Diagramm bei Modelländerungen mit aktualisieren.
+Das Datenmodell ist in den Mermaid-Diagrammen `documentation/UMLClassDiagram.mmd` (Klassendiagramm) und `documentation/UMLEntityRelationshipDiagramm.mmd` (ER-Diagramm) beschrieben. Vor Änderungen an Entities dort nachsehen und bei Modelländerungen beide Diagramme mit aktualisieren. Was für die Datenbank-Anbindung (EF Core/MySQL) gilt, steht in `documentation/Datenbank-Implementierung.md`.
 
 ## Tech-Stack und Struktur
 
@@ -20,7 +20,7 @@ Das Datenmodell ist in `documentation/Models.drawio` beschrieben (draw.io-XML). 
 | Frontend  | Vue 3 (`<script setup lang="ts">`), TypeScript, Vite, Tailwind CSS 4, Pinia, Vue Router | `frontend/`      |
 | Backend   | C# / ASP.NET Core (Web API), Entity Framework Core                        | `backend/`       |
 | Datenbank | MySQL (über EF Core, Provider z. B. `Pomelo.EntityFrameworkCore.MySql`)  | –                |
-| Doku      | draw.io-Diagramme                                                         | `documentation/` |
+| Doku      | Mermaid-Diagramme (`.mmd`)                                                | `documentation/` |
 
 Das Backend liegt unter `backend/` (.NET 10, Solution `Schuelerfirma.slnx`):
 
@@ -85,6 +85,7 @@ dotnet ef database update --project src/Schuelerfirma.Api           # erst mit E
 - Öffentliche Endpunkte bekommen eigene Response-DTOs, nie dieselben wie der Verwaltungsbereich – so wird ein internes Feld nicht versehentlich öffentlich.
 - Berechtigungen: Namen stehen im Katalog `Application/Auth/Permissions.cs`, die Zuordnung zu Rollen in `appsettings.json` unter `Authorization:RolePermissions` (nie im Code). Eine neue Berechtigung in beiden eintragen. Mehrere `[HasPermission]` an einem Endpunkt müssen alle erfüllt sein. Solange `User.MustChangePassword` gesetzt ist (Claim `sf:must_change_password`), gewährt `[HasPermission]` nichts; deshalb nie Funktionen für angemeldete Benutzer ohne `[HasPermission]` bauen, außer den Endpunkten unter `/api/auth`.
 - Passwortwechsel beendet alle Sessions des Benutzers inklusive der aktuellen; der Benutzer meldet sich neu an. Grund: Der Cookie-Handler kann innerhalb eines angemeldeten Requests keinen neuen Session-Schlüssel ausstellen (er erneuert bei `SignInAsync` den alten).
+- Benutzerverwaltung: Fachlogik und Schutzregeln liegen in `UserAdministrationService` (`Application/Users/`), der Controller übersetzt nur in HTTP. Benutzer nie löschen, nur deaktivieren; jede Admin-Aktion mit handelndem Benutzer loggen, temporäre Passwörter nie. Wer `users.manage` hat, ergibt sich aus der Konfiguration, nie aus dem Rollennamen.
 - Eingaben aus dem Kontaktformular validieren.
 
 ### Sprache

@@ -93,6 +93,18 @@ Die API ist in drei Bereiche geteilt:
 - Ein unbekannter Name (Tippfehler) verhindert den Start. Änderungen an `appsettings.json` gelten ohne Neustart; ist die geänderte Datei fehlerhaft, bleibt die bisherige Zuordnung aktiv und im Log steht ein Fehler.
 - Über Umgebungsvariablen wird jeder Listeneintrag einzeln überschrieben (`Authorization__RolePermissions__User__0=events.create`); Einträge mit höherem Index aus `appsettings.json` bleiben dabei bestehen.
 
+### Benutzerverwaltung (Admin-Panel)
+
+Alle Endpunkte verlangen die Berechtigung `users.manage` (Standard: nur Admin). Benutzer werden nie gelöscht, nur deaktiviert. Antworten mit Passwörtern werden nicht zwischengespeichert.
+
+- `GET /api/admin/users`, `GET /api/admin/users/{id}` → Benutzer mit `userId`, `username`, `email`, `roleId`, `role`, `isActive`, `mustChangePassword`, `lockedUntil` (Ende einer Sperre nach Fehlversuchen, sonst `null`), `createdAt`, `lastLoginAt`. Ohne Passwort-Hash.
+- `POST /api/admin/users` mit `{ "username": "...", "email": "...", "roleId": 2 }` → `201` mit `{ "user": {...}, "temporaryPassword": "..." }`. Das temporäre Passwort wird nur dieses eine Mal angezeigt; der Benutzer muss es bei der ersten Anmeldung ändern. Benutzername: 3–32 Zeichen aus `a-z 0-9 . _ -`, nicht änderbar.
+- `PUT /api/admin/users/{id}` mit `{ "email": "...", "roleId": 2, "isActive": true }` → `200` mit dem Benutzer. Rollenwechsel und Deaktivierung beenden sofort alle Sessions des Benutzers.
+- `POST /api/admin/users/{id}/reset-password` → `200` mit `{ "temporaryPassword": "...", "endedSessions": 1 }`; hebt eine Sperre auf und beendet alle Sessions.
+- `POST /api/admin/users/{id}/revoke-sessions` → `200` mit `{ "endedSessions": 2 }`, z. B. wenn jemand am Messe-Laptop angemeldet geblieben ist.
+- `GET /api/admin/roles` → Rollen mit `roleId`, `name` und `permissions` (für Auswahllisten).
+- Fehler: `400` bei ungültigen Eingaben (Meldung am Feld), `404` bei unbekannter ID, `409` mit deutscher Meldung in `detail` bei vergebenem Benutzernamen oder vergebener E-Mail und bei den Schutzregeln: Niemand kann das eigene Konto deaktivieren, die eigene Rolle ändern oder das eigene Passwort hier zurücksetzen (dafür gibt es `/api/auth/change-password`), und der letzte aktive Benutzer mit `users.manage` bleibt erhalten.
+
 ### CSRF-Schutz: Hinweise fürs Frontend
 
 Jede schreibende Anfrage (POST, PUT, PATCH, DELETE) braucht ein CSRF-Token – auch der Login und öffentliche Formulare wie das Kontaktformular. Ohne gültiges Token antwortet die API mit `400` und dem Titel „Sicherheitstoken fehlt oder ist ungültig“.
