@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
 using Schuelerfirma.Api.Application.Abstractions;
@@ -105,12 +106,39 @@ public class AuthApiFactory : ApiFactory
         });
     }
 
+    /// <summary>Leaves <c>MustChangePassword</c> of the bootstrapped administrator as in production.</summary>
+    public bool KeepBootstrapPasswordFlag { get; init; }
+
+    /// <summary>
+    /// The bootstrapped administrator has to change the password, like in production. Most tests want a usable
+    /// admin, so the flag is removed after startup; tests for the flag create users with <c>mustChangePassword</c>.
+    /// </summary>
+    protected override IHost CreateHost(IHostBuilder builder)
+    {
+        var host = base.CreateHost(builder);
+        if (KeepBootstrapPasswordFlag)
+        {
+            return host;
+        }
+
+        var users = host.Services.GetRequiredService<IUserRepository>();
+        var admin = users.GetByUsernameAsync(AdminUsername).GetAwaiter().GetResult();
+        if (admin is not null)
+        {
+            admin.MustChangePassword = false;
+            users.UpdateAsync(admin).GetAwaiter().GetResult();
+        }
+
+        return host;
+    }
+
     public IUserRepository Users => Services.GetRequiredService<IUserRepository>();
 
     public IUserSessionRepository Sessions => Services.GetRequiredService<IUserSessionRepository>();
 
     /// <summary>Creates a user directly in the store (the bootstrapped admin exists already).</summary>
-    public async Task<User> AddUserAsync(string username, string password = MemberPassword, string role = DefaultRoles.User, bool active = true)
+    public async Task<User> AddUserAsync(
+        string username, string password = MemberPassword, string role = DefaultRoles.User, bool active = true, bool mustChangePassword = false)
     {
         var roleId = (await Services.GetRequiredService<IRoleRepository>().GetByNameAsync(role))!.RoleId;
         var user = new User
@@ -119,6 +147,7 @@ public class AuthApiFactory : ApiFactory
             Email = $"{username}@example.test",
             RoleId = roleId,
             IsActive = active,
+            MustChangePassword = mustChangePassword,
             CreatedAt = Time.GetUtcNow().UtcDateTime,
         };
         user.PasswordHash = Services.GetRequiredService<IPasswordHasher<User>>().HashPassword(user, password);
