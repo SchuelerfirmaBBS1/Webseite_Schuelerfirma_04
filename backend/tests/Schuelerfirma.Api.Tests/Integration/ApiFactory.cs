@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
 
 namespace Schuelerfirma.Api.Tests.Integration;
 
@@ -7,6 +9,35 @@ namespace Schuelerfirma.Api.Tests.Integration;
 /// </summary>
 public class ApiFactory : WebApplicationFactory<Program>
 {
+    private readonly string keysPath = Path.Combine(Path.GetTempPath(), "sf-test-keys-" + Guid.NewGuid().ToString("N"));
+
+    /// <inheritdoc />
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        // The session cookie is encrypted with persistent keys; keep the tests' keys out of the source tree.
+        // Added last on purpose: values in the developer's user-secrets must not influence the tests.
+        builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(
+            new Dictionary<string, string?>
+            {
+                ["DataProtection:KeysPath"] = keysPath,
+                ["Bootstrap:AdminUsername"] = null,
+                ["Bootstrap:AdminEmail"] = null,
+                ["Bootstrap:AdminPassword"] = null,
+            }));
+    }
+
+    /// <summary>Directory the encryption keys of this host are written to.</summary>
+    public string KeysPath => keysPath;
+
+    /// <inheritdoc />
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+        if (disposing && Directory.Exists(keysPath))
+        {
+            Directory.Delete(keysPath, recursive: true);
+        }
+    }
 }
 
 /// <summary>
