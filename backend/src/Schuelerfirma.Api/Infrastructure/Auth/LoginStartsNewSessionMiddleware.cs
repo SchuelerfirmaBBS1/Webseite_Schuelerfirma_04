@@ -1,9 +1,14 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Extensions.Options;
-using Schuelerfirma.Api.Application.Auth;
 
 namespace Schuelerfirma.Api.Infrastructure.Auth;
+
+/// <summary>
+/// The session a login request came with. <c>AuthController</c> ends it once the login has succeeded.
+/// </summary>
+/// <param name="Key">Key of the session in the <see cref="SessionTicketStore"/>.</param>
+public sealed record ReplacedSession(string Key);
 
 /// <summary>
 /// Makes every login create a brand-new session.
@@ -12,14 +17,15 @@ namespace Schuelerfirma.Api.Infrastructure.Auth;
 /// When a request already carries a session cookie, the cookie handler does not create a new session on sign-in but
 /// <i>renews the existing one</i> with the new identity. On a shared computer (the trade fair!) that would hand the
 /// previous user's session key to the next user, and anyone holding a copy of the old cookie would suddenly act
-/// as the new user. This middleware therefore ends the session of a login request and hides its cookie from the
-/// authentication handler, which then has no choice but to start a new session with a new key.
+/// as the new user. This middleware therefore hides the session cookie of a login request from the authentication
+/// handler, which then has no choice but to start a new session with a new key.
+/// The old session is not ended here but only after a successful login (see <see cref="ReplacedSession"/>): a login
+/// that is refused (CSRF check, wrong password) must not log out whoever is logged in.
 /// Must run before <c>UseAuthentication</c>.
 /// </remarks>
 public sealed class LoginStartsNewSessionMiddleware(
     RequestDelegate next,
     IOptionsMonitor<CookieAuthenticationOptions> cookieOptions,
-    SessionTicketStore sessions,
     ILogger<LoginStartsNewSessionMiddleware> logger)
 {
     /// <summary>The path of the login endpoint (<c>AuthController</c>).</summary>
@@ -35,28 +41,29 @@ public sealed class LoginStartsNewSessionMiddleware(
             && context.Request.Path.Equals(LoginPath, StringComparison.OrdinalIgnoreCase)
             && context.Request.Cookies.TryGetValue(AuthenticationExtensions.CookieName, out var cookieValue))
         {
-            await EndSessionAsync(cookieValue);
+            if (ReadSessionKey(cookieValue) is { } key)
+            {
+                context.Features.Set(new ReplacedSession(key));
+            }
+
             RemoveSessionCookie(context);
         }
 
         await next(context);
     }
 
-    private async Task EndSessionAsync(string cookieValue)
+    private string? ReadSessionKey(string cookieValue)
     {
         try
         {
             var options = cookieOptions.Get(CookieAuthenticationDefaults.AuthenticationScheme);
-            var key = options.TicketDataFormat.Unprotect(cookieValue)?.Principal.FindFirst(SessionIdClaim)?.Value;
-            if (key is not null)
-            {
-                await sessions.RemoveAsync(key);
-            }
+            return options.TicketDataFormat.Unprotect(cookieValue)?.Principal.FindFirst(SessionIdClaim)?.Value;
         }
         catch (Exception exception)
         {
             // A forged or outdated cookie value: nothing to end. The login goes on and replaces the cookie.
             logger.LogDebug(exception, "Could not read the session cookie of a login request");
+            return null;
         }
     }
 
