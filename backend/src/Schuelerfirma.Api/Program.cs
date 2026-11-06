@@ -11,6 +11,7 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddProxyHeaderHandling();
 builder.Services.AddPasswordSecurity();
 builder.Services.AddSessionAuthentication();
+builder.Services.AddRolePermissions();
 builder.Services.AddCsrfProtection();
 builder.Services.AddClientRateLimiting();
 
