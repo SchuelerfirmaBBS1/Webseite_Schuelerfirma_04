@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Schuelerfirma.Api.Tests.Integration;
@@ -7,6 +8,7 @@ namespace Schuelerfirma.Api.Tests.Integration;
 /// as an application part, so it does not leak into other tests.
 /// </summary>
 [ApiController]
+[AllowAnonymous]
 [Route("test/throw")]
 public class ThrowingController : ControllerBase
 {

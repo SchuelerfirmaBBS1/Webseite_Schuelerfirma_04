@@ -14,14 +14,16 @@ namespace Schuelerfirma.Api.Tests.Integration;
 public class SkeletonTests(ApiFactory factory) : IClassFixture<ApiFactory>
 {
     [Fact]
-    public async Task UnknownEndpoint_ReturnsProblemDetails404()
+    public async Task UnknownEndpoint_WhenNotLoggedIn_ReturnsProblemDetails401()
     {
+        // The fallback authorization policy also covers unknown paths: an anonymous client learns nothing about
+        // which paths exist.
         var response = await factory.CreateHttpsClient().GetAsync("/api/does-not-exist");
 
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
         var problem = await response.Content.ReadFromJsonAsync<JsonElement>();
-        Assert.Equal(404, problem.GetProperty("status").GetInt32());
+        Assert.Equal(401, problem.GetProperty("status").GetInt32());
     }
 
     [Fact]
