@@ -11,7 +11,7 @@ Webseite der Schülerfirma der BBS1 Lüneburg. Öffentliche Seite plus Admin-Ber
 - Eingegangene Kontaktformulare einsehen
 - E-Mail-Adresse ändern, an die Kontaktformulare weitergeleitet werden
 
-Das Datenmodell ist in `documentation/Models.drawio` beschrieben (draw.io-XML). Vor Änderungen an Entities dort nachsehen und das Diagramm bei Modelländerungen mit aktualisieren.
+Das Datenmodell ist in den Mermaid-Diagrammen `documentation/UMLClassDiagram.mmd` (Klassendiagramm) und `documentation/UMLEntityRelationshipDiagramm.mmd` (ER-Diagramm) beschrieben. Vor Änderungen an Entities dort nachsehen und bei Modelländerungen beide Diagramme mit aktualisieren. Was für die Datenbank-Anbindung (EF Core/MySQL) gilt, steht in `documentation/Datenbank-Implementierung.md`.
 
 ## Tech-Stack und Struktur
 
@@ -20,7 +20,7 @@ Das Datenmodell ist in `documentation/Models.drawio` beschrieben (draw.io-XML). 
 | Frontend  | Vue 3 (`<script setup lang="ts">`), TypeScript, Vite, Tailwind CSS 4, Pinia, Vue Router | `frontend/`      |
 | Backend   | C# / ASP.NET Core (Web API), Entity Framework Core                        | `backend/`       |
 | Datenbank | MySQL (über EF Core, Provider z. B. `Pomelo.EntityFrameworkCore.MySql`)  | –                |
-| Doku      | draw.io-Diagramme                                                         | `documentation/` |
+| Doku      | Mermaid-Diagramme (`.mmd`)                                                | `documentation/` |
 
 Das Backend liegt unter `backend/` (.NET 10, Solution `Schuelerfirma.slnx`):
 
