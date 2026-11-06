@@ -1,3 +1,4 @@
+using Schuelerfirma.Api.Application.Users;
 using Schuelerfirma.Api.Infrastructure;
 using Schuelerfirma.Api.Infrastructure.Auth;
 using Schuelerfirma.Api.Infrastructure.Http;
@@ -12,6 +13,7 @@ builder.Services.AddProxyHeaderHandling();
 builder.Services.AddPasswordSecurity();
 builder.Services.AddSessionAuthentication();
 builder.Services.AddRolePermissions();
+builder.Services.AddScoped<UserAdministrationService>();
 builder.Services.AddCsrfProtection();
 builder.Services.AddClientRateLimiting();
 
