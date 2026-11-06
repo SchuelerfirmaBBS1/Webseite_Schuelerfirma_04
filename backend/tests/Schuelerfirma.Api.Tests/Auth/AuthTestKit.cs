@@ -10,6 +10,7 @@ using Microsoft.Extensions.Time.Testing;
 using Schuelerfirma.Api.Application.Abstractions;
 using Schuelerfirma.Api.Domain;
 using Schuelerfirma.Api.Infrastructure.Auth;
+using Schuelerfirma.Api.Infrastructure.Http;
 using Schuelerfirma.Api.Infrastructure.InMemory;
 using Schuelerfirma.Api.Tests.Integration;
 
@@ -93,6 +94,8 @@ public class AuthApiFactory : ApiFactory
                 ["Bootstrap:AdminUsername"] = AdminUsername,
                 ["Bootstrap:AdminEmail"] = AdminEmail,
                 ["Bootstrap:AdminPassword"] = AdminPassword,
+                // The login tests log in far more often than the real limit allows; RateLimitingTests check the limit.
+                ["RateLimiting:Auth:PermitLimit"] = "10000",
             }));
         builder.ConfigureLogging(logging => logging.AddProvider(Logs));
         builder.ConfigureServices(services =>
@@ -121,6 +124,19 @@ public class AuthApiFactory : ApiFactory
         user.PasswordHash = Services.GetRequiredService<IPasswordHasher<User>>().HashPassword(user, password);
         await Users.AddAsync(user);
         return user;
+    }
+
+    /// <summary>
+    /// Fetches a CSRF token pair for an anonymous visitor without any cookie handling: the value for the
+    /// <c>Cookie</c> header (<c>__Host-sf.csrf=...</c>) and the value for the <c>X-XSRF-TOKEN</c> header.
+    /// </summary>
+    public async Task<(string Cookie, string Header)> FetchAnonymousCsrfTokensAsync()
+    {
+        var response = await CreateDefaultClient(new Uri(WebApplicationFactoryExtensions.Host)).GetAsync("/api/auth/csrf");
+        var cookies = response.Headers.GetValues("Set-Cookie").Select(c => c[..c.IndexOf(';')]).ToList();
+        var cookie = cookies.Single(c => c.StartsWith(CsrfProtectionExtensions.CookieName + "="));
+        var header = cookies.Single(c => c.StartsWith(CsrfProtectionExtensions.RequestTokenCookieName + "="));
+        return (cookie, header[(header.IndexOf('=') + 1)..]);
     }
 
     /// <summary>Posts credentials to the login endpoint.</summary>

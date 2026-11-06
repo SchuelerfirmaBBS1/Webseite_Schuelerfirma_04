@@ -54,7 +54,7 @@ public class LoginTests : IDisposable
     {
         var response = await AuthApiFactory.LoginAsync(factory.CreateHttpsClient(), AuthApiFactory.AdminUsername, AuthApiFactory.AdminPassword);
 
-        var cookie = Assert.Single(response.Headers.GetValues("Set-Cookie"));
+        var cookie = Assert.Single(response.Headers.GetValues("Set-Cookie"), c => c.StartsWith(CookieName + "="));
         var lower = cookie.ToLowerInvariant();
         Assert.StartsWith(CookieName + "=", cookie);
         Assert.Contains("httponly", lower);
@@ -72,10 +72,12 @@ public class LoginTests : IDisposable
     {
         var response = await AuthApiFactory.LoginAsync(factory.CreateHttpsClient(), AuthApiFactory.AdminUsername, AuthApiFactory.AdminPassword);
 
-        var value = Assert.Single(response.Headers.GetValues("Set-Cookie"));
-
-        Assert.DoesNotContain(AuthApiFactory.AdminUsername, value, StringComparison.OrdinalIgnoreCase);
-        Assert.DoesNotContain(AuthApiFactory.AdminEmail, value, StringComparison.OrdinalIgnoreCase);
+        // The session cookie and the new CSRF token.
+        Assert.All(response.Headers.GetValues("Set-Cookie"), value =>
+        {
+            Assert.DoesNotContain(AuthApiFactory.AdminUsername, value, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain(AuthApiFactory.AdminEmail, value, StringComparison.OrdinalIgnoreCase);
+        });
     }
 
     [Fact]
@@ -230,10 +232,13 @@ public class LoginTests : IDisposable
     public async Task LoggingInAgain_StartsANewSession_AndEndsTheOldOne()
     {
         var client = factory.CreateHttpsClient();
+        var anonymousToken = await FetchTokenAsync(client);
         var firstCookie = ExtractCookieHeader(await AuthApiFactory.LoginAsync(client, AuthApiFactory.AdminUsername, AuthApiFactory.AdminPassword));
 
-        // The same browser logs in again; the session key must change (no session fixation).
-        var again = await AuthApiFactory.LoginAsync(client, AuthApiFactory.AdminUsername, AuthApiFactory.AdminPassword);
+        // The same browser logs in again from a second tab that still holds the token from before the first login
+        // (with the token of the running session the CSRF check refuses, see LoginWhileLoggedIn_...). The session
+        // key must change (no session fixation).
+        var again = await LoginWithTokenAsync(client, anonymousToken, AuthApiFactory.AdminUsername, AuthApiFactory.AdminPassword);
         var secondCookie = ExtractCookieHeader(again);
 
         Assert.Equal(HttpStatusCode.NoContent, again.StatusCode);
@@ -247,9 +252,11 @@ public class LoginTests : IDisposable
     {
         await factory.AddUserAsync("member");
         var browser = factory.CreateHttpsClient();
+        var anonymousToken = await FetchTokenAsync(browser);
         var adminCookie = ExtractCookieHeader(await AuthApiFactory.LoginAsync(browser, AuthApiFactory.AdminUsername, AuthApiFactory.AdminPassword));
 
-        var memberLogin = await AuthApiFactory.LoginAsync(browser, "member", AuthApiFactory.MemberPassword);
+        // A second tab with the token from before the admin's login.
+        var memberLogin = await LoginWithTokenAsync(browser, anonymousToken, "member", AuthApiFactory.MemberPassword);
         var memberCookie = ExtractCookieHeader(memberLogin);
 
         // The admin's copied cookie must not turn into the member's session (or stay an admin session).
@@ -259,13 +266,29 @@ public class LoginTests : IDisposable
     }
 
     [Fact]
+    public async Task AFailedLogin_DoesNotEndTheRunningSession()
+    {
+        var client = factory.CreateHttpsClient();
+        var anonymousToken = await FetchTokenAsync(client);
+        await AuthApiFactory.LoginAsync(client, AuthApiFactory.AdminUsername, AuthApiFactory.AdminPassword);
+
+        // A second tab (valid CSRF token) tries a wrong password: whoever is logged in stays logged in.
+        var failed = await LoginWithTokenAsync(client, anonymousToken, AuthApiFactory.AdminUsername, "wrong password!!");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, failed.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, await MeStatusAsync(client));
+    }
+
+    [Fact]
     public async Task ALoginWithAForgedCookie_StillWorks()
     {
+        var csrf = await factory.FetchAnonymousCsrfTokensAsync();
         var request = new HttpRequestMessage(HttpMethod.Post, "/api/auth/login")
         {
             Content = JsonContent.Create(new { username = AuthApiFactory.AdminUsername, password = AuthApiFactory.AdminPassword }),
         };
-        request.Headers.Add("Cookie", $"{CookieName}=forged-value; other=1");
+        request.Headers.Add("Cookie", $"{CookieName}=forged-value; {csrf.Cookie}; other=1");
+        request.Headers.Add("X-XSRF-TOKEN", csrf.Header);
 
         var response = await factory.CreateDefaultClient(new Uri(WebApplicationFactoryExtensions.Host)).SendAsync(request);
 
@@ -389,8 +412,21 @@ public class LoginTests : IDisposable
     private static string ExtractCookieHeader(HttpResponseMessage response)
     {
         // When a login replaces a running session the response first deletes the old cookie, then sets the new one.
-        var setCookie = response.Headers.GetValues("Set-Cookie").Last();
+        var setCookie = response.Headers.GetValues("Set-Cookie").Last(c => c.StartsWith(CookieName + "="));
         return setCookie[..setCookie.IndexOf(';')];
+    }
+
+    private static async Task<string> FetchTokenAsync(HttpClient client)
+    {
+        var setCookie = (await client.GetAsync("/api/auth/csrf")).Headers.GetValues("Set-Cookie").Single(c => c.StartsWith("XSRF-TOKEN="));
+        return setCookie["XSRF-TOKEN=".Length..setCookie.IndexOf(';')];
+    }
+
+    private static Task<HttpResponseMessage> LoginWithTokenAsync(HttpClient client, string token, string username, string password)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/auth/login") { Content = JsonContent.Create(new { username, password }) };
+        request.Headers.Add("X-XSRF-TOKEN", token);
+        return client.SendAsync(request);
     }
 
     private async Task<HttpStatusCode> MeWithCookieAsync(string cookieHeader)
