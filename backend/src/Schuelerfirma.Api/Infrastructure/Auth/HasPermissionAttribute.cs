@@ -27,8 +27,9 @@ public sealed class HasPermissionAttribute(string permission) : AuthorizeAttribu
 public sealed record PermissionRequirement(string Permission) : IAuthorizationRequirement;
 
 /// <summary>
-/// Grants <see cref="PermissionRequirement"/> if the user's role has the permission. The role claim is rebuilt from
-/// the database on every request (<see cref="SessionCookieEvents"/>), so role changes apply immediately.
+/// Grants <see cref="PermissionRequirement"/> if the user's role has the permission and the user does not have to
+/// change the password first (temporary password). The claims are rebuilt from the database on every request
+/// (<see cref="SessionCookieEvents"/>), so role changes and the password change apply immediately.
 /// </summary>
 public sealed class PermissionAuthorizationHandler(IRolePermissionProvider permissions)
     : AuthorizationHandler<PermissionRequirement>
@@ -37,6 +38,7 @@ public sealed class PermissionAuthorizationHandler(IRolePermissionProvider permi
     protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, PermissionRequirement requirement)
     {
         if (context.User.Identity?.IsAuthenticated == true
+            && !context.User.MustChangePassword()
             && context.User.FindAll(ClaimTypes.Role).Any(role => permissions.HasPermission(role.Value, requirement.Permission)))
         {
             context.Succeed(requirement);
