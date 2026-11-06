@@ -20,7 +20,11 @@ namespace Schuelerfirma.Api.Controllers;
 [Route("api/auth")]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public class AuthController(
-    AuthService authService, IUserRepository users, IAntiforgery antiforgery, SessionTicketStore sessions) : ControllerBase
+    AuthService authService,
+    IUserRepository users,
+    IAntiforgery antiforgery,
+    SessionTicketStore sessions,
+    IRolePermissionProvider permissions) : ControllerBase
 {
     /// <summary>
     /// Sets the CSRF cookies for the current visitor (logged in or not). The frontend calls this when it starts and
@@ -82,7 +86,7 @@ public class AuthController(
         return NoContent();
     }
 
-    /// <summary>Returns the logged-in user.</summary>
+    /// <summary>Returns the logged-in user with the permissions of their role.</summary>
     /// <response code="200">The user.</response>
     /// <response code="401">Not logged in.</response>
     [HttpGet("me")]
@@ -95,6 +99,11 @@ public class AuthController(
             return Unauthorized();
         }
 
-        return new MeResponse(user.UserId, user.Username, user.Email, user.Role.Name);
+        return new MeResponse(
+            user.UserId,
+            user.Username,
+            user.Email,
+            user.Role.Name,
+            [.. permissions.GetPermissions(user.Role.Name).Order(StringComparer.Ordinal)]);
     }
 }

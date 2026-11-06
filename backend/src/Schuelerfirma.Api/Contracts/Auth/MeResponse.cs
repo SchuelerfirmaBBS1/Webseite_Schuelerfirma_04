@@ -5,4 +5,8 @@ namespace Schuelerfirma.Api.Contracts.Auth;
 /// <param name="Username">Login name.</param>
 /// <param name="Email">E-mail address.</param>
 /// <param name="Role">Name of the user's role.</param>
-public sealed record MeResponse(int UserId, string Username, string Email, string Role);
+/// <param name="Permissions">
+/// Permissions of the role in alphabetical order, with the wildcard expanded. The frontend uses them to show or hide
+/// buttons; the API checks them anyway.
+/// </param>
+public sealed record MeResponse(int UserId, string Username, string Email, string Role, IReadOnlyList<string> Permissions);
