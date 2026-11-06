@@ -11,6 +11,8 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddProxyHeaderHandling();
 builder.Services.AddPasswordSecurity();
 builder.Services.AddSessionAuthentication();
+builder.Services.AddCsrfProtection();
+builder.Services.AddClientRateLimiting();
 
 // Until the EF Core repositories exist (#22) there is no real storage; outside Development the
 // startup check below stops the application instead of running without a database.
@@ -37,6 +39,8 @@ if (!app.Environment.IsDevelopment())
 app.UseStatusCodePages();
 app.UseHttpsRedirection();
 
+// After UseForwardedHeaders (real client IP) and before the login middleware, so rejected requests cost nothing.
+app.UseRateLimiter();
 app.UseMiddleware<LoginStartsNewSessionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
