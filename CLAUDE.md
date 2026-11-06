@@ -75,13 +75,16 @@ dotnet ef database update --project src/Schuelerfirma.Api           # erst mit E
 - Login: serverseitige Sessions (`SessionTicketStore` auf Basis von `IUserSessionRepository`), Cookie `__Host-sf.session` (HttpOnly, Secure, SameSite=Strict). Die Fallback-Policy verlangt für jeden Endpunkt eine Anmeldung; öffentliche Endpunkte werden ausdrücklich mit `[AllowAnonymous]` markiert. Login-Fehler sind immer identisch (`401`), nie zwischen unbekanntem Benutzer, falschem Passwort, Sperre oder Deaktivierung unterscheiden. Eigene Optionsklassen nicht wie Typen aus `Microsoft.AspNetCore.*` benennen (`SessionOptions`, `LockoutOptions` und `PasswordOptions` kollidieren), daher `Login…Options`/`PasswordPolicyOptions`.
 - CSRF: Ein globaler Filter (`CsrfValidationFilter`) prüft bei jedem POST/PUT/PATCH/DELETE das Token aus dem Header `X-XSRF-TOKEN`, auch bei anonymen Endpunkten. Nicht abschalten; `[IgnoreAntiforgeryToken]` nur mit Begründung. Ändert sich die Identität im Request (Login, Logout), neues Token mit `IAntiforgery.IssueCsrfToken(HttpContext, neuerPrincipal)` ausstellen.
 - Rate Limiting: Öffentliche schreibende Endpunkte (z. B. Kontaktformular) und alles, was Passwörter prüft, bekommen `[EnableRateLimiting(...)]` mit einer Policy aus `RateLimitPolicies` (`auth`, `contact`). Gezählt wird pro Client-IP (IPv6 pro /64); neue Policies in `RateLimitingExtensions` mit Standardwerten und Konfigurationsabschnitt anlegen.
-- Konfiguration: `Auth:*` (Passwort, Sperre, Session), `RateLimiting:*` (Limits), `Bootstrap:*` (erster Admin, nur über user-secrets/Umgebungsvariablen), `DataProtection:KeysPath` (Pflicht außerhalb von Development). Details im README.
+- Konfiguration: `Auth:*` (Passwort, Sperre, Session), `RateLimiting:*` (Limits), `Authorization:RolePermissions` (Rollenrechte), `Bootstrap:*` (erster Admin, nur über user-secrets/Umgebungsvariablen), `DataProtection:KeysPath` (Pflicht außerhalb von Development). Details im README.
 - Zeitpunkte sind UTC (`DateTime`); Repositories lesen keine Uhr, der Aufrufer übergibt die Zeit.
 - Fehlerantworten sind ProblemDetails ohne Stacktraces. Zeitabhängige Logik nutzt den injizierten `TimeProvider`, nicht `DateTime.UtcNow`.
 - EF Core mit MySQL; Schemaänderungen ausschließlich über Migrations, nie manuell an der Datenbank.
 - Connection-Strings und Secrets (DB-Passwort, SMTP-Zugangsdaten) nie committen – lokal über `dotnet user-secrets` bzw. Umgebungsvariablen, in `appsettings.json` nur Platzhalter.
 - XML-Doc-Comments für öffentliche Klassen und Methoden.
-- Admin-Endpunkte müssen authentifiziert sein; Eingaben aus dem Kontaktformular validieren.
+- API-Bereiche: Öffentliche Endpunkte erben von `PublicApiController` (`/api/public/...`, anonym), Verwaltungsendpunkte von `AdminApiController` (`/api/admin/...`, nicht cachebar). Jeder Verwaltungsendpunkt bekommt `[HasPermission(Permissions.…)]`, nie `[AllowAnonymous]`; öffentliche schreibende Endpunkte brauchen `[EnableRateLimiting]`. Andere Pfade außer `/api/auth` gibt es nicht. `ApiAreaRulesTests` prüft das für alle Endpunkte.
+- Öffentliche Endpunkte bekommen eigene Response-DTOs, nie dieselben wie der Verwaltungsbereich – so wird ein internes Feld nicht versehentlich öffentlich.
+- Berechtigungen: Namen stehen im Katalog `Application/Auth/Permissions.cs`, die Zuordnung zu Rollen in `appsettings.json` unter `Authorization:RolePermissions` (nie im Code). Eine neue Berechtigung in beiden eintragen. Mehrere `[HasPermission]` an einem Endpunkt müssen alle erfüllt sein.
+- Eingaben aus dem Kontaktformular validieren.
 
 ### Sprache
 

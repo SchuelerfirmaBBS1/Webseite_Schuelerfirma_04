@@ -52,14 +52,41 @@ Auf dem Server heißen die Variablen `Bootstrap__AdminUsername`, `Bootstrap__Adm
 | `ForwardedHeaders:KnownProxies` | leer | IP-Adressen der Reverse Proxys, denen `X-Forwarded-*` vertraut wird |
 | `RateLimiting:Auth:PermitLimit` / `:Window` | 5 / `00:01:00` | Login-Versuche pro Client-IP und Zeitfenster |
 | `RateLimiting:Contact:PermitLimit` / `:Window` | 10 / `00:10:00` | Absendungen öffentlicher Formulare (Kontaktformular) pro Client-IP und Zeitfenster; bewusst großzügig, weil sich auf der Messe viele Besucher eine IP teilen |
+| `Authorization:RolePermissions` | siehe unten | Welche Rolle welche Berechtigungen hat |
 
 ### Login-API
 
 - `GET /api/auth/csrf` → `204`, setzt die CSRF-Cookies (siehe unten); ohne Anmeldung erreichbar.
 - `POST /api/auth/login` mit `{ "username": "...", "password": "..." }` → `204` und Cookie `__Host-sf.session`, sonst `401`. Alle Fehlerfälle (unbekannter Benutzer, falsches Passwort, gesperrtes oder deaktiviertes Konto) liefern dieselbe Antwort. Höchstens 5 Versuche pro Minute und IP, danach `429` mit `Retry-After`.
 - `POST /api/auth/logout` → `204`, beendet die Session auf dem Server.
-- `GET /api/auth/me` → angemeldeter Benutzer (`userId`, `username`, `email`, `role`), ohne Login `401`.
+- `GET /api/auth/me` → angemeldeter Benutzer (`userId`, `username`, `email`, `role`, `permissions`), ohne Login `401`. `permissions` sind die Berechtigungen der Rolle (alphabetisch, `*` bereits aufgelöst); das Frontend blendet damit Menüpunkte und Buttons aus, die API prüft trotzdem selbst.
 - Alle Endpunkte außer den ausdrücklich mit `[AllowAnonymous]` markierten verlangen eine Anmeldung; das gilt auch für unbekannte Pfade (`401` statt `404`).
+
+### API-Bereiche und Rollenrechte
+
+Die API ist in drei Bereiche geteilt:
+
+| Pfad | Für | Zugriff |
+|---|---|---|
+| `/api/public/...` | Besucher der Webseite (Termine, Bilder, Produkte, Kontaktformular) | ohne Anmeldung |
+| `/api/admin/...` | Verwaltung (Admin-Panel) | Anmeldung und passende Berechtigung, sonst `401` bzw. `403` |
+| `/api/auth/...` | Login, Logout, `/me`, CSRF-Token | siehe oben |
+
+`/api/admin` steht für den Bereich, nicht für die Rolle Admin: Auch die Rolle User arbeitet dort, was sie darf, entscheiden die Berechtigungen. Welche Rolle welche Berechtigungen hat, steht in `appsettings.json`:
+
+```json
+"Authorization": {
+  "RolePermissions": {
+    "Admin": [ "*" ],
+    "User": [ "events.create", "events.update", "images.upload", "products.read", "products.toggle-price-visibility" ]
+  }
+}
+```
+
+- `*` steht für alle Berechtigungen, auch künftige. Eine Rolle ohne Eintrag hat keine Rechte.
+- Verfügbare Berechtigungen: `events.create`, `events.update`, `events.delete`, `images.upload`, `images.update`, `images.delete`, `products.read`, `products.manage`, `products.toggle-price-visibility`, `contact-requests.read`, `contact-requests.update`, `contact-requests.delete`, `settings.manage`, `users.manage`.
+- Ein unbekannter Name (Tippfehler) verhindert den Start. Änderungen an `appsettings.json` gelten ohne Neustart; ist die geänderte Datei fehlerhaft, bleibt die bisherige Zuordnung aktiv und im Log steht ein Fehler.
+- Über Umgebungsvariablen wird jeder Listeneintrag einzeln überschrieben (`Authorization__RolePermissions__User__0=events.create`); Einträge mit höherem Index aus `appsettings.json` bleiben dabei bestehen.
 
 ### CSRF-Schutz: Hinweise fürs Frontend
 
