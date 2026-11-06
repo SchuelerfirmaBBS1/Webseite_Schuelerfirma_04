@@ -10,6 +10,7 @@ builder.Services.AddProblemDetails();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddProxyHeaderHandling();
 builder.Services.AddPasswordSecurity();
+builder.Services.AddSessionAuthentication();
 
 // Until the EF Core repositories exist (#22) there is no real storage; outside Development the
 // startup check below stops the application instead of running without a database.
@@ -35,6 +36,10 @@ if (!app.Environment.IsDevelopment())
 
 app.UseStatusCodePages();
 app.UseHttpsRedirection();
+
+app.UseMiddleware<LoginStartsNewSessionMiddleware>();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 
