@@ -85,6 +85,7 @@ dotnet ef database update --project src/Schuelerfirma.Api           # erst mit E
 - Öffentliche Endpunkte bekommen eigene Response-DTOs, nie dieselben wie der Verwaltungsbereich – so wird ein internes Feld nicht versehentlich öffentlich.
 - Berechtigungen: Namen stehen im Katalog `Application/Auth/Permissions.cs`, die Zuordnung zu Rollen in `appsettings.json` unter `Authorization:RolePermissions` (nie im Code). Eine neue Berechtigung in beiden eintragen. Mehrere `[HasPermission]` an einem Endpunkt müssen alle erfüllt sein. Solange `User.MustChangePassword` gesetzt ist (Claim `sf:must_change_password`), gewährt `[HasPermission]` nichts; deshalb nie Funktionen für angemeldete Benutzer ohne `[HasPermission]` bauen, außer den Endpunkten unter `/api/auth`.
 - Passwortwechsel beendet alle Sessions des Benutzers inklusive der aktuellen; der Benutzer meldet sich neu an. Grund: Der Cookie-Handler kann innerhalb eines angemeldeten Requests keinen neuen Session-Schlüssel ausstellen (er erneuert bei `SignInAsync` den alten).
+- Benutzerverwaltung: Fachlogik und Schutzregeln liegen in `UserAdministrationService` (`Application/Users/`), der Controller übersetzt nur in HTTP. Benutzer nie löschen, nur deaktivieren; jede Admin-Aktion mit handelndem Benutzer loggen, temporäre Passwörter nie. Wer `users.manage` hat, ergibt sich aus der Konfiguration, nie aus dem Rollennamen.
 - Eingaben aus dem Kontaktformular validieren.
 
 ### Sprache
