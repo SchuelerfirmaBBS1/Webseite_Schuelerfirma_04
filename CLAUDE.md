@@ -71,6 +71,7 @@ dotnet ef database update --project src/Schuelerfirma.Api           # erst mit E
 - ASP.NET Core Web API mit Controllern (keine Minimal APIs).
 - Frontend und API laufen unter derselben Domain (Reverse Proxy); deshalb gibt es kein CORS.
 - Datenzugriff nur über die Repository-Interfaces in `Application/Abstractions/` (nie direkt über einen `DbContext` in Services/Controllern). Bis die EF-Core-Implementierung (#22) existiert, laufen in Development die In-Memory-Repositories aus `Infrastructure/InMemory/`; außerhalb von Development startet die App ohne registrierte Repositories nicht. Neue Repositories bekommen abstrakte Contract-Tests in `tests/.../Persistence/`, die für jede Implementierung abgeleitet werden.
+- Passwörter nur über `IPasswordHasher<User>` hashen (210.000 PBKDF2-Iterationen, siehe `PasswordSecurityExtensions`) und neue Passwörter immer mit `PasswordPolicy` prüfen; temporäre Passwörter kommen aus `ITemporaryPasswordGenerator`. Die Richtlinie ist rein statisch (keine externen Dienste); die Liste häufiger Passwörter liegt in `Resources/common-passwords.txt` (Quelle: `Resources/common-passwords.README.md`). Mindestlänge über `Auth:Password:MinLength` (12–128).
 - Zeitpunkte sind UTC (`DateTime`); Repositories lesen keine Uhr, der Aufrufer übergibt die Zeit.
 - Fehlerantworten sind ProblemDetails ohne Stacktraces. Zeitabhängige Logik nutzt den injizierten `TimeProvider`, nicht `DateTime.UtcNow`.
 - EF Core mit MySQL; Schemaänderungen ausschließlich über Migrations, nie manuell an der Datenbank.

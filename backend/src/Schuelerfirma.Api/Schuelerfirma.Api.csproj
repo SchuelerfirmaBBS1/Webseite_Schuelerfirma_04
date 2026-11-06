@@ -6,4 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\common-passwords.txt" LogicalName="common-passwords.txt" />
+  </ItemGroup>
+
 </Project>
