@@ -34,6 +34,7 @@ public class AuthController(
     /// <response code="204">The cookies are set.</response>
     [HttpGet("csrf")]
     [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     public IActionResult Csrf()
     {
         antiforgery.IssueCsrfToken(HttpContext);
@@ -45,11 +46,16 @@ public class AuthController(
     /// account) is answered with exactly the same 401, so nothing can be learned about which accounts exist.
     /// </summary>
     /// <response code="204">Logged in; the session cookie is set.</response>
+    /// <response code="400">User name or password is missing or too long.</response>
     /// <response code="401">The credentials were not accepted.</response>
     /// <response code="429">Too many attempts from this client; see <c>Retry-After</c>.</response>
     [HttpPost("login")]
     [AllowAnonymous]
     [EnableRateLimiting(RateLimitPolicies.Auth)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> Login(LoginRequest request, CancellationToken cancellationToken)
     {
         var result = await authService.LoginAsync(
@@ -79,6 +85,7 @@ public class AuthController(
     /// <summary>Ends the current session on the server, removes the cookie and issues a token for an anonymous visitor.</summary>
     /// <response code="204">Logged out.</response>
     [HttpPost("logout")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Logout()
     {
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
@@ -90,6 +97,8 @@ public class AuthController(
     /// <response code="200">The user.</response>
     /// <response code="401">Not logged in.</response>
     [HttpGet("me")]
+    [ProducesResponseType<MeResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<MeResponse>> Me(CancellationToken cancellationToken)
     {
         var userId = User.GetUserId();
@@ -116,6 +125,10 @@ public class AuthController(
     /// <response code="429">Too many attempts from this client; see <c>Retry-After</c>.</response>
     [HttpPost("change-password")]
     [EnableRateLimiting(RateLimitPolicies.Auth)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> ChangePassword(ChangePasswordRequest request, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId();
