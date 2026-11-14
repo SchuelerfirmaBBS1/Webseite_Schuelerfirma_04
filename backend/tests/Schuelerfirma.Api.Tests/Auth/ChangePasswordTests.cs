@@ -104,6 +104,19 @@ public class ChangePasswordTests : IDisposable
     }
 
     [Fact]
+    public async Task ANewPasswordWithoutSpecialCharacter_Is400_WithTheBrokenRule()
+    {
+        // Long, with upper-case, lower-case and a digit, but the spaces are no special characters.
+        var response = await ChangeAsync(await MemberAsync(), AuthApiFactory.MemberPassword, "Rhabarber steht am Messestand 2026");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var errors = await ErrorsAsync(response, "NewPassword");
+        Assert.Equal(
+            ["Das Passwort muss mindestens ein Sonderzeichen enthalten (z. B. ! ? # - _ .). Ein Leerzeichen zählt nicht."],
+            errors);
+    }
+
+    [Fact]
     public async Task TheCurrentPasswordAsNewPassword_IsRejected()
     {
         var response = await ChangeAsync(await MemberAsync(), AuthApiFactory.MemberPassword, AuthApiFactory.MemberPassword);

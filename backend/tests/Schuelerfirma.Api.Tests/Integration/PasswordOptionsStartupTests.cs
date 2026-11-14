@@ -11,8 +11,32 @@ public class PasswordOptionsStartupTests(ApiFactory factory) : IClassFixture<Api
     {
         var policy = factory.Services.GetRequiredService<PasswordPolicy>();
 
-        Assert.Contains(PasswordRule.TooShort, policy.Validate("elevenchars", "anna").Select(v => v.Rule));
-        Assert.Empty(policy.Validate("twelve chars", "anna"));
+        Assert.Contains(PasswordRule.TooShort, policy.Validate("Eleven ch!1", "anna").Select(v => v.Rule));
+        Assert.Empty(policy.Validate("Twelve ch!12", "anna"));
+    }
+
+    [Fact]
+    public void ByDefault_AllFourCharacterClassesAreRequired()
+    {
+        var policy = factory.Services.GetRequiredService<PasswordPolicy>();
+
+        Assert.Equal(
+            [PasswordRule.MissingUppercase, PasswordRule.MissingLowercase, PasswordRule.MissingDigit, PasswordRule.MissingSpecialCharacter],
+            policy.Validate("            ", "anna").Select(v => v.Rule).Where(rule => rule != PasswordRule.RepeatedCharacter));
+    }
+
+    [Fact]
+    public void TheCharacterClasses_CanBeSwitchedOffInTheConfiguration()
+    {
+        using var configured = factory.WithWebHostBuilder(b => b
+            .UseSetting("Auth:Password:RequireUppercase", "false")
+            .UseSetting("Auth:Password:RequireLowercase", "false")
+            .UseSetting("Auth:Password:RequireDigit", "false")
+            .UseSetting("Auth:Password:RequireSpecialCharacter", "false"));
+
+        var policy = configured.Services.GetRequiredService<PasswordPolicy>();
+
+        Assert.Empty(policy.Validate("lowercaseletterspassphrase", "anna"));
     }
 
     [Fact]
