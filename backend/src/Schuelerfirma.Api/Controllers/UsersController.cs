@@ -22,6 +22,7 @@ public class UsersController(UserAdministrationService administration, TimeProvi
     /// <summary>Returns all users ordered by user name.</summary>
     /// <response code="200">The users.</response>
     [HttpGet]
+    [ProducesResponseType<IReadOnlyList<UserResponse>>(StatusCodes.Status200OK)]
     public async Task<IReadOnlyList<UserResponse>> GetAll(CancellationToken cancellationToken) =>
         [.. (await administration.GetAllAsync(cancellationToken)).Select(user => UserResponse.From(user, Now))];
 
@@ -29,6 +30,8 @@ public class UsersController(UserAdministrationService administration, TimeProvi
     /// <response code="200">The user.</response>
     /// <response code="404">There is no such user.</response>
     [HttpGet("{id:int}")]
+    [ProducesResponseType<UserResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<UserResponse>> Get(int id, CancellationToken cancellationToken) =>
         await administration.GetAsync(id, cancellationToken) is { } user ? UserResponse.From(user, Now) : NotFound();
 
@@ -37,6 +40,9 @@ public class UsersController(UserAdministrationService administration, TimeProvi
     /// <response code="400">An input is invalid.</response>
     /// <response code="409">User name or e-mail address is already taken.</response>
     [HttpPost]
+    [ProducesResponseType<CreatedUserResponse>(StatusCodes.Status201Created)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Create(CreateUserRequest request, CancellationToken cancellationToken)
     {
         var result = await administration.CreateAsync(
@@ -58,6 +64,10 @@ public class UsersController(UserAdministrationService administration, TimeProvi
     /// <response code="404">There is no such user.</response>
     /// <response code="409">E-mail address taken, own account or role, or the last user who may manage users.</response>
     [HttpPut("{id:int}")]
+    [ProducesResponseType<UserResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Update(int id, UpdateUserRequest request, CancellationToken cancellationToken)
     {
         var result = await administration.UpdateAsync(
@@ -70,6 +80,9 @@ public class UsersController(UserAdministrationService administration, TimeProvi
     /// <response code="404">There is no such user.</response>
     /// <response code="409">The own password is changed with <c>POST /api/auth/change-password</c>.</response>
     [HttpPost("{id:int}/reset-password")]
+    [ProducesResponseType<PasswordResetResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> ResetPassword(int id, CancellationToken cancellationToken)
     {
         var result = await administration.ResetPasswordAsync(ActingUserId, id, cancellationToken);
@@ -82,6 +95,8 @@ public class UsersController(UserAdministrationService administration, TimeProvi
     /// <response code="200">The number of ended sessions.</response>
     /// <response code="404">There is no such user.</response>
     [HttpPost("{id:int}/revoke-sessions")]
+    [ProducesResponseType<RevokedSessionsResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> RevokeSessions(int id, CancellationToken cancellationToken)
     {
         var result = await administration.RevokeSessionsAsync(ActingUserId, id, cancellationToken);

@@ -3,6 +3,7 @@ using Schuelerfirma.Api.Infrastructure;
 using Schuelerfirma.Api.Infrastructure.Auth;
 using Schuelerfirma.Api.Infrastructure.Http;
 using Schuelerfirma.Api.Infrastructure.InMemory;
+using Schuelerfirma.Api.Infrastructure.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +25,12 @@ if (builder.Environment.IsDevelopment())
     builder.Services.AddInMemoryPersistence();
 }
 
+// The API test UI (OpenAPI + Swagger UI, #51) exists only in Development, never on the public server.
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddApiDocumentation();
+}
+
 var app = builder.Build();
 
 app.Services.EnsurePersistenceRegistered();
@@ -42,6 +49,13 @@ if (!app.Environment.IsDevelopment())
 app.UseStatusCodePages();
 app.UseHttpsRedirection();
 
+// Before authentication: the fallback policy also covers requests without an endpoint, so the UI's static files
+// would otherwise require a login.
+if (app.Environment.IsDevelopment())
+{
+    app.UseApiTestUi();
+}
+
 // After UseForwardedHeaders (real client IP) and before the login middleware, so rejected requests cost nothing.
 app.UseRateLimiter();
 app.UseMiddleware<LoginStartsNewSessionMiddleware>();
@@ -49,6 +63,11 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapApiDocumentation();
+}
 
 app.Run();
 
