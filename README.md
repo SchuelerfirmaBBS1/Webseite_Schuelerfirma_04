@@ -57,6 +57,8 @@ Ablauf:
 
 Antwortet ein schreibender Endpunkt mit `400` „Sicherheitstoken fehlt oder ist ungültig“, Schritt 2 wiederholen. Nach fünf Login-Versuchen pro Minute antwortet die API mit `429`.
 
+Ausführliche Anleitung mit Testfällen und Fehlersuche: [documentation/API-Testoberflaeche.md](documentation/API-Testoberflaeche.md).
+
 ### Konfiguration
 
 | Schlüssel | Standard | Bedeutung |
