@@ -14,6 +14,7 @@ public class RolesController(IRoleRepository roles, IRolePermissionProvider perm
     /// <summary>Returns all roles with the permissions they have according to the configuration.</summary>
     /// <response code="200">The roles.</response>
     [HttpGet]
+    [ProducesResponseType<IReadOnlyList<RoleResponse>>(StatusCodes.Status200OK)]
     public async Task<IReadOnlyList<RoleResponse>> GetAll(CancellationToken cancellationToken) =>
     [
         .. (await roles.GetAllAsync(cancellationToken)).Select(role => new RoleResponse(
