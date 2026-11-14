@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Routing;
 using Schuelerfirma.Api.Infrastructure.Auth;
+using Schuelerfirma.Api.Infrastructure.OpenApi;
 
 namespace Schuelerfirma.Api.Tests.Http;
 
@@ -12,7 +13,8 @@ namespace Schuelerfirma.Api.Tests.Http;
 /// <item><c>/api/public</c>: anonymous; every endpoint that is not a GET has a rate-limiting policy.</item>
 /// <item><c>/api/admin</c>: never anonymous, always <c>[HasPermission]</c>.</item>
 /// <item><c>/api/auth</c>: login area, no further rules.</item>
-/// <item>No endpoint outside these three areas.</item>
+/// <item>No endpoint outside these three areas. The only exception is the OpenAPI document of the API test UI (#51):
+/// it exists only in Development, lives under <c>/openapi</c> and carries <see cref="DevelopmentToolEndpoint"/>.</item>
 /// </list>
 /// </summary>
 public static class ApiAreaRules
@@ -30,6 +32,12 @@ public static class ApiAreaRules
             var path = "/" + (endpoint.RoutePattern.RawText ?? string.Empty).TrimStart('/');
             var name = $"{endpoint.DisplayName} ({path})";
             var anonymous = endpoint.Metadata.GetMetadata<IAllowAnonymous>() is not null;
+
+            if (IsIn(path, DevelopmentToolEndpoint.PathPrefix)
+                && endpoint.Metadata.GetMetadata<DevelopmentToolEndpoint>() is not null)
+            {
+                continue;
+            }
 
             if (IsIn(path, PublicArea))
             {
