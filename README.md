@@ -38,6 +38,25 @@ dotnet user-secrets set "Bootstrap:AdminPassword" "<mindestens 12 Zeichen>"
 
 Auf dem Server heißen die Variablen `Bootstrap__AdminUsername`, `Bootstrap__AdminEmail` und `Bootstrap__AdminPassword`. Der Benutzername besteht aus 3–32 Zeichen (`a-z`, `0-9`, `.`, `_`, `-`). Das Passwort muss die Passwortrichtlinie erfüllen, sonst startet das Backend nicht. Es muss beim ersten Login geändert werden; danach `Bootstrap:AdminPassword` aus der Konfiguration entfernen. Solange keine Datenbank angebunden ist (#22), liegen alle Daten nur im Arbeitsspeicher und der Admin wird bei jedem Start neu angelegt.
 
+### API-Testoberfläche (nur Development)
+
+Zum Ausprobieren der API ohne Frontend und ohne `curl` gibt es in Development eine Testoberfläche (Swagger UI):
+
+- Oberfläche: `https://localhost:7205/swagger`
+- API-Beschreibung (OpenAPI): `https://localhost:7205/openapi/v1.json`
+
+Die Oberfläche zeigt alle Endpunkte mit Beschreibung (aus den XML-Kommentaren) und möglichen Antworten, gruppiert nach `auth`, `admin` und `public`. Alle Dateien kommen aus dem NuGet-Paket, es wird nichts von fremden Servern geladen. In allen anderen Umgebungen gibt es beide Pfade nicht (Antwort wie bei jedem unbekannten Pfad).
+
+Ablauf:
+
+1. Backend mit dem `https`-Profil starten (Standard bei `dotnet run`). Über `http://localhost:5077` funktioniert die Anmeldung nicht, weil die Cookies `Secure` sind. Das Entwicklungszertifikat einmalig mit `dotnet dev-certs https --trust` vertrauen.
+2. `GET /api/auth/csrf` ausführen. Danach schickt die Oberfläche das CSRF-Token bei jedem POST, PUT, PATCH und DELETE automatisch im Header `X-XSRF-TOKEN` mit (so wie später das Frontend).
+3. `POST /api/auth/login` mit den Zugangsdaten (siehe „Ersten Admin einrichten“). Das Session-Cookie schickt der Browser von selbst mit.
+4. Endpunkte testen. `GET /api/auth/me` zeigt den angemeldeten Benutzer und seine Berechtigungen. Solange das temporäre Passwort nicht geändert ist, antworten alle Verwaltungsendpunkte mit `403`.
+5. `POST /api/auth/logout` beendet die Session.
+
+Antwortet ein schreibender Endpunkt mit `400` „Sicherheitstoken fehlt oder ist ungültig“, Schritt 2 wiederholen. Nach fünf Login-Versuchen pro Minute antwortet die API mit `429`.
+
 ### Konfiguration
 
 | Schlüssel | Standard | Bedeutung |
