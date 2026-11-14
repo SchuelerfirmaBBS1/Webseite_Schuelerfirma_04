@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Schuelerfirma.Api.Application.Auth;
 using Schuelerfirma.Api.Infrastructure.Auth;
 using Schuelerfirma.Api.Infrastructure.Http;
+using Schuelerfirma.Api.Infrastructure.OpenApi;
 using Schuelerfirma.Api.Tests.Integration;
 
 namespace Schuelerfirma.Api.Tests.Http;
@@ -21,6 +22,7 @@ public class ApiAreaRulesTests
     private static readonly AllowAnonymousAttribute Anonymous = new();
     private static readonly HasPermissionAttribute EventsCreate = new(Permissions.EventsCreate);
     private static readonly EnableRateLimitingAttribute Limited = new(RateLimitPolicies.Contact);
+    private static readonly DevelopmentToolEndpoint DevelopmentTool = DevelopmentToolEndpoint.Instance;
 
     // ---- every rule finds its violation ----
 
@@ -70,6 +72,24 @@ public class ApiAreaRulesTests
         Assert.Contains("belong under", violation);
     }
 
+    [Fact]
+    public void AnEndpointUnderOpenApiWithoutTheDevelopmentToolMarker_IsAViolation()
+    {
+        var violation = Assert.Single(ApiAreaRules.Check([Endpoint("openapi/{documentName}.json", "GET", Anonymous)]));
+
+        Assert.Contains("belong under", violation);
+    }
+
+    [Theory]
+    [InlineData("health", "belong under")]
+    [InlineData("api/admin/events", "[HasPermission]")]
+    public void TheDevelopmentToolMarker_OutsideOpenApi_ExemptsNothing(string route, string expected)
+    {
+        var violation = Assert.Single(ApiAreaRules.Check([Endpoint(route, "GET", DevelopmentTool)]));
+
+        Assert.Contains(expected, violation);
+    }
+
     // ---- correct endpoints pass ----
 
     [Fact]
@@ -82,6 +102,7 @@ public class ApiAreaRulesTests
             Endpoint("api/admin/events", "POST", EventsCreate),
             Endpoint("api/auth/login", "POST", Anonymous),
             Endpoint("api/auth/me", "GET"),
+            Endpoint("openapi/{documentName}.json", "GET", Anonymous, DevelopmentTool),
         ]));
     }
 
