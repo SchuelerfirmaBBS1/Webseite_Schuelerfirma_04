@@ -36,6 +36,30 @@ public class TemporaryPasswordGeneratorTests
     }
 
     [Fact]
+    public void GeneratedPasswords_ContainEveryCharacterClass()
+    {
+        for (var i = 0; i < 500; i++)
+        {
+            var password = generator.Generate("anna");
+
+            Assert.Contains(password, char.IsUpper);
+            Assert.Contains(password, char.IsLower);
+            Assert.Contains(password, char.IsDigit);
+            Assert.Contains(password, c => TemporaryPasswordGenerator.Specials.Contains(c));
+        }
+    }
+
+    [Fact]
+    public void GeneratedPasswords_DoNotAlwaysStartWithTheSameCharacterClass()
+    {
+        // The guaranteed characters are drawn first; the shuffle must move them, or every password would start
+        // with an upper-case letter.
+        var first = Enumerable.Range(0, 200).Select(_ => generator.Generate("anna")[0]).ToList();
+
+        Assert.Contains(first, c => !char.IsUpper(c));
+    }
+
+    [Fact]
     public void GeneratedPasswords_DoNotRepeat()
     {
         var passwords = Enumerable.Range(0, 200).Select(_ => generator.Generate("anna")).ToList();

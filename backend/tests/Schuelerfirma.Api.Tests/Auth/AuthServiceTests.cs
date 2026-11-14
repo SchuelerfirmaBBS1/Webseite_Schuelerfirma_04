@@ -11,7 +11,7 @@ namespace Schuelerfirma.Api.Tests.Auth;
 
 public class AuthServiceTests
 {
-    private const string Password = "correct horse battery staple";
+    private const string Password = "Correct horse battery staple #7";
 
     private readonly FakeTimeProvider time = new(new DateTimeOffset(2026, 11, 1, 8, 0, 0, TimeSpan.Zero));
     private readonly InMemoryStore store = new();
@@ -234,7 +234,7 @@ public class AuthServiceTests
 
     // ---- change password ----
 
-    private const string NewPassword = "ein ganz neues Passwort 2026";
+    private const string NewPassword = "Ein ganz neues Passwort 2026!";
 
     private async Task AddSessionAsync(int userId, char key) =>
         await sessions.AddAsync(new UserSession
