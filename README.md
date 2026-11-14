@@ -36,7 +36,7 @@ dotnet user-secrets set "Bootstrap:AdminEmail" "admin@example.org"
 dotnet user-secrets set "Bootstrap:AdminPassword" "<mindestens 12 Zeichen>"
 ```
 
-Auf dem Server heißen die Variablen `Bootstrap__AdminUsername`, `Bootstrap__AdminEmail` und `Bootstrap__AdminPassword`. Der Benutzername besteht aus 3–32 Zeichen (`a-z`, `0-9`, `.`, `_`, `-`). Das Passwort muss die Passwortrichtlinie erfüllen, sonst startet das Backend nicht. Es muss beim ersten Login geändert werden; danach `Bootstrap:AdminPassword` aus der Konfiguration entfernen. Solange keine Datenbank angebunden ist (#22), liegen alle Daten nur im Arbeitsspeicher und der Admin wird bei jedem Start neu angelegt.
+Auf dem Server heißen die Variablen `Bootstrap__AdminUsername`, `Bootstrap__AdminEmail` und `Bootstrap__AdminPassword`. Der Benutzername besteht aus 3–32 Zeichen (`a-z`, `0-9`, `.`, `_`, `-`). Das Passwort muss die Passwortrichtlinie erfüllen (mindestens 12 Zeichen mit Groß- und Kleinbuchstabe, Ziffer und Sonderzeichen, kein häufiges Passwort), sonst startet das Backend nicht. **Achtung:** Ältere Startpasswörter in euren user-secrets ohne Ziffer oder Sonderzeichen müssen angepasst werden. Es muss beim ersten Login geändert werden; danach `Bootstrap:AdminPassword` aus der Konfiguration entfernen. Solange keine Datenbank angebunden ist (#22), liegen alle Daten nur im Arbeitsspeicher und der Admin wird bei jedem Start neu angelegt.
 
 ### API-Testoberfläche (nur Development)
 
@@ -64,6 +64,7 @@ Ausführliche Anleitung mit Testfällen und Fehlersuche: [documentation/API-Test
 | Schlüssel | Standard | Bedeutung |
 |---|---|---|
 | `Auth:Password:MinLength` | 12 | Mindestlänge neuer Passwörter (12–128) |
+| `Auth:Password:RequireUppercase` / `RequireLowercase` / `RequireDigit` / `RequireSpecialCharacter` | `true` | Neue Passwörter brauchen mindestens einen Groß- und einen Kleinbuchstaben, eine Ziffer und ein Sonderzeichen (alles außer Buchstabe, Ziffer und Leerzeichen; Umlaute zählen als Buchstaben) |
 | `Auth:Lockout:MaxFailedAttempts` | 5 | Fehlversuche bis zur Kontosperre |
 | `Auth:Lockout:Duration` | `00:15:00` | Dauer der Kontosperre |
 | `Auth:Session:IdleTimeout` | `00:30:00` | Session endet nach so langer Inaktivität |

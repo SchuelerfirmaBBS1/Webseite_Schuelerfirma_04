@@ -38,11 +38,12 @@ dotnet user-secrets set "Bootstrap:AdminPassword" "<euer Startpasswort>"
 Regeln für das Passwort (gelten auch beim Passwortwechsel):
 
 - mindestens 12 Zeichen, höchstens 128
+- mindestens ein Großbuchstabe, ein Kleinbuchstabe, eine Ziffer und ein Sonderzeichen. Als Sonderzeichen zählt alles, was weder Buchstabe noch Ziffer noch Leerzeichen ist (z. B. `! ? # - _ . @ €`). Umlaute zählen als Buchstaben.
 - nicht auf der Liste häufiger Passwörter
 - enthält nicht den Benutzernamen
 - keine einfache Folge (`123456789012`, `abcdefghijkl`) und nicht nur ein Zeichen wiederholt
 
-Zahlen, Großbuchstaben oder Sonderzeichen sind **nicht** vorgeschrieben. Das ist Absicht: Länge schützt besser als erzwungene Zeichenklassen. Eine Passphrase wie `Rhabarber steht am Messestand` ist gut.
+Gut ist zum Beispiel `Rhabarber steht am Messestand #2026`: lang, leicht zu merken und mit allen vier Zeichenarten.
 
 Benutzernamen bestehen aus 3–32 Zeichen aus `a-z`, `0-9`, `.`, `_` und `-`.
 
@@ -126,7 +127,8 @@ Eine Auswahl dessen, was ihr prüfen könnt. In Klammern steht die erwartete Ant
 | Falsches Passwort | Login mit falschem Passwort | `401` |
 | Unbekannter Benutzer | Login mit erfundenem Namen | `401`, **genau dieselbe Antwort** wie beim falschen Passwort |
 | Nicht angemeldet | nach Logout `GET /api/auth/me` | `401` |
-| Schwaches neues Passwort | `change-password` mit `newPassword` = `passwort1234` | `400`, Begründung unter `errors.NewPassword` |
+| Schwaches neues Passwort | `change-password` mit `newPassword` = `passwort1234` | `400`, alle Begründungen unter `errors.NewPassword` (hier: Großbuchstabe und Sonderzeichen fehlen) |
+| Ohne Sonderzeichen | `change-password` mit `newPassword` = `Rhabarber steht am Messestand 2026` | `400`: Ein Leerzeichen zählt nicht als Sonderzeichen |
 | Neues = altes Passwort | `change-password` mit zweimal demselben Passwort | `400` |
 | Zu viele Versuche | mehr als 5 Logins innerhalb einer Minute | `429`, siehe Header `Retry-After` |
 
