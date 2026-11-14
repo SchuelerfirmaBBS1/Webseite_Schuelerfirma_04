@@ -19,4 +19,19 @@ public class PasswordPolicyOptions
     /// <summary>Minimum length of a password, between <see cref="AbsoluteMinLength"/> and <see cref="MaxLength"/>.</summary>
     [Range(AbsoluteMinLength, MaxLength, ErrorMessage = "Auth:Password:MinLength must be between 12 and 128.")]
     public int MinLength { get; set; } = AbsoluteMinLength;
+
+    /// <summary>Whether a password needs at least one upper-case letter (umlauts count).</summary>
+    public bool RequireUppercase { get; set; } = true;
+
+    /// <summary>Whether a password needs at least one lower-case letter (umlauts count).</summary>
+    public bool RequireLowercase { get; set; } = true;
+
+    /// <summary>Whether a password needs at least one digit.</summary>
+    public bool RequireDigit { get; set; } = true;
+
+    /// <summary>
+    /// Whether a password needs at least one special character: anything that is neither a letter, a digit nor
+    /// white space, e.g. <c>! ? # - _ . @ €</c> or an emoji.
+    /// </summary>
+    public bool RequireSpecialCharacter { get; set; } = true;
 }
