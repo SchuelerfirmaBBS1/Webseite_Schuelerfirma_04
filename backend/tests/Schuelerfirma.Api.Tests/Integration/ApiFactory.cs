@@ -26,6 +26,7 @@ public class ApiFactory : WebApplicationFactory<Program>
                 ["Bootstrap:AdminUsername"] = null,
                 ["Bootstrap:AdminEmail"] = null,
                 ["Bootstrap:AdminPassword"] = null,
+                ["ConnectionStrings:Default"] = null,
             }));
     }
 
