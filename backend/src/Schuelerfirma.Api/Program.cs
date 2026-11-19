@@ -4,6 +4,7 @@ using Schuelerfirma.Api.Infrastructure.Auth;
 using Schuelerfirma.Api.Infrastructure.Http;
 using Schuelerfirma.Api.Infrastructure.InMemory;
 using Schuelerfirma.Api.Infrastructure.OpenApi;
+using Schuelerfirma.Api.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,9 +19,14 @@ builder.Services.AddScoped<UserAdministrationService>();
 builder.Services.AddCsrfProtection();
 builder.Services.AddClientRateLimiting();
 
-// Until the EF Core repositories exist (#22) there is no real storage; outside Development the
-// startup check below stops the application instead of running without a database.
-if (builder.Environment.IsDevelopment())
+// Use MySQL when a connection string is configured; otherwise fall back to In-Memory in Development
+// (outside Development the startup check below stops the application if no database is configured).
+var connectionString = builder.Configuration.GetConnectionString("Default");
+if (!string.IsNullOrEmpty(connectionString))
+{
+    builder.Services.AddMySqlPersistence(connectionString);
+}
+else if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddInMemoryPersistence();
 }
