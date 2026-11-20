@@ -13,6 +13,30 @@ Termine ändern/einstellen
 Kontaktformular einsehen
 E-Mail Adresse ändern, an die die Kontaktformulare gehen
 
+## Lokal starten: welcher Weg wofür?
+
+Es gibt drei Arten, das Projekt auf dem eigenen Rechner zu starten:
+
+| Ziel | Weg | Adresse im Browser | Anleitung |
+|---|---|---|---|
+| Backend entwickeln, API über die **Swagger UI** testen | `dotnet run` + MySQL aus der `compose.yaml` im Repo-Root | `https://localhost:7205/swagger` | „Backend starten“ und „API-Testoberfläche“ |
+| **Frontend** entwickeln (Hot Reload) | `npm run dev` | `http://localhost:5173` | „Frontend starten“ |
+| **Alles zusammen** so wie auf dem Server (Proxy, Frontend-Build, API, Datenbank) | Docker Compose mit `deploy/compose.yaml` | `https://localhost:8443` | „Deployment (Docker)“ → „Lokal ausprobieren“ |
+
+**Die Swagger UI gibt es nur beim ersten Weg.** Im Docker-Setup läuft die API als Production, dort sind `/swagger` und `/openapi` abgeschaltet (der Proxy liefert unter `/swagger` die Vue-Seite aus).
+
+## Frontend starten
+
+Voraussetzung: Node.js in der Version aus `frontend/.nvmrc` (24).
+
+```bash
+cd frontend
+npm install       # einmalig und nach Änderungen an package.json
+npm run dev       # Dev-Server, Adresse steht in der Ausgabe (meist http://localhost:5173)
+```
+
+Vor einem Commit `npm run lint`, `npm test` und `npm run build` ausführen.
+
 ## Backend starten
 
 Voraussetzung: .NET 10 SDK.
@@ -23,7 +47,7 @@ dotnet run --project src/Schuelerfirma.Api
 dotnet test
 ```
 
-`dotnet run` startet die API unter `https://localhost:7205` (zusätzlich `http://localhost:5077`). Schreibende Anfragen funktionieren nur über HTTPS, weil die CSRF-Cookies `Secure` sind; einmalig `dotnet dev-certs https --trust` ausführen. Ein Dev-Server des Frontends leitet `/api` deshalb an `https://localhost:7205` weiter.
+`dotnet run` startet die API unter `https://localhost:7205` (zusätzlich `http://localhost:5077`). Schreibende Anfragen funktionieren nur über HTTPS, weil die CSRF-Cookies `Secure` sind; einmalig `dotnet dev-certs https --trust` ausführen. Ein Dev-Server des Frontends muss `/api` deshalb an `https://localhost:7205` weiterleiten (in `frontend/vite.config.ts` noch nicht eingerichtet, das Frontend ruft die API bisher nicht auf).
 
 ### Datenbank einrichten
 
@@ -266,7 +290,34 @@ Die API zählt das Rate Limiting pro Client-IP und übernimmt `X-Forwarded-For` 
 
 ### Lokal ausprobieren
 
-Rootless Docker/Podman darf 80 und 443 nicht binden. Zum Ausprobieren eine eigene Datei, z. B. `deploy/compose.override.local.yaml` (`deploy/*.local.yaml` ist in `.gitignore`), mit `SITE_ADDRESS=localhost` in der `.env`:
+So läuft das komplette Setup aus `deploy/` auf dem eigenen Rechner, z. B. um Frontend-Build, Proxy und API zusammen zu testen. Eine Swagger UI gibt es hier nicht (siehe „Lokal starten: welcher Weg wofür?“).
+
+**1. Compose v2 bereitstellen** (einmalig)
+
+- **Docker:** Docker Engine mit Compose-Plugin; die Befehle unten lauten dann `docker compose …`.
+- **Podman** (z. B. Fedora): `podman compose` ruft meist `podman-compose` auf. Das setzt nicht alle Funktionen gleich um, die das Setup braucht (`!override`, feste Proxy-IP, Warten auf `migrate`), und wird vom Prüfskript nicht unterstützt. Stattdessen das `docker-compose`-Programm (Compose v2) über den Podman-Socket nutzen:
+  ```bash
+  sudo dnf install docker-compose                  # Fedora; sonst Compose v2 aus der Docker-Doku
+  systemctl --user enable --now podman.socket
+  export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock   # in jedem neuen Terminal oder in ~/.bashrc / ~/.zshrc
+  ```
+  Die Befehle unten lauten dann `docker-compose …` statt `docker compose …`.
+
+**2. `.env` anlegen**
+
+```bash
+cp deploy/.env.example deploy/.env && chmod 600 deploy/.env
+```
+
+In `deploy/.env` anpassen:
+
+- `SITE_ADDRESS=localhost`
+- `MYSQL_PASSWORD` und `MYSQL_ROOT_PASSWORD`: je ein Wert aus `openssl rand -hex 24`
+- `BOOTSTRAP_ADMIN_PASSWORD`: Startpasswort des ersten Admins (mindestens 12 Zeichen mit Groß- und Kleinbuchstabe, Ziffer und Sonderzeichen; Werte mit `$` in einfache Anführungszeichen)
+
+**3. Ports umbiegen**
+
+Rootless Docker/Podman darf 80 und 443 nicht binden. Deshalb die Datei `deploy/compose.override.local.yaml` anlegen (`deploy/*.local.yaml` ist in `.gitignore`):
 
 ```yaml
 services:
@@ -276,9 +327,26 @@ services:
       - "127.0.0.1:8443:443"
 ```
 
+**4. Bauen und starten**
+
 ```bash
 docker compose -f deploy/compose.yaml -f deploy/compose.override.local.yaml up -d --build
-curl -k https://localhost:8443/
+docker compose -f deploy/compose.yaml ps     # migrate: "Exited (0)", alle anderen "Up"
 ```
 
-Caddy nutzt für `localhost` eine eigene Zertifizierungsstelle (daher `-k`). Unter Fedora/RHEL (SELinux) braucht das eingebundene `Caddyfile` die Mount-Option `z`; sie steht bereits in `deploy/compose.yaml`. Mit Podman wurde das Setup über das `docker-compose`-Binary (Compose v2) und den Podman-Socket getestet (`DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock`); `podman-compose` setzt nicht alle Compose-Funktionen gleich um und wird vom Prüfskript nicht unterstützt.
+Der erste Lauf dauert einige Minuten (Images bauen, MySQL initialisieren). Nach Änderungen am Code denselben `up`-Befehl erneut ausführen; er baut nur, was sich geändert hat.
+
+**5. Im Browser öffnen:** `https://localhost:8443`
+
+Caddy nutzt für `localhost` eine eigene Zertifizierungsstelle, deshalb warnt der Browser vor dem Zertifikat; die Warnung lokal einfach bestätigen (bei `curl` die Option `-k`, z. B. `curl -k https://localhost:8443/`). Die API ist unter derselben Adresse erreichbar (`https://localhost:8443/api/...`). Angemeldet wird sich mit `BOOTSTRAP_ADMIN_USERNAME` und `BOOTSTRAP_ADMIN_PASSWORD` aus der `.env`; das Passwort muss beim ersten Login geändert werden.
+
+**6. Anhalten und aufräumen**
+
+```bash
+docker compose -f deploy/compose.yaml logs -f api   # Logs ansehen, falls etwas nicht startet
+docker compose -f deploy/compose.yaml stop          # anhalten, Daten bleiben erhalten
+docker compose -f deploy/compose.yaml down          # Container entfernen, Daten bleiben erhalten
+docker compose -f deploy/compose.yaml down -v       # alles inklusive Datenbank löschen (frischer Start)
+```
+
+Unter Fedora/RHEL (SELinux) braucht das eingebundene `Caddyfile` die Mount-Option `z`; sie steht bereits in `deploy/compose.yaml`. Mit Podman wurde das Setup über das `docker-compose`-Programm (Compose v2) und den Podman-Socket getestet.
