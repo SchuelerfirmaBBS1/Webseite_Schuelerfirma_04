@@ -111,7 +111,7 @@ Ihr müsst euch um nichts weiter kümmern. Das Session-Cookie schickt der Browse
 
 8. **`POST /api/auth/logout`** → `204`. Danach liefert `GET /api/auth/me` `401`.
 
-> **Wichtig:** Ohne Datenbank (#22) liegen alle Daten nur im Arbeitsspeicher. Nach jedem Neustart des Backends sind alle Benutzer und Sessions weg, und der Admin wird mit dem Startpasswort neu angelegt. Ihr beginnt dann wieder bei Schritt 1.
+> **Wichtig:** Ohne Datenbank (kein `ConnectionStrings:Default`, siehe README „Datenbank einrichten“) liegen alle Daten nur im Arbeitsspeicher. Nach jedem Neustart des Backends sind alle Benutzer und Sessions weg, und der Admin wird mit dem Startpasswort neu angelegt. Ihr beginnt dann wieder bei Schritt 1.
 
 ---
 

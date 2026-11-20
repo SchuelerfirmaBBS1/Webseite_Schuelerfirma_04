@@ -5,7 +5,7 @@ Frontend: Vue/Tailwind
 
 Backend: C# ASP.NET Core 
 
-Datenbank: EF Core
+Datenbank: MySQL 8.4 über EF Core
 
 Planung Backend:
 Admin-Bereich
@@ -25,6 +25,39 @@ dotnet test
 
 `dotnet run` startet die API unter `https://localhost:7205` (zusätzlich `http://localhost:5077`). Schreibende Anfragen funktionieren nur über HTTPS, weil die CSRF-Cookies `Secure` sind; einmalig `dotnet dev-certs https --trust` ausführen. Ein Dev-Server des Frontends leitet `/api` deshalb an `https://localhost:7205` weiter.
 
+### Datenbank einrichten
+
+Das Backend speichert Benutzer und Sessions in MySQL, sobald der Connection-String `ConnectionStrings:Default` gesetzt ist. Ohne ihn läuft es in Development mit einem Speicher im Arbeitsspeicher: Nach jedem Neustart sind alle Daten weg. Außerhalb von Development startet es ohne Connection-String nicht.
+
+1. **MySQL starten.** Im Repository liegt eine `compose.yaml` mit MySQL 8.4 (nur für die Entwicklung, die Passwörter darin sind keine Geheimnisse):
+   ```bash
+   docker compose up -d     # oder: podman compose up -d (braucht podman-compose)
+   ```
+2. **Connection-String hinterlegen** (passend zur `compose.yaml`):
+   ```bash
+   cd backend/src/Schuelerfirma.Api
+   dotnet user-secrets set "ConnectionStrings:Default" "Server=localhost;Port=3306;Database=schuelerfirma;User=schuelerfirma_app;Password=development-password"
+   ```
+3. **Tabellen anlegen.** Die App wendet Migrations nicht selbst an. Nach dem ersten Einrichten und nach jedem Pull mit neuen Migrations:
+   ```bash
+   dotnet tool install --global dotnet-ef   # einmalig
+   cd backend
+   dotnet ef database update --project src/Schuelerfirma.Api
+   ```
+   `dotnet ef` liest den Connection-String aus den user-secrets bzw. aus `ConnectionStrings__Default`. Ohne Migration bricht der Start ab, weil Tabellen und Rollen fehlen.
+
+Auf dem Server kommt der Connection-String aus der Umgebungsvariable `ConnectionStrings__Default`. Neue Migrations werden **vor** dem Start der neuen Version angewendet (`dotnet ef database update` oder ein Migration-Bundle über `dotnet ef migrations bundle`). Hintergründe zum Mapping: [documentation/Datenbank-Implementierung.md](documentation/Datenbank-Implementierung.md).
+
+### Tests
+
+`dotnet test` startet für die Repository-Tests gegen MySQL einen eigenen, kurzlebigen MySQL-Container (Testcontainers). Dafür muss Docker oder Podman laufen; die Datenbank aus der `compose.yaml` wird nicht angefasst. Die übrigen Integrationstests laufen immer im Arbeitsspeicher, auch wenn ein Connection-String gesetzt ist. Mit rootless Podman:
+
+```bash
+systemctl --user enable --now podman.socket
+export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock
+export TESTCONTAINERS_RYUK_DISABLED=true
+```
+
 ### Ersten Admin einrichten
 
 Beim Start legt das Backend einen Administrator an, falls noch keiner existiert. Die Zugangsdaten gehören **nicht** ins Repository, sondern in `dotnet user-secrets` (lokal) bzw. in Umgebungsvariablen (Server):
@@ -36,7 +69,7 @@ dotnet user-secrets set "Bootstrap:AdminEmail" "admin@example.org"
 dotnet user-secrets set "Bootstrap:AdminPassword" "<mindestens 12 Zeichen>"
 ```
 
-Auf dem Server heißen die Variablen `Bootstrap__AdminUsername`, `Bootstrap__AdminEmail` und `Bootstrap__AdminPassword`. Der Benutzername besteht aus 3–32 Zeichen (`a-z`, `0-9`, `.`, `_`, `-`). Das Passwort muss die Passwortrichtlinie erfüllen (mindestens 12 Zeichen mit Groß- und Kleinbuchstabe, Ziffer und Sonderzeichen, kein häufiges Passwort), sonst startet das Backend nicht. **Achtung:** Ältere Startpasswörter in euren user-secrets ohne Ziffer oder Sonderzeichen müssen angepasst werden. Es muss beim ersten Login geändert werden; danach `Bootstrap:AdminPassword` aus der Konfiguration entfernen. Solange keine Datenbank angebunden ist (#22), liegen alle Daten nur im Arbeitsspeicher und der Admin wird bei jedem Start neu angelegt.
+Auf dem Server heißen die Variablen `Bootstrap__AdminUsername`, `Bootstrap__AdminEmail` und `Bootstrap__AdminPassword`. Der Benutzername besteht aus 3–32 Zeichen (`a-z`, `0-9`, `.`, `_`, `-`). Das Passwort muss die Passwortrichtlinie erfüllen (mindestens 12 Zeichen mit Groß- und Kleinbuchstabe, Ziffer und Sonderzeichen, kein häufiges Passwort), sonst startet das Backend nicht. **Achtung:** Ältere Startpasswörter in euren user-secrets ohne Ziffer oder Sonderzeichen müssen angepasst werden. Es muss beim ersten Login geändert werden; danach `Bootstrap:AdminPassword` aus der Konfiguration entfernen. Ohne Datenbank (siehe „Datenbank einrichten“) liegen alle Daten nur im Arbeitsspeicher, und der Admin wird bei jedem Start neu angelegt.
 
 ### API-Testoberfläche (nur Development)
 
@@ -63,6 +96,7 @@ Ausführliche Anleitung mit Testfällen und Fehlersuche: [documentation/API-Test
 
 | Schlüssel | Standard | Bedeutung |
 |---|---|---|
+| `ConnectionStrings:Default` | – | Verbindung zur MySQL-Datenbank (siehe „Datenbank einrichten“); nur über user-secrets bzw. `ConnectionStrings__Default`, nie in `appsettings.json`. **Außerhalb von Development Pflicht.** |
 | `Auth:Password:MinLength` | 12 | Mindestlänge neuer Passwörter (12–128) |
 | `Auth:Password:RequireUppercase` / `RequireLowercase` / `RequireDigit` / `RequireSpecialCharacter` | `true` | Neue Passwörter brauchen mindestens einen Groß- und einen Kleinbuchstaben, eine Ziffer und ein Sonderzeichen (alles außer Buchstabe, Ziffer und Leerzeichen; Umlaute zählen als Buchstaben) |
 | `Auth:Lockout:MaxFailedAttempts` | 5 | Fehlversuche bis zur Kontosperre |
