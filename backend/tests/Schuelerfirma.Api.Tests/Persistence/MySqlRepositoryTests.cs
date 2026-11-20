@@ -14,8 +14,7 @@ namespace Schuelerfirma.Api.Tests.Persistence;
 /// </summary>
 public sealed class MySqlContainerFixture : IAsyncLifetime
 {
-    private readonly MySqlContainer _container = new MySqlBuilder()
-        .WithImage("mysql:8.4")
+    private readonly MySqlContainer _container = new MySqlBuilder("mysql:8.4")
         .WithDatabase("schuelerfirma_test")
         .WithUsername("testuser")
         .WithPassword("testpassword")
