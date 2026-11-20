@@ -26,6 +26,8 @@ public static class PersistenceServiceCollectionExtensions
         services.AddScoped<IRoleRepository, EfRoleRepository>();
         services.AddScoped<IUserRepository, EfUserRepository>();
         services.AddScoped<IUserSessionRepository, EfUserSessionRepository>();
+        services.AddScoped<ICategoryRepository, EfCategoryRepository>();
+        services.AddScoped<IProductRepository, EfProductRepository>();
 
         return services;
     }
