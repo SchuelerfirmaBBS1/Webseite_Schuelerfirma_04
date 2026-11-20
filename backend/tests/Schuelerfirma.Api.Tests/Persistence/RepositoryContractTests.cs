@@ -4,7 +4,16 @@ using Schuelerfirma.Api.Domain;
 namespace Schuelerfirma.Api.Tests.Persistence;
 
 /// <summary>The repositories under test; they must share one underlying store.</summary>
-public sealed record Repositories(IUserRepository Users, IRoleRepository Roles, IUserSessionRepository Sessions);
+/// <param name="AddProductImage">
+/// Stores an image record directly. Test seam until the image storage (#13) brings a repository method for it.
+/// </param>
+public sealed record Repositories(
+    IUserRepository Users,
+    IRoleRepository Roles,
+    IUserSessionRepository Sessions,
+    ICategoryRepository Categories,
+    IProductRepository Products,
+    Func<ProductImage, Task> AddProductImage);
 
 /// <summary>
 /// Base class of all repository contract tests. Every storage implementation (in-memory now, EF Core / MySQL
@@ -38,4 +47,43 @@ public abstract class RepositoryContractTests
         await repos.Users.AddAsync(user);
         return user;
     }
+
+    protected static async Task<Category> AddCategoryAsync(Repositories repos, string name = "Getränke", bool isVisible = true)
+    {
+        var category = new Category { Name = name, IsVisible = isVisible };
+        await repos.Categories.AddAsync(category);
+        return category;
+    }
+
+    protected static async Task<Product> AddProductAsync(
+        Repositories repos,
+        int categoryId,
+        string name = "Apfelsaft",
+        decimal? price = 1.50m,
+        bool isPriceVisible = true,
+        bool isActive = true)
+    {
+        var product = new Product
+        {
+            CategoryId = categoryId,
+            Name = name,
+            Description = "Naturtrüb",
+            Price = price,
+            IsPriceVisible = isPriceVisible,
+            IsActive = isActive,
+        };
+        await repos.Products.AddAsync(product);
+        return product;
+    }
+
+    protected static ProductImage NewImage(int productId, int sortOrder, bool isPrimary = false) => new()
+    {
+        ProductId = productId,
+        FileName = $"bild-{sortOrder}.jpg",
+        Description = $"Bild {sortOrder}",
+        ContentType = "image/jpeg",
+        FilePath = $"{Guid.NewGuid():N}.jpg",
+        SortOrder = sortOrder,
+        IsPrimary = isPrimary,
+    };
 }

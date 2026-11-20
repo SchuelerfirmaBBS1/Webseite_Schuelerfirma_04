@@ -30,6 +30,43 @@ public sealed class SchuelerfirmaDbContextModelTests
         Assert.NotNull(model.FindEntityType(typeof(Role)));
         Assert.NotNull(model.FindEntityType(typeof(User)));
         Assert.NotNull(model.FindEntityType(typeof(UserSession)));
+        Assert.NotNull(model.FindEntityType(typeof(Category)));
+        Assert.NotNull(model.FindEntityType(typeof(Product)));
+        Assert.NotNull(model.FindEntityType(typeof(ProductImage)));
+    }
+
+    [Fact]
+    public void Product_has_required_category_foreign_key_with_restrict()
+    {
+        using var context = CreateContext();
+        var foreignKey = GetModel(context).FindEntityType(typeof(Product))!
+            .GetForeignKeys()
+            .Single(key => key.PrincipalEntityType.ClrType == typeof(Category));
+
+        Assert.True(foreignKey.IsRequired);
+        Assert.Equal(DeleteBehavior.Restrict, foreignKey.DeleteBehavior);
+    }
+
+    [Fact]
+    public void ProductImage_is_deleted_with_product()
+    {
+        using var context = CreateContext();
+        var foreignKey = GetModel(context).FindEntityType(typeof(ProductImage))!
+            .GetForeignKeys()
+            .Single(key => key.PrincipalEntityType.ClrType == typeof(Product));
+
+        Assert.Equal(DeleteBehavior.Cascade, foreignKey.DeleteBehavior);
+    }
+
+    [Fact]
+    public void Product_price_has_two_decimal_places()
+    {
+        using var context = CreateContext();
+        var price = GetModel(context).FindEntityType(typeof(Product))!.FindProperty(nameof(Product.Price))!;
+
+        Assert.Equal(10, price.GetPrecision());
+        Assert.Equal(2, price.GetScale());
+        Assert.True(price.IsNullable);
     }
 
     [Fact]
@@ -59,6 +96,7 @@ public sealed class SchuelerfirmaDbContextModelTests
     [InlineData(typeof(Role), nameof(Role.Name))]
     [InlineData(typeof(User), nameof(User.Username))]
     [InlineData(typeof(User), nameof(User.Email))]
+    [InlineData(typeof(Category), nameof(Category.Name))]
     public void Unique_text_columns_use_case_insensitive_collation(
         Type entityType, string propertyName)
     {
@@ -85,6 +123,9 @@ public sealed class SchuelerfirmaDbContextModelTests
 
         Assert.Contains("UX_Users_Username", names);
         Assert.Contains("UX_Users_Email", names);
+        Assert.Contains(
+            "UX_Categories_Name",
+            GetModel(context).FindEntityType(typeof(Category))!.GetIndexes().Where(index => index.IsUnique).Select(index => index.GetDatabaseName()));
     }
 
     [Fact]
