@@ -338,6 +338,11 @@ Werden später weitere Repository-Interfaces ergänzt, gehören sie auch in die 
 ### 6.4 Migrations
 
 - `dotnet ef` baut den Host über `Program.cs`. Ohne Connection-String ist dort aber kein `DbContext` registriert. Deshalb eine `IDesignTimeDbContextFactory<SchuelerfirmaDbContext>` anlegen, die den Context mit fester Server-Version erzeugt. Für `migrations add` braucht es dann keine laufende Datenbank.
+- Den Connection-String liest die Factory wie die App aus `ConnectionStrings:Default` (lokal user-secrets, auf dem Server die Umgebungsvariable `ConnectionStrings__Default`); `--connection` hat Vorrang. Ohne Connection-String nimmt sie einen Platzhalter, der nur für Befehle ohne Datenbankverbindung reicht (z. B. `migrations add`). Migrations anwenden:
+  ```bash
+  cd backend
+  dotnet ef database update --project src/Schuelerfirma.Api
+  ```
 - Erste Migration:
   ```bash
   cd backend
@@ -381,9 +386,19 @@ Die Contract-Tests dürfen **nicht** an die MySQL-Implementierung angepasst werd
 
 Die CI (`.github/workflows/ci.yml`) führt `dotnet test` aus. Auf den GitHub-Ubuntu-Runnern ist Docker verfügbar, Testcontainers funktioniert dort ohne weitere Einrichtung. Lokal braucht man dafür Docker oder Podman.
 
+Mit rootless Podman muss Testcontainers den Podman-Socket finden, und Ryuk (der Aufräum-Container) läuft dort nicht:
+
+```bash
+systemctl --user enable --now podman.socket
+export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock
+export TESTCONTAINERS_RYUK_DISABLED=true
+```
+
+Die Fixture in `MySqlRepositoryTests.cs` kommt bewusst ohne `docker exec` aus (eigener Startup-Callback, Bereitschaft per Login vom Host). Podman bricht `exec`-Streams unter Last ab, die Tests scheiterten dann mit „Connection reset by peer“.
+
 ### 7.3 Bestehende Tests
 
-`dotnet build` und `dotnet test` müssen weiterhin komplett grün sein. Die Integrationstests (`WebApplicationFactory`) laufen weiter gegen In-Memory (siehe Hinweis zu `ApiFactory` in 6.3).
+`dotnet build` und `dotnet test` müssen weiterhin komplett grün sein. Die Integrationstests (`WebApplicationFactory`) laufen weiter gegen In-Memory (siehe Hinweis zu `ApiFactory` in 6.3). `ApiFactory` leert den Connection-String dafür per `UseSetting`: `Program.cs` liest ihn vor `Build()`, wenn `ConfigureAppConfiguration` der Factory noch nicht greift; ein Connection-String in den user-secrets würde die Tests sonst auf MySQL umschalten.
 
 ---
 
