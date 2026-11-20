@@ -1,0 +1,65 @@
+name: Release
+
+# Versioning scheme:
+#   push to dev  -> release PR bumping the minor version (v1.0.0 -> v1.1.0)
+#   push to main -> release PR bumping the major version (v1.3.0 -> v2.0.0)
+# Each branch has its own config and manifest so the two release lines don't conflict.
+# After a release on main, main is merged back into dev and dev's manifest is set to
+# the new major version, so the next dev release continues from there (v2.0.0 -> v2.1.0).
+
+on:
+  push:
+    branches: [main, dev]
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - uses: googleapis/release-please-action@v5
+        id: release
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          target-branch: ${{ github.ref_name }}
+          config-file: ${{ github.ref_name == 'main' && 'release-please-config.json' || 'release-please-config.dev.json' }}
+          manifest-file: ${{ github.ref_name == 'main' && '.release-please-manifest.json' || '.release-please-manifest.dev.json' }}
+
+  sync-dev:
+    name: Merge main back into dev
+    needs: release-please
+    if: github.ref_name == 'main' && needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: Merge main and align dev version
+        env:
+          TAG_NAME: ${{ needs.release-please.outputs.tag_name }}
+        run: |
+          VERSION="${TAG_NAME#v}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if ! git merge --no-ff --no-commit origin/main; then
+            echo "::error::Merging main into dev produced conflicts. Merge main into dev manually and set .release-please-manifest.dev.json to $VERSION."
+            exit 1
+          fi
+
+          printf '{\n  ".": "%s"\n}\n' "$VERSION" > .release-please-manifest.dev.json
+          git add .release-please-manifest.dev.json
+          # chore commits are hidden in the release notes, so this does not trigger a dev release.
+          git commit -m "chore: merge main ($TAG_NAME) into dev"
+          git push origin dev

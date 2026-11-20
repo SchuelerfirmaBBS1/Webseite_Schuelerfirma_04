@@ -12,6 +12,12 @@ export default defineConfig({
     vueDevTools(),
     tailwindcss(),
   ],
+  server: {
+    // Forward API calls to the backend (http profile in backend launchSettings.json)
+    proxy: {
+      '/api': 'http://localhost:5077',
+    },
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
