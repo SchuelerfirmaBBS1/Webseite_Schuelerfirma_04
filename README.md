@@ -29,7 +29,7 @@ dotnet test
 
 Das Backend speichert Benutzer und Sessions in MySQL, sobald der Connection-String `ConnectionStrings:Default` gesetzt ist. Ohne ihn läuft es in Development mit einem Speicher im Arbeitsspeicher: Nach jedem Neustart sind alle Daten weg. Außerhalb von Development startet es ohne Connection-String nicht.
 
-1. **MySQL starten.** Im Repository liegt eine `compose.yaml` mit MySQL 8.4 (nur für die Entwicklung, die Passwörter darin sind keine Geheimnisse):
+1. **MySQL starten.** Im Repository liegt eine `compose.yaml` mit MySQL 8.4 (nur für die Entwicklung, die Passwörter darin sind keine Geheimnisse). Sie bindet Port 3306 nur an `127.0.0.1`, die Datenbank ist also nur vom eigenen Rechner aus erreichbar:
    ```bash
    docker compose up -d     # oder: podman compose up -d (braucht podman-compose)
    ```
@@ -46,7 +46,7 @@ Das Backend speichert Benutzer und Sessions in MySQL, sobald der Connection-Stri
    ```
    `dotnet ef` liest den Connection-String aus den user-secrets bzw. aus `ConnectionStrings__Default`. Ohne Migration bricht der Start ab, weil Tabellen und Rollen fehlen.
 
-Auf dem Server kommt der Connection-String aus der Umgebungsvariable `ConnectionStrings__Default`. Neue Migrations werden **vor** dem Start der neuen Version angewendet (`dotnet ef database update` oder ein Migration-Bundle über `dotnet ef migrations bundle`). Hintergründe zum Mapping: [documentation/Datenbank-Implementierung.md](documentation/Datenbank-Implementierung.md).
+Auf dem Server kommt der Connection-String aus der Umgebungsvariable `ConnectionStrings__Default`. Neue Migrations werden **vor** dem Start der neuen Version angewendet (`dotnet ef database update` oder ein Migration-Bundle über `dotnet ef migrations bundle`); im Docker-Setup erledigt das der Dienst `migrate` (siehe „Deployment (Docker)“). Hintergründe zum Mapping: [documentation/Datenbank-Implementierung.md](documentation/Datenbank-Implementierung.md).
 
 ### Tests
 
@@ -173,3 +173,112 @@ Jede schreibende Anfrage (POST, PUT, PATCH, DELETE) braucht ein CSRF-Token – a
 
 Bei `429` („Zu viele Anfragen“) steht im Header `Retry-After`, nach wie vielen Sekunden es wieder geht.
 
+
+## Deployment (Docker)
+
+Auf dem Server laufen Reverse Proxy, Backend und Datenbank als Container. Die Dateien liegen in `deploy/`; die Images entstehen aus `backend/Dockerfile` und `frontend/Dockerfile`. **Von außen ist nur der Proxy auf Port 80 und 443 erreichbar.**
+
+| Dienst | Aufgabe | Netz | Nach außen |
+|---|---|---|---|
+| `proxy` | Caddy: TLS-Zertifikate (Let's Encrypt), HTTP→HTTPS, `/api/*` an die API, alles andere aus dem Vue-Build | `edge` (feste IP) | 80, 443 (tcp + udp) |
+| `api` | ASP.NET Core auf Port 8080, als Nicht-Root-Benutzer, Dateisystem schreibgeschützt | `edge`, `backend` | – |
+| `migrate` | wendet beim Start die EF-Core-Migrations an und beendet sich; die API startet erst danach | `backend` | – |
+| `db` | MySQL 8.4 | `backend` (`internal`: weder erreichbar noch mit Verbindung nach außen) | – |
+
+### Voraussetzungen
+
+- **VPS oder Root-Server** mit Docker Engine und Compose-Plugin (`docker compose version` ≥ 2). Bei einem **Managed Server** vorher klären, ob Docker erlaubt ist und wer Firewall und Betriebssystem-Updates pflegt; ohne Docker braucht es ein anderes Betriebskonzept (z. B. `dotnet publish` als systemd-Dienst hinter nginx).
+- DNS-Eintrag (A/AAAA) der Domain zeigt auf den Server, Port 80 und 443 sind erreichbar (sonst bekommt Caddy kein Zertifikat).
+- Falls der Anbieter eine Firewall vor dem Server anbietet (Cloud-Firewall, Security Groups): nur 22, 80 und 443 freigeben. Sie wirkt auch dann, wenn Docker die Firewall auf dem Server umgeht (siehe unten).
+
+### Einrichten und starten
+
+```bash
+git clone <repo> && cd <repo>
+cp deploy/.env.example deploy/.env && chmod 600 deploy/.env
+nano deploy/.env                        # Domain, Datenbank-Passwörter, erster Admin
+scripts/check-exposed-ports.sh          # muss "OK" melden
+docker compose -f deploy/compose.yaml up -d --build
+docker compose -f deploy/compose.yaml ps        # migrate: "Exited (0)", alle anderen "Up"
+```
+
+Die Secrets stehen nur in `deploy/.env` (in `.gitignore`); `deploy/.env.example` zeigt alle Variablen mit Platzhaltern. Datenbank-Passwörter mit `openssl rand -hex 24` erzeugen (kein `;`, das würde den Connection-String zerschneiden). Werte mit `$` in einfache Anführungszeichen setzen. Fehlt ein Pflichtwert, bricht `docker compose` mit einer Meldung ab.
+
+Der erste Admin kommt aus `BOOTSTRAP_ADMIN_USERNAME`, `BOOTSTRAP_ADMIN_EMAIL` und `BOOTSTRAP_ADMIN_PASSWORD` (Regeln wie unter „Ersten Admin einrichten“). Nach dem ersten Login und dem Passwortwechsel `BOOTSTRAP_ADMIN_PASSWORD` in `deploy/.env` leeren und `docker compose -f deploy/compose.yaml up -d` ausführen.
+
+Weitere Befehle (alle mit `-f deploy/compose.yaml`, oder vorher `cd deploy`):
+
+```bash
+docker compose logs -f api        # Logs
+docker compose stop               # anhalten
+docker compose start              # wieder starten
+docker compose restart proxy      # nach Änderungen am Caddyfile (Caddy hat keine Admin-API)
+docker compose exec api id        # zeigt uid=1654(app), nicht root
+```
+
+**Achtung:** `docker compose down -v` löscht die Volumes und damit Datenbank, Bilder, Session-Schlüssel und Zertifikate. Ohne `-v` bleiben sie erhalten.
+
+### Update
+
+```bash
+git pull
+scripts/check-exposed-ports.sh
+docker compose -f deploy/compose.yaml up -d --build
+```
+
+`up` startet `migrate` jedes Mal neu; neue Migrations werden angewendet, bevor die neue API-Version startet. Schlägt eine Migration fehl, startet die API nicht (`docker compose logs migrate`). Alte Images danach mit `docker image prune` aufräumen.
+
+### Daten und Sicherung
+
+| Volume | Inhalt | Sichern |
+|---|---|---|
+| `schuelerfirma_db-data` | Datenbank | ja, per Dump (siehe unten) |
+| `schuelerfirma_api-images` | hochgeladene Bilder (#13) | ja |
+| `schuelerfirma_api-keys` | Schlüssel der Session-Cookies (unverschlüsselt, nur für den App-Benutzer lesbar) | ja; ohne sie sind nach einer Wiederherstellung alle abgemeldet |
+| `schuelerfirma_caddy-data` | TLS-Zertifikate | optional; Caddy holt neue, Let's Encrypt begrenzt aber die Anzahl pro Woche |
+
+```bash
+cd deploy
+docker compose exec -T db sh -c 'exec mysqldump -uroot -p"$MYSQL_ROOT_PASSWORD" --single-transaction "$MYSQL_DATABASE"' > backup-$(date +%F).sql
+docker run --rm -v schuelerfirma_api-images:/data:ro -v "$PWD":/backup docker.io/library/alpine tar czf /backup/images-$(date +%F).tgz -C /data .
+docker run --rm -v schuelerfirma_api-keys:/data:ro -v "$PWD":/backup docker.io/library/alpine tar czf /backup/keys-$(date +%F).tgz -C /data .
+```
+
+Die Sicherungen enthalten personenbezogene Daten und die Session-Schlüssel: nicht auf dem Server liegen lassen, verschlüsselt ablegen.
+
+### Checkliste „Ports nach außen“
+
+Docker setzt für veröffentlichte Ports eigene iptables-Regeln und **umgeht damit `ufw` und `firewalld`**: Ein Port, der dort gesperrt aussieht, kann trotzdem aus dem Internet erreichbar sein. Deshalb gilt in `deploy/compose.yaml`:
+
+- [ ] Nur `proxy` hat `ports:` (80 und 443). `api` und `db` haben kein `ports:`, höchstens `expose:`.
+- [ ] Ports zur Fehlersuche nur mit Loopback-Präfix (`"127.0.0.1:8080:8080"`), nie ohne, und danach wieder entfernen.
+- [ ] Kein `network_mode: host`.
+- [ ] `scripts/check-exposed-ports.sh` meldet „OK“ (läuft auch in der CI; braucht `jq` und Docker Compose ≥ 2, nicht `podman-compose`).
+- [ ] Auf dem Server: `sudo ss -tlnp` zeigt nach außen nur `:80` und `:443` von Docker (plus SSH).
+- [ ] Von einem **anderen** Rechner: `nmap -Pn -p- <server>` findet nur 22, 80 und 443; `curl http://<server>:8080` und `curl <server>:3306` schlagen fehl.
+
+### Echte Client-IP hinter dem Proxy
+
+Die API zählt das Rate Limiting pro Client-IP und übernimmt `X-Forwarded-For` nur vom Proxy: Der hat im Netz `edge` die feste Adresse `PROXY_IP`, die compose auch als `ForwardedHeaders:KnownProxies` an die API übergibt. Caddy verwirft `X-Forwarded-For`-Werte, die ein Client selbst mitschickt. Kollidiert das Subnetz mit einem vorhandenen Netz, `EDGE_SUBNET`, `EDGE_DYNAMIC_RANGE` und `PROXY_IP` in `deploy/.env` gemeinsam ändern (`PROXY_IP` im Subnetz, aber außerhalb des dynamischen Bereichs).
+
+- **IPv6:** Das Netz `edge` ist reines IPv4. Kommt ein Besucher über IPv6, setzt Docker die Verbindung über seinen `docker-proxy` um, und Caddy sieht für alle IPv6-Besucher dieselbe Gateway-Adresse – sie würden sich ein Rate Limit teilen. Einfachste Abhilfe: für die Domain nur einen A-Eintrag (IPv4) anlegen, keinen AAAA-Eintrag. Soll die Seite über IPv6 erreichbar sein, IPv6 für das Netz `edge` einrichten (Docker-Doku „IPv6 networking“) und danach prüfen: Login-Fehlversuche von zwei verschiedenen IPv6-Anschlüssen dürfen sich nicht gegenseitig ins Limit (`429`) bringen; `docker compose logs api` nennt bei `429` die erkannte Client-IP.
+- **Rootless Podman** (lokaler Test): Hier erscheinen alle Anfragen vom eigenen Rechner mit der IP des Proxys, weil Podman die Ports aus dem Container heraus weiterleitet. Das ist ein Effekt der Testumgebung, nicht des Setups.
+
+### Lokal ausprobieren
+
+Rootless Docker/Podman darf 80 und 443 nicht binden. Zum Ausprobieren eine eigene Datei, z. B. `deploy/compose.override.local.yaml` (`deploy/*.local.yaml` ist in `.gitignore`), mit `SITE_ADDRESS=localhost` in der `.env`:
+
+```yaml
+services:
+  proxy:
+    ports: !override
+      - "127.0.0.1:8081:80"
+      - "127.0.0.1:8443:443"
+```
+
+```bash
+docker compose -f deploy/compose.yaml -f deploy/compose.override.local.yaml up -d --build
+curl -k https://localhost:8443/
+```
+
+Caddy nutzt für `localhost` eine eigene Zertifizierungsstelle (daher `-k`). Unter Fedora/RHEL (SELinux) braucht das eingebundene `Caddyfile` die Mount-Option `z`; sie steht bereits in `deploy/compose.yaml`. Mit Podman wurde das Setup über das `docker-compose`-Binary (Compose v2) und den Podman-Socket getestet (`DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock`); `podman-compose` setzt nicht alle Compose-Funktionen gleich um und wird vom Prüfskript nicht unterstützt.
