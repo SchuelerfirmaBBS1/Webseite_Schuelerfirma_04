@@ -1,0 +1,137 @@
+# Production setup: reverse proxy (Caddy + Vue build), API, one-off migrations, MySQL.
+#
+#   cp .env.example .env    # fill in the secrets
+#   docker compose up -d --build
+#
+# RULE: only "proxy" publishes ports (80/443). Docker's port publishing bypasses ufw/firewalld, so
+# every other service gets no "ports:" at all, at most "expose:". For local debugging bind to loopback
+# only ("127.0.0.1:8080:8080"), never without the prefix. scripts/check-exposed-ports.sh enforces this.
+
+name: schuelerfirma
+
+# One connection string for "api" and "migrate". Use a database password without ";" (connection
+# string separator), e.g. from "openssl rand -hex 24".
+x-db-connection: &db-connection "Server=db;Port=3306;Database=${MYSQL_DATABASE:-schuelerfirma};User=${MYSQL_USER:-schuelerfirma_app};Password=${MYSQL_PASSWORD:?MYSQL_PASSWORD missing, see deploy/.env.example}"
+
+# Hardening for the .NET containers: no Linux capabilities, no privilege escalation, read-only root
+# file system. Writable are only /tmp (in memory) and the mounted volumes.
+x-hardened: &hardened
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  read_only: true
+  tmpfs: [/tmp]
+
+services:
+  proxy:
+    build:
+      context: ../frontend
+    image: schuelerfirma/proxy:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # HTTP/3
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?SITE_ADDRESS missing, see deploy/.env.example}
+      MAX_REQUEST_BODY: ${MAX_REQUEST_BODY:-10MB}
+    volumes:
+      # "z" relabels the file for SELinux hosts (Fedora/RHEL), otherwise Caddy may not read it; ignored elsewhere.
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro,z
+      - caddy-data:/data # certificates – keep them, Let's Encrypt rate-limits new ones
+      - caddy-config:/config
+    networks:
+      edge:
+        # Fixed address: the API trusts X-Forwarded-For only from this IP (ForwardedHeaders:KnownProxies).
+        ipv4_address: ${PROXY_IP:-172.30.43.2}
+    depends_on:
+      - api
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    security_opt: ["no-new-privileges:true"]
+    read_only: true
+    tmpfs: [/tmp]
+
+  api:
+    build:
+      context: ../backend
+      target: api
+    image: schuelerfirma/api:latest
+    restart: unless-stopped
+    expose:
+      - "8080"
+    environment:
+      ConnectionStrings__Default: *db-connection
+      ForwardedHeaders__KnownProxies__0: ${PROXY_IP:-172.30.43.2}
+      # First administrator; remove BOOTSTRAP_ADMIN_PASSWORD from .env after the first login.
+      Bootstrap__AdminUsername: ${BOOTSTRAP_ADMIN_USERNAME:-}
+      Bootstrap__AdminEmail: ${BOOTSTRAP_ADMIN_EMAIL:-}
+      Bootstrap__AdminPassword: ${BOOTSTRAP_ADMIN_PASSWORD:-}
+    volumes:
+      - api-keys:/var/lib/schuelerfirma/keys # Data Protection keys: sessions survive restarts
+      - api-images:/var/lib/schuelerfirma/images # uploaded images (#13), part of the backup
+    networks:
+      - edge
+      - backend
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    <<: *hardened
+
+  migrate:
+    build:
+      context: ../backend
+      target: migrate
+    image: schuelerfirma/migrate:latest
+    restart: "no"
+    environment:
+      ConnectionStrings__Default: *db-connection
+    networks:
+      - backend
+    depends_on:
+      db:
+        condition: service_healthy
+    <<: *hardened
+
+  db:
+    image: docker.io/library/mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-schuelerfirma}
+      MYSQL_USER: ${MYSQL_USER:-schuelerfirma_app}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?MYSQL_PASSWORD missing, see deploy/.env.example}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD missing, see deploy/.env.example}
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - backend
+    healthcheck:
+      # Over TCP: during initialisation MySQL runs a temporary server without networking, so the check
+      # only succeeds once the real server is up. "ping" needs no valid login (exit code 0 even on
+      # "Access denied"), so no password ends up in the container config.
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    # The entrypoint switches from root to the mysql user itself, so capabilities stay as they are.
+    security_opt: ["no-new-privileges:true"]
+
+networks:
+  # proxy <-> api. Fixed subnet so the proxy can have a fixed address. Docker does not reserve fixed
+  # addresses: other containers get theirs from ip_range only, so they can never take PROXY_IP
+  # (otherwise "api", which starts first, would get .2).
+  edge:
+    ipam:
+      config:
+        - subnet: ${EDGE_SUBNET:-172.30.43.0/24}
+          ip_range: ${EDGE_DYNAMIC_RANGE:-172.30.43.128/25}
+  # api/migrate <-> db. internal: neither reachable from outside nor able to connect out.
+  backend:
+    internal: true
+
+volumes:
+  caddy-data:
+  caddy-config:
+  api-keys:
+  api-images:
+  db-data:
