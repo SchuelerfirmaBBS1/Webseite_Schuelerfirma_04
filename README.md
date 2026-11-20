@@ -5,10 +5,171 @@ Frontend: Vue/Tailwind
 
 Backend: C# ASP.NET Core 
 
-Datenbank: EF Core
+Datenbank: MySQL 8.4 über EF Core
 
 Planung Backend:
 Admin-Bereich
 Termine ändern/einstellen
 Kontaktformular einsehen
 E-Mail Adresse ändern, an die die Kontaktformulare gehen
+
+## Backend starten
+
+Voraussetzung: .NET 10 SDK.
+
+```bash
+cd backend
+dotnet run --project src/Schuelerfirma.Api
+dotnet test
+```
+
+`dotnet run` startet die API unter `https://localhost:7205` (zusätzlich `http://localhost:5077`). Schreibende Anfragen funktionieren nur über HTTPS, weil die CSRF-Cookies `Secure` sind; einmalig `dotnet dev-certs https --trust` ausführen. Ein Dev-Server des Frontends leitet `/api` deshalb an `https://localhost:7205` weiter.
+
+### Datenbank einrichten
+
+Das Backend speichert Benutzer und Sessions in MySQL, sobald der Connection-String `ConnectionStrings:Default` gesetzt ist. Ohne ihn läuft es in Development mit einem Speicher im Arbeitsspeicher: Nach jedem Neustart sind alle Daten weg. Außerhalb von Development startet es ohne Connection-String nicht.
+
+1. **MySQL starten.** Im Repository liegt eine `compose.yaml` mit MySQL 8.4 (nur für die Entwicklung, die Passwörter darin sind keine Geheimnisse):
+   ```bash
+   docker compose up -d     # oder: podman compose up -d (braucht podman-compose)
+   ```
+2. **Connection-String hinterlegen** (passend zur `compose.yaml`):
+   ```bash
+   cd backend/src/Schuelerfirma.Api
+   dotnet user-secrets set "ConnectionStrings:Default" "Server=localhost;Port=3306;Database=schuelerfirma;User=schuelerfirma_app;Password=development-password"
+   ```
+3. **Tabellen anlegen.** Die App wendet Migrations nicht selbst an. Nach dem ersten Einrichten und nach jedem Pull mit neuen Migrations:
+   ```bash
+   dotnet tool install --global dotnet-ef   # einmalig
+   cd backend
+   dotnet ef database update --project src/Schuelerfirma.Api
+   ```
+   `dotnet ef` liest den Connection-String aus den user-secrets bzw. aus `ConnectionStrings__Default`. Ohne Migration bricht der Start ab, weil Tabellen und Rollen fehlen.
+
+Auf dem Server kommt der Connection-String aus der Umgebungsvariable `ConnectionStrings__Default`. Neue Migrations werden **vor** dem Start der neuen Version angewendet (`dotnet ef database update` oder ein Migration-Bundle über `dotnet ef migrations bundle`). Hintergründe zum Mapping: [documentation/Datenbank-Implementierung.md](documentation/Datenbank-Implementierung.md).
+
+### Tests
+
+`dotnet test` startet für die Repository-Tests gegen MySQL einen eigenen, kurzlebigen MySQL-Container (Testcontainers). Dafür muss Docker oder Podman laufen; die Datenbank aus der `compose.yaml` wird nicht angefasst. Die übrigen Integrationstests laufen immer im Arbeitsspeicher, auch wenn ein Connection-String gesetzt ist. Mit rootless Podman:
+
+```bash
+systemctl --user enable --now podman.socket
+export DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock
+export TESTCONTAINERS_RYUK_DISABLED=true
+```
+
+### Ersten Admin einrichten
+
+Beim Start legt das Backend einen Administrator an, falls noch keiner existiert. Die Zugangsdaten gehören **nicht** ins Repository, sondern in `dotnet user-secrets` (lokal) bzw. in Umgebungsvariablen (Server):
+
+```bash
+cd backend/src/Schuelerfirma.Api
+dotnet user-secrets set "Bootstrap:AdminUsername" "admin"
+dotnet user-secrets set "Bootstrap:AdminEmail" "admin@example.org"
+dotnet user-secrets set "Bootstrap:AdminPassword" "<mindestens 12 Zeichen>"
+```
+
+Auf dem Server heißen die Variablen `Bootstrap__AdminUsername`, `Bootstrap__AdminEmail` und `Bootstrap__AdminPassword`. Der Benutzername besteht aus 3–32 Zeichen (`a-z`, `0-9`, `.`, `_`, `-`). Das Passwort muss die Passwortrichtlinie erfüllen (mindestens 12 Zeichen mit Groß- und Kleinbuchstabe, Ziffer und Sonderzeichen, kein häufiges Passwort), sonst startet das Backend nicht. **Achtung:** Ältere Startpasswörter in euren user-secrets ohne Ziffer oder Sonderzeichen müssen angepasst werden. Es muss beim ersten Login geändert werden; danach `Bootstrap:AdminPassword` aus der Konfiguration entfernen. Ohne Datenbank (siehe „Datenbank einrichten“) liegen alle Daten nur im Arbeitsspeicher, und der Admin wird bei jedem Start neu angelegt.
+
+### API-Testoberfläche (nur Development)
+
+Zum Ausprobieren der API ohne Frontend und ohne `curl` gibt es in Development eine Testoberfläche (Swagger UI):
+
+- Oberfläche: `https://localhost:7205/swagger`
+- API-Beschreibung (OpenAPI): `https://localhost:7205/openapi/v1.json`
+
+Die Oberfläche zeigt alle Endpunkte mit Beschreibung (aus den XML-Kommentaren) und möglichen Antworten, gruppiert nach `auth`, `admin` und `public`. Alle Dateien kommen aus dem NuGet-Paket, es wird nichts von fremden Servern geladen. In allen anderen Umgebungen gibt es beide Pfade nicht (Antwort wie bei jedem unbekannten Pfad).
+
+Ablauf:
+
+1. Backend mit dem `https`-Profil starten (Standard bei `dotnet run`). Über `http://localhost:5077` funktioniert die Anmeldung nicht, weil die Cookies `Secure` sind. Das Entwicklungszertifikat einmalig mit `dotnet dev-certs https --trust` vertrauen.
+2. `GET /api/auth/csrf` ausführen. Danach schickt die Oberfläche das CSRF-Token bei jedem POST, PUT, PATCH und DELETE automatisch im Header `X-XSRF-TOKEN` mit (so wie später das Frontend).
+3. `POST /api/auth/login` mit den Zugangsdaten (siehe „Ersten Admin einrichten“). Das Session-Cookie schickt der Browser von selbst mit.
+4. Endpunkte testen. `GET /api/auth/me` zeigt den angemeldeten Benutzer und seine Berechtigungen. Solange das temporäre Passwort nicht geändert ist, antworten alle Verwaltungsendpunkte mit `403`.
+5. `POST /api/auth/logout` beendet die Session.
+
+Antwortet ein schreibender Endpunkt mit `400` „Sicherheitstoken fehlt oder ist ungültig“, Schritt 2 wiederholen. Nach fünf Login-Versuchen pro Minute antwortet die API mit `429`.
+
+Ausführliche Anleitung mit Testfällen und Fehlersuche: [documentation/API-Testoberflaeche.md](documentation/API-Testoberflaeche.md).
+
+### Konfiguration
+
+| Schlüssel | Standard | Bedeutung |
+|---|---|---|
+| `ConnectionStrings:Default` | – | Verbindung zur MySQL-Datenbank (siehe „Datenbank einrichten“); nur über user-secrets bzw. `ConnectionStrings__Default`, nie in `appsettings.json`. **Außerhalb von Development Pflicht.** |
+| `Auth:Password:MinLength` | 12 | Mindestlänge neuer Passwörter (12–128) |
+| `Auth:Password:RequireUppercase` / `RequireLowercase` / `RequireDigit` / `RequireSpecialCharacter` | `true` | Neue Passwörter brauchen mindestens einen Groß- und einen Kleinbuchstaben, eine Ziffer und ein Sonderzeichen (alles außer Buchstabe, Ziffer und Leerzeichen; Umlaute zählen als Buchstaben) |
+| `Auth:Lockout:MaxFailedAttempts` | 5 | Fehlversuche bis zur Kontosperre |
+| `Auth:Lockout:Duration` | `00:15:00` | Dauer der Kontosperre |
+| `Auth:Session:IdleTimeout` | `00:30:00` | Session endet nach so langer Inaktivität |
+| `Auth:Session:MaxLifetime` | `08:00:00` | Session endet spätestens so lange nach dem Login |
+| `Auth:Session:CleanupInterval` | `00:10:00` | Abstand, in dem abgelaufene Sessions gelöscht werden |
+| `DataProtection:KeysPath` | – | Ordner für die Schlüssel des Session-Cookies; **außerhalb von Development Pflicht**. Der Ordner muss für das Backend beschreibbar und für alle anderen unlesbar sein (die Schlüssel liegen unverschlüsselt dort); ohne ihn wären nach jedem Neustart alle abgemeldet. |
+| `ForwardedHeaders:KnownProxies` | leer | IP-Adressen der Reverse Proxys, denen `X-Forwarded-*` vertraut wird |
+| `RateLimiting:Auth:PermitLimit` / `:Window` | 5 / `00:01:00` | Login-Versuche pro Client-IP und Zeitfenster |
+| `RateLimiting:Contact:PermitLimit` / `:Window` | 10 / `00:10:00` | Absendungen öffentlicher Formulare (Kontaktformular) pro Client-IP und Zeitfenster; bewusst großzügig, weil sich auf der Messe viele Besucher eine IP teilen |
+| `Authorization:RolePermissions` | siehe unten | Welche Rolle welche Berechtigungen hat |
+
+### Login-API
+
+- `GET /api/auth/csrf` → `204`, setzt die CSRF-Cookies (siehe unten); ohne Anmeldung erreichbar.
+- `POST /api/auth/login` mit `{ "username": "...", "password": "..." }` → `204` und Cookie `__Host-sf.session`, sonst `401`. Alle Fehlerfälle (unbekannter Benutzer, falsches Passwort, gesperrtes oder deaktiviertes Konto) liefern dieselbe Antwort. Höchstens 5 Versuche pro Minute und IP, danach `429` mit `Retry-After`.
+- `POST /api/auth/logout` → `204`, beendet die Session auf dem Server.
+- `GET /api/auth/me` → angemeldeter Benutzer (`userId`, `username`, `email`, `role`, `permissions`, `mustChangePassword`), ohne Login `401`. `permissions` sind die Berechtigungen, die der Benutzer gerade nutzen kann (alphabetisch, `*` bereits aufgelöst; leer, solange `mustChangePassword` gesetzt ist); das Frontend blendet damit Menüpunkte und Buttons aus, die API prüft trotzdem selbst.
+- `POST /api/auth/change-password` mit `{ "currentPassword": "...", "newPassword": "..." }` → `204`. Danach sind **alle** Sessions des Benutzers beendet, auch die aktuelle; er meldet sich mit dem neuen Passwort neu an. Fehler: `400` mit der Meldung am Feld (`errors.CurrentPassword` bzw. `errors.NewPassword`, z. B. Passwortrichtlinie verletzt oder neues gleich altem Passwort). Ein falsches aktuelles Passwort zählt zur Kontosperre; löst es die Sperre aus, kommt `401` („Konto gesperrt“) und alle Sessions enden. Teilt sich das Limit von 5 Versuchen pro Minute mit dem Login.
+
+### Temporäre Passwörter
+
+Der erste Admin (und später jeder Benutzer mit einem vom Admin vergebenen Passwort, #36) muss das Passwort nach der ersten Anmeldung ändern. Solange `mustChangePassword` in `/api/auth/me` `true` ist, funktionieren nur `/api/auth/me`, `/api/auth/change-password` und `/api/auth/logout`; alle Verwaltungsendpunkte antworten mit `403`. Ablauf im Frontend: nach dem Login `/me` abfragen → bei `mustChangePassword` direkt das Formular „Passwort ändern“ zeigen → nach `204` „Passwort geändert, bitte neu anmelden“ und zurück zum Login.
+- Alle Endpunkte außer den ausdrücklich mit `[AllowAnonymous]` markierten verlangen eine Anmeldung; das gilt auch für unbekannte Pfade (`401` statt `404`).
+
+### API-Bereiche und Rollenrechte
+
+Die API ist in drei Bereiche geteilt:
+
+| Pfad | Für | Zugriff |
+|---|---|---|
+| `/api/public/...` | Besucher der Webseite (Termine, Bilder, Produkte, Kontaktformular) | ohne Anmeldung |
+| `/api/admin/...` | Verwaltung (Admin-Panel) | Anmeldung und passende Berechtigung, sonst `401` bzw. `403` |
+| `/api/auth/...` | Login, Logout, `/me`, CSRF-Token | siehe oben |
+
+`/api/admin` steht für den Bereich, nicht für die Rolle Admin: Auch die Rolle User arbeitet dort, was sie darf, entscheiden die Berechtigungen. Welche Rolle welche Berechtigungen hat, steht in `appsettings.json`:
+
+```json
+"Authorization": {
+  "RolePermissions": {
+    "Admin": [ "*" ],
+    "User": [ "events.create", "events.update", "images.upload", "products.read", "products.toggle-price-visibility" ]
+  }
+}
+```
+
+- `*` steht für alle Berechtigungen, auch künftige. Eine Rolle ohne Eintrag hat keine Rechte.
+- Verfügbare Berechtigungen: `events.create`, `events.update`, `events.delete`, `images.upload`, `images.update`, `images.delete`, `products.read`, `products.manage`, `products.toggle-price-visibility`, `contact-requests.read`, `contact-requests.update`, `contact-requests.delete`, `settings.manage`, `users.manage`.
+- Ein unbekannter Name (Tippfehler) verhindert den Start. Änderungen an `appsettings.json` gelten ohne Neustart; ist die geänderte Datei fehlerhaft, bleibt die bisherige Zuordnung aktiv und im Log steht ein Fehler.
+- Über Umgebungsvariablen wird jeder Listeneintrag einzeln überschrieben (`Authorization__RolePermissions__User__0=events.create`); Einträge mit höherem Index aus `appsettings.json` bleiben dabei bestehen.
+
+### Benutzerverwaltung (Admin-Panel)
+
+Alle Endpunkte verlangen die Berechtigung `users.manage` (Standard: nur Admin). Benutzer werden nie gelöscht, nur deaktiviert. Antworten mit Passwörtern werden nicht zwischengespeichert.
+
+- `GET /api/admin/users`, `GET /api/admin/users/{id}` → Benutzer mit `userId`, `username`, `email`, `roleId`, `role`, `isActive`, `mustChangePassword`, `lockedUntil` (Ende einer Sperre nach Fehlversuchen, sonst `null`), `createdAt`, `lastLoginAt`. Ohne Passwort-Hash.
+- `POST /api/admin/users` mit `{ "username": "...", "email": "...", "roleId": 2 }` → `201` mit `{ "user": {...}, "temporaryPassword": "..." }`. Das temporäre Passwort wird nur dieses eine Mal angezeigt; der Benutzer muss es bei der ersten Anmeldung ändern. Benutzername: 3–32 Zeichen aus `a-z 0-9 . _ -`, nicht änderbar.
+- `PUT /api/admin/users/{id}` mit `{ "email": "...", "roleId": 2, "isActive": true }` → `200` mit dem Benutzer. Rollenwechsel und Deaktivierung beenden sofort alle Sessions des Benutzers.
+- `POST /api/admin/users/{id}/reset-password` → `200` mit `{ "temporaryPassword": "...", "endedSessions": 1 }`; hebt eine Sperre auf und beendet alle Sessions.
+- `POST /api/admin/users/{id}/revoke-sessions` → `200` mit `{ "endedSessions": 2 }`, z. B. wenn jemand am Messe-Laptop angemeldet geblieben ist.
+- `GET /api/admin/roles` → Rollen mit `roleId`, `name` und `permissions` (für Auswahllisten).
+- Fehler: `400` bei ungültigen Eingaben (Meldung am Feld), `404` bei unbekannter ID, `409` mit deutscher Meldung in `detail` bei vergebenem Benutzernamen oder vergebener E-Mail und bei den Schutzregeln: Niemand kann das eigene Konto deaktivieren, die eigene Rolle ändern oder das eigene Passwort hier zurücksetzen (dafür gibt es `/api/auth/change-password`), und der letzte aktive Benutzer mit `users.manage` bleibt erhalten.
+
+### CSRF-Schutz: Hinweise fürs Frontend
+
+Jede schreibende Anfrage (POST, PUT, PATCH, DELETE) braucht ein CSRF-Token – auch der Login und öffentliche Formulare wie das Kontaktformular. Ohne gültiges Token antwortet die API mit `400` und dem Titel „Sicherheitstoken fehlt oder ist ungültig“.
+
+1. Beim Start der Seite und **vor jedem Login** `GET /api/auth/csrf` aufrufen. Das setzt das Cookie `XSRF-TOKEN` (für JavaScript lesbar) und ein zweites, nicht lesbares Cookie.
+2. Bei jeder schreibenden Anfrage den aktuellen Wert des Cookies `XSRF-TOKEN` im Header `X-XSRF-TOKEN` mitsenden. Den Wert jedes Mal frisch aus dem Cookie lesen, nicht zwischenspeichern. axios macht das mit den Standardeinstellungen automatisch, bei `fetch` von Hand.
+3. Login und Logout stellen selbst ein neues Token aus, denn das Token gehört zum angemeldeten Benutzer.
+4. Ist jemand angemeldet (`GET /api/auth/me` liefert `200`), muss er sich erst abmelden, bevor sich jemand anderes anmeldet – das Token einer laufenden Session wird beim Login abgelehnt. Das Login-Formular zeigt in dem Fall „Angemeldet als … – Abmelden“.
+5. Kommt `400` mit dem obigen Titel (z. B. weil die Session inzwischen abgelaufen ist), einmal `GET /api/auth/csrf` aufrufen und die Anfrage wiederholen.
+
+Bei `429` („Zu viele Anfragen“) steht im Header `Retry-After`, nach wie vielen Sekunden es wieder geht.
+

@@ -7,6 +7,11 @@ class User {
     +string Email
     +string PasswordHash
     +bool IsActive
+    +int FailedLoginCount
+    +DateTime? LockoutEnd
+    +bool MustChangePassword
+    +DateTime CreatedAt
+    +DateTime? LastLoginAt
 }
 
 class Role {
@@ -14,7 +19,16 @@ class Role {
     +string Name
 }
 
+class UserSession {
+    +string SessionKeyHash
+    +int UserId
+    +byte[] Ticket
+    +DateTime CreatedAt
+    +DateTime ExpiresAt
+}
+
 Role "1" --> "*" User
+User "1" --> "*" UserSession
 
 class Category {
     +int CategoryId

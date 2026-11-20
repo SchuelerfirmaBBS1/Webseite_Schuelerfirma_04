@@ -11,18 +11,21 @@ Webseite der Schülerfirma der BBS1 Lüneburg. Öffentliche Seite plus Admin-Ber
 - Eingegangene Kontaktformulare einsehen
 - E-Mail-Adresse ändern, an die Kontaktformulare weitergeleitet werden
 
-Das Datenmodell ist in `documentation/Models.drawio` beschrieben (draw.io-XML). Vor Änderungen an Entities dort nachsehen und das Diagramm bei Modelländerungen mit aktualisieren.
+Das Datenmodell ist in den Mermaid-Diagrammen `documentation/UMLClassDiagram.mmd` (Klassendiagramm) und `documentation/UMLEntityRelationshipDiagramm.mmd` (ER-Diagramm) beschrieben. Vor Änderungen an Entities dort nachsehen und bei Modelländerungen beide Diagramme mit aktualisieren. Was für die Datenbank-Anbindung (EF Core/MySQL) gilt, steht in `documentation/Datenbank-Implementierung.md`.
 
 ## Tech-Stack und Struktur
 
 | Bereich   | Technik                                                                   | Ordner           |
 | --------- | ------------------------------------------------------------------------- | ---------------- |
 | Frontend  | Vue 3 (`<script setup lang="ts">`), TypeScript, Vite, Tailwind CSS 4, Pinia, Vue Router | `frontend/`      |
-| Backend   | C# / ASP.NET Core (Web API), Entity Framework Core                        | `backend/` (noch nicht angelegt) |
-| Datenbank | MySQL (über EF Core, Provider z. B. `Pomelo.EntityFrameworkCore.MySql`)  | –                |
-| Doku      | draw.io-Diagramme                                                         | `documentation/` |
+| Backend   | C# / ASP.NET Core (Web API), Entity Framework Core                        | `backend/`       |
+| Datenbank | MySQL 8.4 (über EF Core, Provider `Pomelo.EntityFrameworkCore.MySql`)    | –                |
+| Doku      | Mermaid-Diagramme (`.mmd`)                                                | `documentation/` |
 
-Das Backend existiert noch nicht. Wenn es angelegt wird: unter `backend/` mit einer `.sln`, einem Web-API-Projekt und einem separaten Testprojekt (xUnit). Danach diese Datei um die konkreten Pfade und Befehle ergänzen.
+Das Backend liegt unter `backend/` (.NET 10, Solution `Schuelerfirma.slnx`):
+
+- `backend/src/Schuelerfirma.Api/` – Web-API mit Controllern. Ordner: `Domain/` (Entities), `Application/` (Services, Interfaces), `Infrastructure/` (technische Umsetzung, z. B. `Http/` für Security-Header und Proxy-Handling), `Controllers/`, `Contracts/` (Request-/Response-DTOs).
+- `backend/tests/Schuelerfirma.Api.Tests/` – xUnit; Integrationstests laufen über `WebApplicationFactory<Program>` (`Integration/`).
 
 ## Befehle
 
@@ -43,15 +46,17 @@ npm run format       # prettier auf src/
 
 Tests liegen in `__tests__/`-Ordnern neben dem getesteten Code (`*.spec.ts`), z. B. `src/stores/__tests__/counter.spec.ts`. Vitest läuft mit `jsdom`, Komponenten werden mit `@vue/test-utils` gemountet.
 
-### Backend (sobald vorhanden, `cd backend`)
+### Backend (`cd backend`)
 
 ```bash
 dotnet build
 dotnet test
-dotnet run --project <WebApi-Projekt>
-dotnet ef migrations add <Name> --project <Projekt>
-dotnet ef database update --project <Projekt>
+dotnet run --project src/Schuelerfirma.Api
+dotnet ef migrations add <Name> --project src/Schuelerfirma.Api --output-dir Infrastructure/Persistence/Migrations
+dotnet ef database update --project src/Schuelerfirma.Api
 ```
+
+`dotnet ef` liest den Connection-String aus `ConnectionStrings:Default` (user-secrets/Umgebungsvariable); `migrations add` braucht keine Datenbank. Lokale MySQL über `compose.yaml` im Repo-Root. Die MySQL-Contract-Tests starten einen eigenen Container (Testcontainers) und brauchen Docker oder Podman (Podman-Einrichtung im README unter „Tests“).
 
 ## Konventionen
 
@@ -65,11 +70,26 @@ dotnet ef database update --project <Projekt>
 
 ### Backend
 
-- ASP.NET Core Web API mit Controllern (oder Minimal APIs – konsistent bei einer Variante bleiben).
-- EF Core mit MySQL; Schemaänderungen ausschließlich über Migrations, nie manuell an der Datenbank.
+- ASP.NET Core Web API mit Controllern (keine Minimal APIs).
+- Frontend und API laufen unter derselben Domain (Reverse Proxy); deshalb gibt es kein CORS.
+- Datenzugriff nur über die Repository-Interfaces in `Application/Abstractions/` (nie direkt über einen `DbContext` in Services/Controllern). Ist `ConnectionStrings:Default` gesetzt, laufen die EF-Core-Repositories aus `Infrastructure/Persistence/` (Scoped, arbeiten über `IDbContextFactory`); sonst in Development die In-Memory-Repositories aus `Infrastructure/InMemory/`, und außerhalb von Development startet die App nicht (`PersistenceStartupCheck`). Neue Repositories bekommen abstrakte Contract-Tests in `tests/.../Persistence/`, die für In-Memory und MySQL abgeleitet werden; ein neues Interface kommt in `PersistenceStartupCheck`. Mapping nur per Fluent API in `Infrastructure/Persistence/Configurations/`, Domain-Klassen ohne EF-Attribute. Integrationstests (`ApiFactory`) laufen immer gegen In-Memory.
+- Passwörter nur über `IPasswordHasher<User>` hashen (210.000 PBKDF2-Iterationen, siehe `PasswordSecurityExtensions`) und neue Passwörter immer mit `PasswordPolicy` prüfen; temporäre Passwörter kommen aus `ITemporaryPasswordGenerator`. Die Richtlinie ist rein statisch (keine externen Dienste); die Liste häufiger Passwörter liegt in `Resources/common-passwords.txt` (Quelle: `Resources/common-passwords.README.md`). Mindestlänge über `Auth:Password:MinLength` (12–128). Groß-/Kleinbuchstabe, Ziffer und Sonderzeichen sind Pflicht (`Auth:Password:Require…`, Standard `true`; Sonderzeichen = weder Buchstabe noch Ziffer noch Leerzeichen); generierte temporäre Passwörter enthalten jede Klasse garantiert. Testpasswörter in Tests müssen die Regeln erfüllen, außer ein Test prüft gezielt eine Verletzung.
+- Login: serverseitige Sessions (`SessionTicketStore` auf Basis von `IUserSessionRepository`), Cookie `__Host-sf.session` (HttpOnly, Secure, SameSite=Strict). Die Fallback-Policy verlangt für jeden Endpunkt eine Anmeldung; öffentliche Endpunkte werden ausdrücklich mit `[AllowAnonymous]` markiert. Login-Fehler sind immer identisch (`401`), nie zwischen unbekanntem Benutzer, falschem Passwort, Sperre oder Deaktivierung unterscheiden. Eigene Optionsklassen nicht wie Typen aus `Microsoft.AspNetCore.*` benennen (`SessionOptions`, `LockoutOptions` und `PasswordOptions` kollidieren), daher `Login…Options`/`PasswordPolicyOptions`.
+- CSRF: Ein globaler Filter (`CsrfValidationFilter`) prüft bei jedem POST/PUT/PATCH/DELETE das Token aus dem Header `X-XSRF-TOKEN`, auch bei anonymen Endpunkten. Nicht abschalten; `[IgnoreAntiforgeryToken]` nur mit Begründung. Ändert sich die Identität im Request (Login, Logout), neues Token mit `IAntiforgery.IssueCsrfToken(HttpContext, neuerPrincipal)` ausstellen.
+- Rate Limiting: Öffentliche schreibende Endpunkte (z. B. Kontaktformular) und alles, was Passwörter prüft, bekommen `[EnableRateLimiting(...)]` mit einer Policy aus `RateLimitPolicies` (`auth`, `contact`). Gezählt wird pro Client-IP (IPv6 pro /64); neue Policies in `RateLimitingExtensions` mit Standardwerten und Konfigurationsabschnitt anlegen.
+- Konfiguration: `Auth:*` (Passwort, Sperre, Session), `RateLimiting:*` (Limits), `Authorization:RolePermissions` (Rollenrechte), `Bootstrap:*` (erster Admin, nur über user-secrets/Umgebungsvariablen), `DataProtection:KeysPath` und `ConnectionStrings:Default` (beide Pflicht außerhalb von Development). Details im README.
+- Zeitpunkte sind UTC (`DateTime`); Repositories lesen keine Uhr, der Aufrufer übergibt die Zeit.
+- Fehlerantworten sind ProblemDetails ohne Stacktraces. Zeitabhängige Logik nutzt den injizierten `TimeProvider`, nicht `DateTime.UtcNow`.
+- EF Core mit MySQL; Schemaänderungen ausschließlich über Migrations, nie manuell an der Datenbank. Die App wendet Migrations nicht selbst an (`dotnet ef database update` vor dem Start).
 - Connection-Strings und Secrets (DB-Passwort, SMTP-Zugangsdaten) nie committen – lokal über `dotnet user-secrets` bzw. Umgebungsvariablen, in `appsettings.json` nur Platzhalter.
 - XML-Doc-Comments für öffentliche Klassen und Methoden.
-- Admin-Endpunkte müssen authentifiziert sein; Eingaben aus dem Kontaktformular validieren.
+- API-Bereiche: Öffentliche Endpunkte erben von `PublicApiController` (`/api/public/...`, anonym), Verwaltungsendpunkte von `AdminApiController` (`/api/admin/...`, nicht cachebar). Jeder Verwaltungsendpunkt bekommt `[HasPermission(Permissions.…)]`, nie `[AllowAnonymous]`; öffentliche schreibende Endpunkte brauchen `[EnableRateLimiting]`. Andere Pfade außer `/api/auth` gibt es nicht. `ApiAreaRulesTests` prüft das für alle Endpunkte.
+- API-Testoberfläche (#51): OpenAPI (`/openapi/v1.json`) und Swagger UI (`/swagger`) nur in Development, eingebunden über `Infrastructure/OpenApi/`. Die einzige Ausnahme von den API-Bereichen ist der OpenAPI-Endpunkt; er liegt unter `/openapi` und trägt die Markierung `DevelopmentToolEndpoint`. Swagger UI steht vor `UseAuthentication`, weil die Fallback-Policy sonst auch die statischen Dateien schützt. Neue Endpunkte dokumentieren ihre eigenen Antworten mit `<response code>` und `[ProducesResponseType]` (Fehler als `ProblemDetails`/`ValidationProblemDetails`); 401, 403, 429 und die CSRF-400 ergänzt `ApiAreaOperationTransformer` aus den Endpunkt-Metadaten.
+- Öffentliche Endpunkte bekommen eigene Response-DTOs, nie dieselben wie der Verwaltungsbereich – so wird ein internes Feld nicht versehentlich öffentlich.
+- Berechtigungen: Namen stehen im Katalog `Application/Auth/Permissions.cs`, die Zuordnung zu Rollen in `appsettings.json` unter `Authorization:RolePermissions` (nie im Code). Eine neue Berechtigung in beiden eintragen. Mehrere `[HasPermission]` an einem Endpunkt müssen alle erfüllt sein. Solange `User.MustChangePassword` gesetzt ist (Claim `sf:must_change_password`), gewährt `[HasPermission]` nichts; deshalb nie Funktionen für angemeldete Benutzer ohne `[HasPermission]` bauen, außer den Endpunkten unter `/api/auth`.
+- Passwortwechsel beendet alle Sessions des Benutzers inklusive der aktuellen; der Benutzer meldet sich neu an. Grund: Der Cookie-Handler kann innerhalb eines angemeldeten Requests keinen neuen Session-Schlüssel ausstellen (er erneuert bei `SignInAsync` den alten).
+- Benutzerverwaltung: Fachlogik und Schutzregeln liegen in `UserAdministrationService` (`Application/Users/`), der Controller übersetzt nur in HTTP. Benutzer nie löschen, nur deaktivieren; jede Admin-Aktion mit handelndem Benutzer loggen, temporäre Passwörter nie. Wer `users.manage` hat, ergibt sich aus der Konfiguration, nie aus dem Rollennamen.
+- Eingaben aus dem Kontaktformular validieren.
 
 ### Sprache
 
