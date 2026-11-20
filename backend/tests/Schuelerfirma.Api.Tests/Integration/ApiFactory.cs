@@ -17,6 +17,11 @@ public class ApiFactory : WebApplicationFactory<Program>
     /// <inheritdoc />
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        // Program.cs reads the connection string before Build(), when ConfigureAppConfiguration below is not
+        // applied yet. Settings from UseSetting are visible at that point, so a connection string from the
+        // developer's user-secrets cannot switch the tests to MySQL.
+        builder.UseSetting("ConnectionStrings:Default", string.Empty);
+
         // The session cookie is encrypted with persistent keys; keep the tests' keys out of the source tree.
         // Added last on purpose: values in the developer's user-secrets must not influence the tests.
         builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(
