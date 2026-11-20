@@ -84,3 +84,20 @@ jobs:
         if: steps.detect.outputs.present == 'true'
         working-directory: backend
         run: dotnet test --no-build --configuration Release --verbosity normal
+
+  deploy:
+    name: Deployment (port check, images)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Test port check script
+        run: scripts/tests/check-exposed-ports.test.sh
+
+      # Fails if anything but the proxy publishes a port reachable from outside (#43).
+      - name: Check published ports
+        run: scripts/check-exposed-ports.sh --env-file deploy/.env.example
+
+      # Builds proxy, api and migrate; nothing is pushed.
+      - name: Build images
+        run: docker compose -f deploy/compose.yaml --env-file deploy/.env.example build
