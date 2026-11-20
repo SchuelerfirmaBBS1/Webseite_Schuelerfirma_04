@@ -93,8 +93,10 @@ public sealed class SchuelerfirmaDbContextModelTests
         using var context = CreateContext();
         var userEntity = GetModel(context).FindEntityType(typeof(User))!;
 
-        Assert.Null(userEntity.FindProperty(nameof(User.IsActive))!.GetDefaultValue());
-        Assert.Null(userEntity.FindProperty(nameof(User.MustChangePassword))!.GetDefaultValue());
+        Assert.Null(userEntity.FindProperty(nameof(User.IsActive))!
+            .FindAnnotation(RelationalAnnotationNames.DefaultValue));
+        Assert.Null(userEntity.FindProperty(nameof(User.MustChangePassword))!
+            .FindAnnotation(RelationalAnnotationNames.DefaultValue));
     }
 
     [Theory]
