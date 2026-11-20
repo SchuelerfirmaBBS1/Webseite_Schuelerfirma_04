@@ -12,6 +12,34 @@ internal static class MySqlExceptionTranslator
 {
     private const int DuplicateEntryErrorNumber = 1062;
     private const int ForeignKeyConstraintErrorNumber = 1452;
+    private const int RowIsReferencedErrorNumber = 1451;
+
+    public static Exception TranslateCategoryException(Exception exception)
+    {
+        var mysqlEx = FindMySqlException(exception);
+        if (mysqlEx?.Number == DuplicateEntryErrorNumber
+            && mysqlEx.Message.Contains("UX_Categories_Name", StringComparison.OrdinalIgnoreCase))
+        {
+            return new DuplicateEntryException(nameof(Category.Name));
+        }
+
+        return exception;
+    }
+
+    public static Exception TranslateProductException(Exception exception)
+    {
+        var mysqlEx = FindMySqlException(exception);
+        if (mysqlEx?.Number == ForeignKeyConstraintErrorNumber)
+        {
+            return new InvalidOperationException("Referenced category does not exist.", exception);
+        }
+
+        return exception;
+    }
+
+    /// <summary>Whether a delete failed because other rows still reference the row (MySQL error 1451).</summary>
+    public static bool IsRowStillReferenced(Exception exception) =>
+        FindMySqlException(exception)?.Number == RowIsReferencedErrorNumber;
 
     public static Exception TranslateUserException(Exception exception)
     {
