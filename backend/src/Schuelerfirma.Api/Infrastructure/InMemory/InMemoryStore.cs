@@ -19,6 +19,16 @@ public sealed class InMemoryStore
 
     internal int LastUserId { get; set; }
 
+    internal List<Category> Categories { get; } = [];
+
+    internal List<Product> Products { get; } = [];
+
+    internal List<ProductImage> ProductImages { get; } = [];
+
+    internal int LastCategoryId { get; set; }
+
+    internal int LastProductId { get; set; }
+
     internal static bool SameText(string a, string b) => string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
 
     internal static Role Copy(Role role) => new() { RoleId = role.RoleId, Name = role.Name };
@@ -48,6 +58,46 @@ public sealed class InMemoryStore
         ExpiresAt = session.ExpiresAt,
     };
 
+    internal static Category Copy(Category category) => new()
+    {
+        CategoryId = category.CategoryId,
+        Name = category.Name,
+        IsVisible = category.IsVisible,
+    };
+
+    internal static ProductImage Copy(ProductImage image) => new()
+    {
+        ProductImageId = image.ProductImageId,
+        ProductId = image.ProductId,
+        FileName = image.FileName,
+        Description = image.Description,
+        ContentType = image.ContentType,
+        FilePath = image.FilePath,
+        SortOrder = image.SortOrder,
+        IsPrimary = image.IsPrimary,
+    };
+
     /// <summary>Copy of a stored user with its role loaded.</summary>
     internal User Materialize(User stored) => Copy(stored, Roles.Single(r => r.RoleId == stored.RoleId));
+
+    /// <summary>Copy of a stored product with its category and its images (ordered) loaded.</summary>
+    internal Product Materialize(Product stored) => new()
+    {
+        ProductId = stored.ProductId,
+        CategoryId = stored.CategoryId,
+        Category = Copy(Categories.Single(c => c.CategoryId == stored.CategoryId)),
+        Name = stored.Name,
+        Description = stored.Description,
+        Price = stored.Price,
+        IsPriceVisible = stored.IsPriceVisible,
+        IsActive = stored.IsActive,
+        Images =
+        [
+            .. ProductImages
+                .Where(i => i.ProductId == stored.ProductId)
+                .OrderBy(i => i.SortOrder)
+                .ThenBy(i => i.ProductImageId)
+                .Select(Copy),
+        ],
+    };
 }
