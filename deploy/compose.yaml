@@ -33,7 +33,7 @@ services:
       - "443:443/udp" # HTTP/3
     environment:
       SITE_ADDRESS: ${SITE_ADDRESS:?SITE_ADDRESS missing, see deploy/.env.example}
-      MAX_REQUEST_BODY: ${MAX_REQUEST_BODY:-10MB}
+      MAX_REQUEST_BODY: ${MAX_REQUEST_BODY:-32MB}
     volumes:
       # "z" relabels the file for SELinux hosts (Fedora/RHEL), otherwise Caddy may not read it; ignored elsewhere.
       - ./Caddyfile:/etc/caddy/Caddyfile:ro,z
@@ -68,7 +68,6 @@ services:
       Bootstrap__AdminPassword: ${BOOTSTRAP_ADMIN_PASSWORD:-}
     volumes:
       - api-keys:/var/lib/schuelerfirma/keys # Data Protection keys: sessions survive restarts
-      - api-images:/var/lib/schuelerfirma/images # uploaded images (#13), part of the backup
     networks:
       - edge
       - backend
@@ -133,5 +132,4 @@ volumes:
   caddy-data:
   caddy-config:
   api-keys:
-  api-images:
   db-data:
