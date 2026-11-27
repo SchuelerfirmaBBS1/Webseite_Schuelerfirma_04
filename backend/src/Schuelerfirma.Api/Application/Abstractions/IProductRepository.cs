@@ -54,7 +54,7 @@ public interface IProductRepository
     /// <returns><c>false</c> if the product does not exist.</returns>
     Task<bool> SetPriceVisibilityAsync(int productId, bool isPriceVisible, CancellationToken cancellationToken = default);
 
-    /// <summary>Deletes the product together with its image records (not the image files).</summary>
+    /// <summary>Deletes the product together with its images and their image data.</summary>
     /// <returns><c>false</c> if the product does not exist.</returns>
     Task<bool> DeleteAsync(int productId, CancellationToken cancellationToken = default);
 }

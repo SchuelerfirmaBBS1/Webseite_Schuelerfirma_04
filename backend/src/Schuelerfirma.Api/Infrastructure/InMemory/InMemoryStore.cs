@@ -32,6 +32,8 @@ public sealed class InMemoryStore
 
     internal int LastProductId { get; set; }
 
+    internal int LastProductImageId { get; set; }
+
     internal static bool SameText(string a, string b) => string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
 
     internal static Role Copy(Role role) => new() { RoleId = role.RoleId, Name = role.Name };
