@@ -136,9 +136,9 @@ public abstract class ProductRepositoryContractTests : RepositoryContractTests
         var repos = CreateRepositories();
         var drinks = await AddCategoryAsync(repos);
         var product = await AddProductAsync(repos, drinks.CategoryId);
-        await repos.AddProductImage(NewImage(product.ProductId, sortOrder: 2));
-        await repos.AddProductImage(NewImage(product.ProductId, sortOrder: 0, isPrimary: true));
-        await repos.AddProductImage(NewImage(product.ProductId, sortOrder: 1));
+        await AddImageAsync(repos, product.ProductId, sortOrder: 2);
+        await AddImageAsync(repos, product.ProductId, sortOrder: 0, isPrimary: true);
+        await AddImageAsync(repos, product.ProductId, sortOrder: 1);
 
         var loaded = await repos.Products.GetByIdAsync(product.ProductId);
         var visible = await repos.Products.GetVisibleProductsAsync();
@@ -155,7 +155,7 @@ public abstract class ProductRepositoryContractTests : RepositoryContractTests
         var drinks = await AddCategoryAsync(repos, "Getränke");
         var snacks = await AddCategoryAsync(repos, "Snacks");
         var product = await AddProductAsync(repos, drinks.CategoryId, "Apfelsaft", price: 1.50m);
-        await repos.AddProductImage(NewImage(product.ProductId, sortOrder: 0));
+        await AddImageAsync(repos, product.ProductId, sortOrder: 0);
 
         await repos.Products.UpdateAsync(new Product
         {
@@ -230,13 +230,32 @@ public abstract class ProductRepositoryContractTests : RepositoryContractTests
         var repos = CreateRepositories();
         var drinks = await AddCategoryAsync(repos);
         var product = await AddProductAsync(repos, drinks.CategoryId);
-        await repos.AddProductImage(NewImage(product.ProductId, sortOrder: 0));
+        var image = await AddImageAsync(repos, product.ProductId, sortOrder: 0);
 
         Assert.True(await repos.Products.DeleteAsync(product.ProductId));
+        Assert.Null(await repos.GetProductImageData(image.ProductImageId));
         Assert.Null(await repos.Products.GetByIdAsync(product.ProductId));
         Assert.False(await repos.Products.DeleteAsync(product.ProductId));
 
         // Nothing of the product is left behind, so its category is empty and can go.
         Assert.Equal(CategoryDeleteResult.Deleted, await repos.Categories.DeleteAsync(drinks.CategoryId));
+    }
+
+    [Fact]
+    public async Task ImageData_LargerThanABlob_IsStoredUnchanged_AndLengthIsLoaded()
+    {
+        var repos = CreateRepositories();
+        var drinks = await AddCategoryAsync(repos);
+        var product = await AddProductAsync(repos, drinks.CategoryId);
+        // 1 MiB: a plain BLOB column (64 KiB) would cut it off, MEDIUMBLOB holds it.
+        var data = new byte[1024 * 1024];
+        Random.Shared.NextBytes(data);
+        var image = NewImage(product.ProductId, sortOrder: 0);
+        image.Length = data.Length;
+
+        await repos.AddProductImage(image, data);
+
+        Assert.Equal(data, await repos.GetProductImageData(image.ProductImageId));
+        Assert.Equal(data.Length, (await repos.Products.GetByIdAsync(product.ProductId))!.Images.Single().Length);
     }
 }

@@ -38,6 +38,9 @@ public sealed class SchuelerfirmaDbContext : DbContext
     /// <summary>Images of the products.</summary>
     public DbSet<ProductImage> ProductImages => Set<ProductImage>();
 
+    /// <summary>The stored image data of the product images.</summary>
+    public DbSet<ProductImageContent> ProductImageContents => Set<ProductImageContent>();
+
     /// <inheritdoc />
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {

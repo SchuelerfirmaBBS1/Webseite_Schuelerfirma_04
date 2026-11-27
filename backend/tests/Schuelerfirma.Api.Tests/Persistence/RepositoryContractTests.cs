@@ -5,15 +5,18 @@ namespace Schuelerfirma.Api.Tests.Persistence;
 
 /// <summary>The repositories under test; they must share one underlying store.</summary>
 /// <param name="AddProductImage">
-/// Stores an image record directly. Test seam until the image storage (#13) brings a repository method for it.
+/// Stores an image record together with its image data directly. Test seam until the image upload (#13) brings
+/// repository methods for it.
 /// </param>
+/// <param name="GetProductImageData">Reads the stored image data of an image, <c>null</c> if there is none.</param>
 public sealed record Repositories(
     IUserRepository Users,
     IRoleRepository Roles,
     IUserSessionRepository Sessions,
     ICategoryRepository Categories,
     IProductRepository Products,
-    Func<ProductImage, Task> AddProductImage);
+    Func<ProductImage, byte[], Task> AddProductImage,
+    Func<int, Task<byte[]?>> GetProductImageData);
 
 /// <summary>
 /// Base class of all repository contract tests. Every storage implementation (in-memory now, EF Core / MySQL
@@ -76,13 +79,25 @@ public abstract class RepositoryContractTests
         return product;
     }
 
+    /// <summary>Stand-in image data (the JPEG signature followed by a few bytes).</summary>
+    protected static readonly byte[] ImageData = [0xFF, 0xD8, 0xFF, 0xE0, 1, 2, 3, 4];
+
+    /// <summary>Stores a new image of <paramref name="productId"/> with <see cref="ImageData"/>.</summary>
+    protected static async Task<ProductImage> AddImageAsync(
+        Repositories repos, int productId, int sortOrder, bool isPrimary = false)
+    {
+        var image = NewImage(productId, sortOrder, isPrimary);
+        await repos.AddProductImage(image, ImageData);
+        return image;
+    }
+
     protected static ProductImage NewImage(int productId, int sortOrder, bool isPrimary = false) => new()
     {
         ProductId = productId,
         FileName = $"bild-{sortOrder}.jpg",
         Description = $"Bild {sortOrder}",
         ContentType = "image/jpeg",
-        FilePath = $"{Guid.NewGuid():N}.jpg",
+        Length = ImageData.Length,
         SortOrder = sortOrder,
         IsPrimary = isPrimary,
     };

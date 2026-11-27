@@ -135,8 +135,8 @@ public sealed class ProductCatalogService(
         return CatalogResult<Product>.Success();
     }
 
-    /// <summary>Deletes a product together with its image records.</summary>
-    /// <returns>On success the product as it was before, including its images (their files are still to be removed).</returns>
+    /// <summary>Deletes a product together with its images (records and image data).</summary>
+    /// <returns>On success the product as it was before, including its images.</returns>
     public async Task<CatalogResult<Product>> DeleteProductAsync(
         int actingUserId, int productId, CancellationToken cancellationToken = default)
     {

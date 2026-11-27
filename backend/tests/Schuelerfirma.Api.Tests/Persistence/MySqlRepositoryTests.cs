@@ -50,6 +50,7 @@ public sealed class MySqlContainerFixture : IAsyncLifetime
         await using var db = await ContextFactory.CreateDbContextAsync();
         await db.UserSessions.ExecuteDeleteAsync();
         await db.Users.ExecuteDeleteAsync();
+        await db.ProductImageContents.ExecuteDeleteAsync();
         await db.ProductImages.ExecuteDeleteAsync();
         await db.Products.ExecuteDeleteAsync();
         await db.Categories.ExecuteDeleteAsync();
@@ -62,24 +63,39 @@ public sealed class MySqlContainerFixture : IAsyncLifetime
             new EfUserSessionRepository(ContextFactory),
             new EfCategoryRepository(ContextFactory),
             new EfProductRepository(ContextFactory),
-            AddProductImageAsync);
+            AddProductImageAsync,
+            GetProductImageDataAsync);
 
-    private async Task AddProductImageAsync(ProductImage image)
+    // Record and data in one transaction, as the upload (#13) will do it.
+    private async Task AddProductImageAsync(ProductImage image, byte[] data)
     {
         await using var db = await ContextFactory.CreateDbContextAsync();
+        await using var transaction = await db.Database.BeginTransactionAsync();
         var entity = new ProductImage
         {
             ProductId = image.ProductId,
             FileName = image.FileName,
             Description = image.Description,
             ContentType = image.ContentType,
-            FilePath = image.FilePath,
+            Length = image.Length,
             SortOrder = image.SortOrder,
             IsPrimary = image.IsPrimary,
         };
         db.ProductImages.Add(entity);
         await db.SaveChangesAsync();
+        db.ProductImageContents.Add(new ProductImageContent { ProductImageId = entity.ProductImageId, Data = data });
+        await db.SaveChangesAsync();
+        await transaction.CommitAsync();
         image.ProductImageId = entity.ProductImageId;
+    }
+
+    private async Task<byte[]?> GetProductImageDataAsync(int imageId)
+    {
+        await using var db = await ContextFactory.CreateDbContextAsync();
+        return await db.ProductImageContents
+            .Where(content => content.ProductImageId == imageId)
+            .Select(content => content.Data)
+            .SingleOrDefaultAsync();
     }
 
     public async Task DisposeAsync()

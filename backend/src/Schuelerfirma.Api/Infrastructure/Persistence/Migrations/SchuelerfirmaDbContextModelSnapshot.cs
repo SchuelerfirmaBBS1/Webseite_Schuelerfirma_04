@@ -110,13 +110,11 @@ namespace Schuelerfirma.Api.Infrastructure.Persistence.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)");
 
-                    b.Property<string>("FilePath")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
-
                     b.Property<bool>("IsPrimary")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<long>("Length")
+                        .HasColumnType("bigint");
 
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
@@ -130,6 +128,20 @@ namespace Schuelerfirma.Api.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("IX_ProductImages_ProductId");
 
                     b.ToTable("ProductImages", (string)null);
+                });
+
+            modelBuilder.Entity("Schuelerfirma.Api.Domain.ProductImageContent", b =>
+                {
+                    b.Property<int>("ProductImageId")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("Data")
+                        .IsRequired()
+                        .HasColumnType("mediumblob");
+
+                    b.HasKey("ProductImageId");
+
+                    b.ToTable("ProductImageContents", (string)null);
                 });
 
             modelBuilder.Entity("Schuelerfirma.Api.Domain.Role", b =>
@@ -283,6 +295,15 @@ namespace Schuelerfirma.Api.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("Schuelerfirma.Api.Domain.ProductImageContent", b =>
+                {
+                    b.HasOne("Schuelerfirma.Api.Domain.ProductImage", null)
+                        .WithOne()
+                        .HasForeignKey("Schuelerfirma.Api.Domain.ProductImageContent", "ProductImageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Schuelerfirma.Api.Domain.User", b =>

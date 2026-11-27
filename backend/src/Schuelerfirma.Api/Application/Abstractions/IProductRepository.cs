@@ -15,7 +15,7 @@ namespace Schuelerfirma.Api.Application.Abstractions;
 /// </para>
 /// <para>
 /// EF Core: foreign key to <see cref="Category"/> without cascading delete (a missing category is reported as
-/// <see cref="InvalidOperationException"/>), images are deleted together with their product.
+/// <see cref="InvalidOperationException"/>), images and their image data (<see cref="ProductImageContent"/>) are deleted together with their product.
 /// </para>
 /// </remarks>
 public interface IProductRepository

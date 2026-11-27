@@ -33,6 +33,7 @@ public sealed class SchuelerfirmaDbContextModelTests
         Assert.NotNull(model.FindEntityType(typeof(Category)));
         Assert.NotNull(model.FindEntityType(typeof(Product)));
         Assert.NotNull(model.FindEntityType(typeof(ProductImage)));
+        Assert.NotNull(model.FindEntityType(typeof(ProductImageContent)));
     }
 
     [Fact]
@@ -56,6 +57,41 @@ public sealed class SchuelerfirmaDbContextModelTests
             .Single(key => key.PrincipalEntityType.ClrType == typeof(Product));
 
         Assert.Equal(DeleteBehavior.Cascade, foreignKey.DeleteBehavior);
+    }
+
+    [Fact]
+    public void ProductImageContent_has_its_own_table_and_is_deleted_with_the_image()
+    {
+        using var context = CreateContext();
+        var entity = GetModel(context).FindEntityType(typeof(ProductImageContent))!;
+        var foreignKey = entity.GetForeignKeys().Single();
+
+        Assert.Equal("ProductImageContents", entity.GetTableName());
+        Assert.Equal(typeof(ProductImage), foreignKey.PrincipalEntityType.ClrType);
+        Assert.True(foreignKey.IsUnique);
+        Assert.Equal(DeleteBehavior.Cascade, foreignKey.DeleteBehavior);
+        Assert.Equal(entity.FindPrimaryKey()!.Properties, foreignKey.Properties);
+    }
+
+    [Fact]
+    public void ProductImage_has_no_navigation_to_its_data()
+    {
+        // Products are loaded with their images in every list; a navigation would invite loading the data too.
+        using var context = CreateContext();
+        var image = GetModel(context).FindEntityType(typeof(ProductImage))!;
+
+        Assert.DoesNotContain(image.GetNavigations(), navigation => navigation.TargetEntityType.ClrType == typeof(ProductImageContent));
+    }
+
+    [Fact]
+    public void ProductImageContent_data_is_a_mediumblob()
+    {
+        using var context = CreateContext();
+        var data = GetModel(context).FindEntityType(typeof(ProductImageContent))!
+            .FindProperty(nameof(ProductImageContent.Data))!;
+
+        Assert.Equal("mediumblob", data.GetColumnType());
+        Assert.False(data.IsNullable);
     }
 
     [Fact]

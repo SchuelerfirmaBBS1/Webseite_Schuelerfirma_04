@@ -25,6 +25,9 @@ public sealed class InMemoryStore
 
     internal List<ProductImage> ProductImages { get; } = [];
 
+    /// <summary>Image data by <see cref="ProductImage.ProductImageId"/>; removed together with the image.</summary>
+    internal Dictionary<int, ProductImageContent> ProductImageContents { get; } = [];
+
     internal int LastCategoryId { get; set; }
 
     internal int LastProductId { get; set; }
@@ -72,7 +75,7 @@ public sealed class InMemoryStore
         FileName = image.FileName,
         Description = image.Description,
         ContentType = image.ContentType,
-        FilePath = image.FilePath,
+        Length = image.Length,
         SortOrder = image.SortOrder,
         IsPrimary = image.IsPrimary,
     };

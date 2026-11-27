@@ -67,8 +67,7 @@ namespace Schuelerfirma.Api.Infrastructure.Persistence.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     ContentType = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    FilePath = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Length = table.Column<long>(type: "bigint", nullable: false),
                     SortOrder = table.Column<int>(type: "int", nullable: false),
                     IsPrimary = table.Column<bool>(type: "tinyint(1)", nullable: false)
                 },
@@ -80,6 +79,25 @@ namespace Schuelerfirma.Api.Infrastructure.Persistence.Migrations
                         column: x => x.ProductId,
                         principalTable: "Products",
                         principalColumn: "ProductId",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "ProductImageContents",
+                columns: table => new
+                {
+                    ProductImageId = table.Column<int>(type: "int", nullable: false),
+                    Data = table.Column<byte[]>(type: "mediumblob", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProductImageContents", x => x.ProductImageId);
+                    table.ForeignKey(
+                        name: "FK_ProductImageContents_ProductImages_ProductImageId",
+                        column: x => x.ProductImageId,
+                        principalTable: "ProductImages",
+                        principalColumn: "ProductImageId",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
@@ -104,6 +122,9 @@ namespace Schuelerfirma.Api.Infrastructure.Persistence.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "ProductImageContents");
+
             migrationBuilder.DropTable(
                 name: "ProductImages");
 

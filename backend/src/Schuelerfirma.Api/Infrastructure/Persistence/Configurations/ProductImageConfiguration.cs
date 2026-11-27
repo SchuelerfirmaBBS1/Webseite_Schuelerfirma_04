@@ -29,8 +29,7 @@ public sealed class ProductImageConfiguration : IEntityTypeConfiguration<Product
             .HasMaxLength(ProductImage.ContentTypeMaxLength)
             .IsRequired();
 
-        builder.Property(image => image.FilePath)
-            .HasMaxLength(ProductImage.FilePathMaxLength)
+        builder.Property(image => image.Length)
             .IsRequired();
 
         builder.Property(image => image.SortOrder)
