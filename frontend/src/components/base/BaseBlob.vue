@@ -22,7 +22,19 @@ const paths = {
 </script>
 
 <template>
-  <svg class="base-blob" :class="`base-blob--${color}`" viewBox="0 0 460 460" aria-hidden="true" focusable="false">
+  <svg
+    class="base-blob"
+    :class="{
+      'base-blob--cream': color === 'cream',
+      'base-blob--white': color === 'white',
+      'base-blob--sage': color === 'sage',
+      'base-blob--terracotta': color === 'terracotta',
+      'base-blob--blue': color === 'blue',
+    }"
+    viewBox="0 0 460 460"
+    aria-hidden="true"
+    focusable="false"
+  >
     <path v-if="offset" class="base-blob__offset" :d="paths[shape]" transform="translate(14 14)" />
     <path class="base-blob__shape" :d="paths[shape]" />
   </svg>

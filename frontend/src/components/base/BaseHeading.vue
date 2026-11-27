@@ -20,10 +20,17 @@ withDefaults(
 </script>
 
 <template>
-  <div class="base-heading" :class="[`base-heading--${align}`, { 'base-heading--inverse': inverse }]">
+  <div
+    class="base-heading"
+    :class="{ 'base-heading--center': align === 'center', 'base-heading--inverse': inverse }"
+  >
     <p v-if="eyebrow" class="base-heading__eyebrow">{{ eyebrow }}</p>
 
-    <component :is="`h${level}`" class="base-heading__title" :class="`base-heading__title--h${level}`">
+    <component :is="`h${level}`" class="base-heading__title" :class="{
+        'base-heading__title--h1': level === 1,
+        'base-heading__title--h2': level === 2,
+        'base-heading__title--h3': level === 3,
+      }">
       {{ title }}
       <span v-if="highlight" class="base-heading__highlight">{{ highlight }}</span>
     </component>

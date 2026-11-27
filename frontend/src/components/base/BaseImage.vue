@@ -10,15 +10,25 @@ withDefaults(
     alt?: string
     /** e.g. '4 / 3', '1 / 1', '16 / 9' */
     ratio?: string
-    /** offset: hard shadow (blue, terracotta on dark sections); organic: asymmetric corners; plain: none */
-    frame?: 'offset' | 'organic' | 'plain'
+    /** offset: hard shadow (blue, terracotta on dark sections); organic: asymmetric corners;
+     *  blob: organic round shape, for images on a BaseBlob; plain: none */
+    frame?: 'offset' | 'organic' | 'blob' | 'plain'
   }>(),
   { alt: '', ratio: '4 / 3', frame: 'offset' },
 )
 </script>
 
 <template>
-  <figure class="base-image" :class="`base-image--${frame}`" :style="{ aspectRatio: ratio }">
+  <figure
+    class="base-image"
+    :class="{
+      'base-image--offset': frame === 'offset',
+      'base-image--organic': frame === 'organic',
+      'base-image--blob': frame === 'blob',
+      'base-image--plain': frame === 'plain',
+    }"
+    :style="{ aspectRatio: ratio }"
+  >
     <img v-if="src" :src="src" :alt="alt" class="base-image__img" loading="lazy" />
     <div v-else class="base-image__placeholder" role="img" :aria-label="alt || 'Bildplatzhalter'">
       <span aria-hidden="true">Bild</span>
@@ -60,6 +70,10 @@ withDefaults(
 
 .base-image--organic {
   border-radius: var(--radius-organic);
+}
+
+.base-image--blob {
+  border-radius: var(--radius-blob);
 }
 
 .base-image--plain {

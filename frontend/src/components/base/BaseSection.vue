@@ -17,7 +17,17 @@ withDefaults(
 </script>
 
 <template>
-  <component :is="as" class="base-section" :class="[`base-section--${tone}`, `base-section--${spacing}`]">
+  <component
+    :is="as"
+    class="base-section"
+    :class="{
+      'base-section--light': tone === 'light',
+      'base-section--cream': tone === 'cream',
+      'base-section--dark': tone === 'dark',
+      'base-section--md': spacing === 'md',
+      'base-section--lg': spacing === 'lg',
+    }"
+  >
     <div class="base-section__inner">
       <slot />
     </div>

@@ -14,12 +14,16 @@ import BaseCheckbox from '@/components/base/BaseCheckbox.vue'
 import BaseSection from '@/components/base/BaseSection.vue'
 import BaseHeading from '@/components/base/BaseHeading.vue'
 import BaseImage from '@/components/base/BaseImage.vue'
+import BaseFrame from '@/components/base/BaseFrame.vue'
 import BaseMediaText from '@/components/base/BaseMediaText.vue'
 import BaseCard from '@/components/base/BaseCard.vue'
 import BaseTag from '@/components/base/BaseTag.vue'
 import BaseBlob from '@/components/base/BaseBlob.vue'
 import BaseSticker from '@/components/base/BaseSticker.vue'
 import BaseDecor from '@/components/base/BaseDecor.vue'
+
+// One sample photo for every image demo (from the project documentation), only bundled with this dev page
+import samplePhoto from './images/holzprodukte.jpg'
 
 const colors = [
   { name: 'Blau (Primär)', token: '--color-blue', use: 'Buttons, Hervorhebungen, Schatten' },
@@ -93,6 +97,13 @@ function fakeSubmit() {
 
         <div class="intro__art">
           <BaseBlob color="white" offset class="intro__blob" />
+          <BaseImage
+            :src="samplePhoto"
+            alt="Holzprodukte der Schülerfirma"
+            frame="blob"
+            ratio="1 / 1"
+            class="intro__image"
+          />
           <BaseDecor kind="star" spin class="intro__rays" />
           <BaseDecor kind="dots" color="blue" class="intro__dots" />
           <BaseSticker class="intro__sticker">Mit Ideen gemacht!</BaseSticker>
@@ -234,7 +245,9 @@ function fakeSubmit() {
           <BaseCheckbox v-model="form.consent" required>
             Ich bin einverstanden, dass meine Angaben zur Beantwortung meiner Anfrage gespeichert werden.
           </BaseCheckbox>
-          <BaseButton type="submit" variant="primary" arrow :loading="submitting">Absenden</BaseButton>
+          <BaseButton type="submit" variant="primary" arrow :loading="submitting" class="demo-form__submit">
+            Absenden
+          </BaseButton>
         </form>
       </BaseMediaText>
     </BaseSection>
@@ -281,11 +294,25 @@ function fakeSubmit() {
         </p>
       </BaseHeading>
 
-      <h3 class="sub-title">Bildrahmen</h3>
+      <h3 class="sub-title">Verspielte Rahmen: BaseFrame</h3>
+      <p class="note">
+        Mickys Hero-Rahmen: Foto im weißen Passepartout, gegenläufig gedrehte Platte dahinter, leicht
+        schräg, optional ein Label. Zwei Formen (<code>arch</code>, <code>round</code>), Platte nur in
+        Kernfarben. <strong>Nur für den Hero bzw. Bild-Collagen</strong>, nie in Karten, Galerien oder
+        Media + Text (dort Blob + Bild, siehe unten). Liegen zwei Rahmen nebeneinander, abwechselnd <code>tilt</code> left/right.
+      </p>
+      <div class="frame-grid">
+        <BaseFrame :src="samplePhoto" alt="Holzprodukte der Schülerfirma" plate="blue" label="Print" label-tone="terracotta" />
+        <BaseFrame :src="samplePhoto" alt="Holzprodukte der Schülerfirma" plate="terracotta" tilt="right" label="Handwerk" />
+        <BaseFrame :src="samplePhoto" alt="Holzprodukte der Schülerfirma" shape="round" plate="ink" label="Team" />
+        <BaseFrame :src="samplePhoto" alt="Holzprodukte der Schülerfirma" shape="round" plate="sage" tilt="right" />
+      </div>
+
+      <h3 class="sub-title">Ruhige Bilder: BaseImage (Karten, Galerien, Listen)</h3>
       <div class="image-frames">
-        <BaseImage src="/images/3D-Druck-Anhänger.png" alt="3D-gedruckter Anhänger" frame="offset" ratio="1 / 1" />
-        <BaseImage src="/images/Handwerk-Ente.png" alt="Holzente" frame="offset" ratio="1 / 1" />
-        <BaseImage src="/images/3D-Druck-Flasche.png" alt="3D-gedruckte Flasche" frame="organic" ratio="1 / 1">
+        <BaseImage :src="samplePhoto" alt="Holzprodukte der Schülerfirma" frame="offset" ratio="1 / 1" />
+        <BaseImage :src="samplePhoto" alt="Holzprodukte der Schülerfirma" frame="offset" ratio="1 / 1" />
+        <BaseImage :src="samplePhoto" alt="Holzprodukte der Schülerfirma" frame="organic" ratio="1 / 1">
           <template #caption>3D-Druck</template>
         </BaseImage>
         <BaseImage alt="Platzhalter für ein Produktfoto" frame="plain" ratio="1 / 1" />
@@ -297,7 +324,7 @@ function fakeSubmit() {
         <template #media>
           <div class="blob-stage">
             <BaseBlob color="white" offset class="blob-stage__blob" />
-            <BaseImage src="/images/3D-Druck-Dose-preview.png" alt="3D-gedruckte Dose" frame="organic" class="blob-stage__image" />
+            <BaseImage :src="samplePhoto" alt="Holzprodukte der Schülerfirma" frame="blob" ratio="1 / 1" class="blob-stage__image" />
             <BaseSticker tilt="right" class="blob-stage__sticker">Frisch gedruckt</BaseSticker>
           </div>
         </template>
@@ -315,7 +342,7 @@ function fakeSubmit() {
     <BaseSection tone="light">
       <BaseMediaText reverse>
         <template #media>
-          <BaseImage src="/images/Handwerk.png" alt="Holzprodukte aus der Kooperation mit der BBS II" />
+          <BaseImage :src="samplePhoto" alt="Holzprodukte der Schülerfirma" />
         </template>
 
         <BaseHeading eyebrow="Media + Text, reverse" title="Handwerk" highlight="mit der BBS II." />
@@ -337,16 +364,16 @@ function fakeSubmit() {
       <div class="card-grid">
         <BaseCard title="Schlüsselanhänger" tag="3D-Druck" interactive>
           <template #media>
-            <BaseImage src="/images/3D-Druck-Anhänger.png" alt="" ratio="4 / 3" />
+            <BaseImage :src="samplePhoto" alt="" ratio="4 / 3" />
           </template>
           <p>Bunte Anhänger aus recyceltem Filament, jedes Stück ein Unikat.</p>
           <template #footer>
             <BaseButton variant="text" arrow>Mehr erfahren</BaseButton>
           </template>
         </BaseCard>
-        <BaseCard title="Holzente" tag="Handwerk" interactive>
+        <BaseCard title="Holzmöbel" tag="Handwerk" interactive>
           <template #media>
-            <BaseImage src="/images/Handwerk-Ente.png" alt="" ratio="4 / 3" />
+            <BaseImage :src="samplePhoto" alt="" ratio="4 / 3" />
           </template>
           <p>Handgefertigt in Kooperation mit der BBS II.</p>
           <template #footer>
@@ -435,7 +462,7 @@ code {
 
 .sub-title {
   margin: var(--space-lg) 0 var(--space-sm);
-  font-family: var(--font-body);
+  font-family: var(--font-body), sans-serif;
   font-size: var(--text-sm);
   font-weight: var(--weight-bold);
   letter-spacing: var(--tracking-label);
@@ -462,6 +489,17 @@ code {
   margin-left: auto;
 }
 
+.intro__blob {
+  position: absolute;
+  inset: 0;
+}
+
+.intro__image {
+  position: relative;
+  width: 78%;
+  margin: 11%;
+}
+
 .intro__rays {
   position: absolute;
   top: 0;
@@ -470,14 +508,15 @@ code {
 
 .intro__dots {
   position: absolute;
-  bottom: 0;
-  left: -1.5rem;
+  right: -1.5rem;
+  bottom: -1rem;
 }
 
+/* Sticks out well beyond the blob's left edge, so it reads as a separate layer */
 .intro__sticker {
   position: absolute;
-  bottom: 22%;
-  left: 18%;
+  bottom: 10%;
+  left: -22%;
 }
 
 /* Colours */
@@ -520,7 +559,7 @@ code {
 }
 
 .type-scale__row .is-display {
-  font-family: var(--font-display);
+  font-family: var(--font-display), serif;
   font-weight: var(--weight-heading);
   letter-spacing: var(--tracking-heading);
   line-height: var(--leading-heading);
@@ -639,7 +678,7 @@ code {
   gap: var(--space-md);
 }
 
-.demo-form .base-button {
+.demo-form__submit {
   align-self: flex-start;
 }
 
@@ -649,19 +688,32 @@ code {
   gap: var(--space-xl);
 }
 
-.blob-stage {
-  position: relative;
-  padding: var(--space-lg);
+.frame-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  align-items: center;
+  gap: var(--space-xl);
+  padding: var(--space-md);
 }
 
+.blob-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  max-width: 28rem;
+  margin: 0 auto;
+}
+
+/* Blob fills the stage; the blob-shaped image sits centred on it */
 .blob-stage__blob {
   position: absolute;
-  inset: -8% -4% -4% -8%;
-  width: 112%;
+  inset: 0;
 }
 
 .blob-stage__image {
   position: relative;
+  width: 78%;
+  margin: 11%;
 }
 
 .blob-stage__sticker {

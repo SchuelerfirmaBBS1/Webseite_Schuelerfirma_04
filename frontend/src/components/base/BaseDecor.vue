@@ -46,7 +46,12 @@ const lines = props.kind === 'rays' ? rays : star
 <template>
   <svg
     class="base-decor"
-    :class="[`base-decor--${color}`, { 'base-decor--spin': spin && kind === 'star' }]"
+    :class="{
+      'base-decor--terracotta': color === 'terracotta',
+      'base-decor--blue': color === 'blue',
+      'base-decor--sage': color === 'sage',
+      'base-decor--spin': spin && kind === 'star',
+    }"
     viewBox="0 0 80 80"
     aria-hidden="true"
     focusable="false"

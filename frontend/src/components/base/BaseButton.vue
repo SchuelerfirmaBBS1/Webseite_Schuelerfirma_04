@@ -35,44 +35,36 @@ const props = withDefaults(
 
 const inactive = computed(() => props.disabled || props.loading)
 
-const classes = computed(() => [
-  'base-button',
-  `base-button--${props.variant}`,
-  `base-button--${props.size}`,
-  { 'is-inactive': inactive.value },
-])
+// One element for all three cases; a disabled or loading link falls back to a disabled button
+const element = computed(() => {
+  if (props.to && !inactive.value) return { is: RouterLink, attrs: { to: props.to } }
+  if (props.href && !inactive.value) return { is: 'a', attrs: { href: props.href } }
+  return {
+    is: 'button',
+    attrs: { type: props.type, disabled: inactive.value, 'aria-busy': props.loading || undefined },
+  }
+})
 </script>
 
 <template>
-  <RouterLink
-    v-if="to && !inactive"
-    :to="to"
-    :class="classes"
-  >
-    <slot />
-    <span v-if="arrow" class="base-button__arrow" aria-hidden="true">→</span>
-  </RouterLink>
-
-  <a
-    v-else-if="href && !inactive"
-    :href="href"
-    :class="classes"
-  >
-    <slot />
-    <span v-if="arrow" class="base-button__arrow" aria-hidden="true">→</span>
-  </a>
-
-  <button
-    v-else
-    :type="type"
-    :class="classes"
-    :disabled="inactive"
-    :aria-busy="loading || undefined"
+  <component
+    :is="element.is"
+    v-bind="element.attrs"
+    class="base-button"
+    :class="{
+      'base-button--primary': variant === 'primary',
+      'base-button--accent': variant === 'accent',
+      'base-button--secondary': variant === 'secondary',
+      'base-button--text': variant === 'text',
+      'base-button--md': size === 'md',
+      'base-button--sm': size === 'sm',
+      'is-inactive': inactive,
+    }"
   >
     <span v-if="loading" class="base-button__spinner" aria-hidden="true"></span>
     <slot />
     <span v-if="arrow && !loading" class="base-button__arrow" aria-hidden="true">→</span>
-  </button>
+  </component>
 </template>
 
 <style scoped>
@@ -83,7 +75,7 @@ const classes = computed(() => [
   gap: var(--space-xs);
   border: 2px solid transparent;
   border-radius: var(--radius-pill);
-  font-family: var(--font-body);
+  font-family: var(--font-body), sans-serif;
   font-weight: var(--weight-bold);
   line-height: 1.2;
   text-decoration: none;

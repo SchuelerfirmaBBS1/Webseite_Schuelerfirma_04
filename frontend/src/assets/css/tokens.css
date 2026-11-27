@@ -52,7 +52,10 @@
   --radius-md: 12px; /* images */
   --radius-organic: 24px 8px 24px 8px; /* cards, modals */
   --radius-pill: 999px; /* buttons, tags */
+  --radius-arch: 999px 999px var(--radius-md) var(--radius-md); /* BaseFrame arch */
+  --radius-blob: 48% 52% 45% 55% / 55% 45% 52% 48%; /* BaseFrame plate behind round images */
   --border: 2px solid var(--color-ink);
+  --border-frame: 6px solid var(--color-white); /* white passe-partout of BaseFrame */
 
   /* One hard offset shadow. Colour: blue by default; terracotta on dark or blue
      surfaces (set --shadow-color on the surface, BaseSection tone="dark" does it) */

@@ -46,7 +46,7 @@ function onClick(event: MouseEvent) {
   <dialog
     ref="dialog"
     class="base-modal"
-    :class="`base-modal--${size}`"
+    :class="{ 'base-modal--sm': size === 'sm' }"
     :aria-labelledby="titleId"
     @close="onClose"
     @click="onClick"

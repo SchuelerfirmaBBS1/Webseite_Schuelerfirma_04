@@ -9,7 +9,17 @@ withDefaults(
 </script>
 
 <template>
-  <span class="base-tag" :class="`base-tag--${tone}`"><slot /></span>
+  <span
+    class="base-tag"
+    :class="{
+      'base-tag--neutral': tone === 'neutral',
+      'base-tag--blue': tone === 'blue',
+      'base-tag--sage': tone === 'sage',
+      'base-tag--terracotta': tone === 'terracotta',
+    }"
+  >
+    <slot />
+  </span>
 </template>
 
 <style scoped>

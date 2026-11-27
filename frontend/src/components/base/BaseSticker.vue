@@ -14,7 +14,16 @@ withDefaults(
 </script>
 
 <template>
-  <span class="base-sticker" :class="[`base-sticker--${tone}`, `base-sticker--${tilt}`]">
+  <span
+    class="base-sticker"
+    :class="{
+      'base-sticker--terracotta': tone === 'terracotta',
+      'base-sticker--blue': tone === 'blue',
+      'base-sticker--cream': tone === 'cream',
+      'base-sticker--left': tilt === 'left',
+      'base-sticker--right': tilt === 'right',
+    }"
+  >
     <slot />
   </span>
 </template>
@@ -26,7 +35,7 @@ withDefaults(
   border: var(--border);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-offset) var(--sticker-shadow, var(--shadow-color));
-  font-family: var(--font-display);
+  font-family: var(--font-display), serif;
   font-size: var(--text-md);
   font-weight: var(--weight-bold);
   line-height: 1.2;
