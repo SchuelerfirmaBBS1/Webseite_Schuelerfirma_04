@@ -22,6 +22,7 @@ public static class InMemoryPersistenceExtensions
         services.TryAddSingleton<ICategoryRepository, InMemoryCategoryRepository>();
         services.TryAddSingleton<IProductRepository, InMemoryProductRepository>();
         services.TryAddSingleton<IImageRepository, InMemoryImageRepository>();
+        services.TryAddSingleton<IProductImageRepository, InMemoryProductImageRepository>();
         return services;
     }
 }

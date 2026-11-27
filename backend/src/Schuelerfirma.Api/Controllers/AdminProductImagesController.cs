@@ -56,7 +56,7 @@ public class AdminProductImagesController(ProductImageService productImages) : A
             return this.ToActionResult(result);
         }
 
-        IReadOnlyList<ImageResponse> created = [.. result.Value!.Select(ImageResponse.From)];
+        IReadOnlyList<ImageResponse> created = [.. result.Value!.Select(ProductImageResponses.ForAdmin)];
         return Created($"/api/admin/products/{productId}", created);
     }
 
@@ -72,7 +72,7 @@ public class AdminProductImagesController(ProductImageService productImages) : A
     public async Task<IActionResult> Update(int productId, int imageId, UpdateImageRequest request, CancellationToken cancellationToken)
     {
         var result = await productImages.UpdateAsync(ActingUserId, productId, imageId, request.ToInput(), cancellationToken);
-        return result.Error == CatalogError.None ? Ok(ImageResponse.From(result.Value!)) : this.ToActionResult(result);
+        return result.Error == CatalogError.None ? Ok(ProductImageResponses.ForAdmin(result.Value!)) : this.ToActionResult(result);
     }
 
     /// <summary>Deletes an image together with its data.</summary>

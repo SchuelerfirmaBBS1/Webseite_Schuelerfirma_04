@@ -4,7 +4,7 @@ namespace Schuelerfirma.Api.Application.Abstractions;
 
 /// <summary>
 /// Storage for products. Returned products are detached copies with <see cref="Product.Category"/> and
-/// <see cref="Product.Images"/> (ordered by <see cref="Image.SortOrder"/>) loaded.
+/// <see cref="Product.Images"/> (ordered by <see cref="ProductImage.SortOrder"/>, each with its <see cref="Image"/>) loaded.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -15,7 +15,7 @@ namespace Schuelerfirma.Api.Application.Abstractions;
 /// </para>
 /// <para>
 /// EF Core: foreign key to <see cref="Category"/> without cascading delete (a missing category is reported as
-/// <see cref="InvalidOperationException"/>), images and their image data (<see cref="ImageContent"/>) are deleted together with their product.
+/// <see cref="InvalidOperationException"/>), the images of a product (records, data and assignments) are deleted together with it.
 /// </para>
 /// </remarks>
 public interface IProductRepository

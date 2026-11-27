@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Schuelerfirma.Api.Domain;
 using Schuelerfirma.Api.Infrastructure.Persistence;
-using Schuelerfirma.Api.Infrastructure.Persistence.Configurations;
 
 namespace Schuelerfirma.Api.Tests.Infrastructure.Persistence;
 
@@ -35,6 +34,7 @@ public sealed class SchuelerfirmaDbContextModelTests
         Assert.NotNull(model.FindEntityType(typeof(Product)));
         Assert.NotNull(model.FindEntityType(typeof(Image)));
         Assert.NotNull(model.FindEntityType(typeof(ImageContent)));
+        Assert.NotNull(model.FindEntityType(typeof(ProductImage)));
     }
 
     [Fact]
@@ -50,17 +50,31 @@ public sealed class SchuelerfirmaDbContextModelTests
     }
 
     [Fact]
-    public void Image_has_an_optional_product_and_is_deleted_with_it()
+    public void Image_does_not_point_to_an_owner()
     {
-        // Optional because an image can belong to another owner (events, #14); a check constraint requires one.
+        // Owners point to their images (ProductImages, later EventImages), so a new owner leaves Image as it is.
         using var context = CreateContext();
         var image = GetModel(context).FindEntityType(typeof(Image))!;
-        var foreignKey = image.GetForeignKeys().Single(key => key.PrincipalEntityType.ClrType == typeof(Product));
 
         Assert.Equal("Images", image.GetTableName());
-        Assert.Contains(image.GetCheckConstraints(), c => c.Name == ImageConfiguration.ExactlyOneOwnerConstraint);
-        Assert.False(foreignKey.IsRequired);
-        Assert.Equal(DeleteBehavior.Cascade, foreignKey.DeleteBehavior);
+        Assert.Empty(image.GetForeignKeys());
+        Assert.Empty(image.GetNavigations());
+    }
+
+    [Fact]
+    public void ProductImage_is_keyed_by_the_image_and_goes_with_product_or_image()
+    {
+        using var context = CreateContext();
+        var assignment = GetModel(context).FindEntityType(typeof(ProductImage))!;
+        var toProduct = assignment.GetForeignKeys().Single(key => key.PrincipalEntityType.ClrType == typeof(Product));
+        var toImage = assignment.GetForeignKeys().Single(key => key.PrincipalEntityType.ClrType == typeof(Image));
+
+        Assert.Equal("ProductImages", assignment.GetTableName());
+        // The image as key: an image belongs to at most one product.
+        Assert.Equal([nameof(ProductImage.ImageId)], assignment.FindPrimaryKey()!.Properties.Select(p => p.Name));
+        Assert.True(toImage.IsUnique);
+        Assert.Equal(DeleteBehavior.Cascade, toProduct.DeleteBehavior);
+        Assert.Equal(DeleteBehavior.Cascade, toImage.DeleteBehavior);
     }
 
     [Fact]

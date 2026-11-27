@@ -10,7 +10,8 @@ public sealed record Repositories(
     IUserSessionRepository Sessions,
     ICategoryRepository Categories,
     IProductRepository Products,
-    IImageRepository Images);
+    IImageRepository Images,
+    IProductImageRepository ProductImages);
 
 /// <summary>
 /// Base class of all repository contract tests. Every storage implementation (in-memory now, EF Core / MySQL
@@ -76,23 +77,25 @@ public abstract class RepositoryContractTests
     /// <summary>Stand-in image data (the JPEG signature followed by a few bytes).</summary>
     protected static readonly byte[] ImageData = [0xFF, 0xD8, 0xFF, 0xE0, 1, 2, 3, 4];
 
-    /// <summary>Stores a new image of <paramref name="productId"/> with <see cref="ImageData"/>.</summary>
-    protected static async Task<Image> AddImageAsync(
-        Repositories repos, int productId, int sortOrder, bool isPrimary = false)
+    /// <summary>
+    /// Stores a new image of <paramref name="productId"/> with <paramref name="data"/> (default <see cref="ImageData"/>);
+    /// returns the assignment with <see cref="ProductImage.Image"/> set.
+    /// </summary>
+    protected static async Task<ProductImage> AddImageAsync(
+        Repositories repos, int productId, int sortOrder, bool isPrimary = false, byte[]? data = null)
     {
-        var image = NewImage(productId, sortOrder, isPrimary);
-        await repos.Images.AddAsync(image, ImageData);
-        return image;
+        data ??= ImageData;
+        var image = NewImage(sortOrder, data.Length);
+        var assignment = new ProductImage { ProductId = productId, Image = image, SortOrder = sortOrder, IsPrimary = isPrimary };
+        await repos.ProductImages.AddAsync(assignment, image, data);
+        return assignment;
     }
 
-    protected static Image NewImage(int productId, int sortOrder, bool isPrimary = false) => new()
+    protected static Image NewImage(int number, long length) => new()
     {
-        ProductId = productId,
-        FileName = $"bild-{sortOrder}.jpg",
-        Description = $"Bild {sortOrder}",
+        FileName = $"bild-{number}.jpg",
+        Description = $"Bild {number}",
         ContentType = "image/jpeg",
-        Length = ImageData.Length,
-        SortOrder = sortOrder,
-        IsPrimary = isPrimary,
+        Length = length,
     };
 }

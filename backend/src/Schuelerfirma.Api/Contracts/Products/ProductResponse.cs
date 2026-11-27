@@ -34,7 +34,7 @@ public sealed record ProductResponse(
         product.Price,
         product.IsPriceVisible,
         product.IsActive,
-        [.. product.Images.Select(ImageResponse.From)]);
+        [.. product.Images.Select(ProductImageResponses.ForAdmin)]);
 }
 
 /// <summary>A category as the admin area sees it.</summary>

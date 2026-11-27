@@ -37,12 +37,12 @@ internal static class MySqlExceptionTranslator
         return exception;
     }
 
-    public static Exception TranslateImageException(Exception exception)
+    public static Exception TranslateProductImageException(Exception exception)
     {
         var mysqlEx = FindMySqlException(exception);
         if (mysqlEx?.Number == ForeignKeyConstraintErrorNumber)
         {
-            return new InvalidOperationException("Referenced owner does not exist.", exception);
+            return new InvalidOperationException("Referenced product does not exist.", exception);
         }
 
         return exception;

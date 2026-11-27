@@ -28,6 +28,9 @@ public sealed class InMemoryStore
     /// <summary>Image data by <see cref="Image.ImageId"/>; removed together with the image.</summary>
     internal Dictionary<int, ImageContent> ImageContents { get; } = [];
 
+    /// <summary>Which image belongs to which product.</summary>
+    internal List<ProductImage> ProductImages { get; } = [];
+
     internal int LastCategoryId { get; set; }
 
     internal int LastProductId { get; set; }
@@ -73,14 +76,36 @@ public sealed class InMemoryStore
     internal static Image Copy(Image image) => new()
     {
         ImageId = image.ImageId,
-        ProductId = image.ProductId,
         FileName = image.FileName,
         Description = image.Description,
         ContentType = image.ContentType,
         Length = image.Length,
-        SortOrder = image.SortOrder,
-        IsPrimary = image.IsPrimary,
     };
+
+    /// <summary>Copy of an assignment without navigations.</summary>
+    internal static ProductImage Copy(ProductImage assignment) => new()
+    {
+        ImageId = assignment.ImageId,
+        ProductId = assignment.ProductId,
+        SortOrder = assignment.SortOrder,
+        IsPrimary = assignment.IsPrimary,
+    };
+
+    /// <summary>Copy of a stored assignment with its image record loaded.</summary>
+    internal ProductImage Materialize(ProductImage stored)
+    {
+        var copy = Copy(stored);
+        copy.Image = Copy(Images.Single(i => i.ImageId == stored.ImageId));
+        return copy;
+    }
+
+    /// <summary>Removes an image with its data and every assignment to it.</summary>
+    internal void RemoveImage(int imageId)
+    {
+        Images.RemoveAll(i => i.ImageId == imageId);
+        ImageContents.Remove(imageId);
+        ProductImages.RemoveAll(p => p.ImageId == imageId);
+    }
 
     /// <summary>Copy of a stored user with its role loaded.</summary>
     internal User Materialize(User stored) => Copy(stored, Roles.Single(r => r.RoleId == stored.RoleId));
@@ -98,11 +123,11 @@ public sealed class InMemoryStore
         IsActive = stored.IsActive,
         Images =
         [
-            .. Images
-                .Where(i => i.ProductId == stored.ProductId)
-                .OrderBy(i => i.SortOrder)
-                .ThenBy(i => i.ImageId)
-                .Select(Copy),
+            .. ProductImages
+                .Where(p => p.ProductId == stored.ProductId)
+                .OrderBy(p => p.SortOrder)
+                .ThenBy(p => p.ImageId)
+                .Select(Materialize),
         ],
     };
 }

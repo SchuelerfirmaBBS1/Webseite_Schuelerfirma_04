@@ -2,7 +2,7 @@ using Schuelerfirma.Api.Domain;
 
 namespace Schuelerfirma.Api.Contracts.Images;
 
-/// <summary>An image as the admin area sees it.</summary>
+/// <summary>An image as the admin area sees it, in the list of its owner.</summary>
 /// <param name="ImageId">Id of the image.</param>
 /// <param name="FileName">Original file name of the upload; plain text, only for display.</param>
 /// <param name="Description">Description (alternative text), or <c>null</c>.</param>
@@ -21,19 +21,11 @@ public sealed record ImageResponse(
     bool IsPrimary,
     string Url)
 {
-    /// <summary>Maps an image.</summary>
-    public static ImageResponse From(Image image)
+    /// <summary>Maps an image; position, main-image flag and URL come from the owner's assignment.</summary>
+    public static ImageResponse Create(Image image, int sortOrder, bool isPrimary, string url)
     {
         ArgumentNullException.ThrowIfNull(image);
-        return new(
-            image.ImageId,
-            image.FileName,
-            image.Description,
-            image.ContentType,
-            image.Length,
-            image.SortOrder,
-            image.IsPrimary,
-            ImageUrls.Admin(image));
+        return new(image.ImageId, image.FileName, image.Description, image.ContentType, image.Length, sortOrder, isPrimary, url);
     }
 }
 
@@ -45,26 +37,10 @@ public sealed record ImageResponse(
 /// <param name="IsPrimary">Whether this is the main image of its owner.</param>
 public sealed record PublicImageResponse(string Url, string? Description, bool IsPrimary)
 {
-    /// <summary>Maps an image.</summary>
-    public static PublicImageResponse From(Image image)
+    /// <summary>Maps an image; main-image flag and URL come from the owner's assignment.</summary>
+    public static PublicImageResponse Create(Image image, bool isPrimary, string url)
     {
         ArgumentNullException.ThrowIfNull(image);
-        return new(ImageUrls.Public(image), image.Description, image.IsPrimary);
+        return new(url, image.Description, isPrimary);
     }
-}
-
-/// <summary>
-/// The URLs of an image file. They contain the owner, so the endpoint can check that visitors may see it.
-/// </summary>
-public static class ImageUrls
-{
-    /// <summary>URL for visitors.</summary>
-    public static string Public(Image image) => $"/api/public/{OwnerPath(image)}/images/{image.ImageId}/file";
-
-    /// <summary>URL for the admin area.</summary>
-    public static string Admin(Image image) => $"/api/admin/{OwnerPath(image)}/images/{image.ImageId}/file";
-
-    private static string OwnerPath(Image image) => image.ProductId is { } productId
-        ? $"products/{productId}"
-        : throw new InvalidOperationException($"Image {image.ImageId} has no owner.");
 }

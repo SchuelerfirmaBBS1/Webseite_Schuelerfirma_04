@@ -31,7 +31,7 @@ public sealed record PublicProductResponse(
         product.Name,
         product.Description,
         product.IsPriceVisible ? product.Price : null,
-        [.. product.Images.Select(PublicImageResponse.From)]);
+        [.. product.Images.Select(ProductImageResponses.ForPublic)]);
 }
 
 /// <summary>A category as visitors see it.</summary>

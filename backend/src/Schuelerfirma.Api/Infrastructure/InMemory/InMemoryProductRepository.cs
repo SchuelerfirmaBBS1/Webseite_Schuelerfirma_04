@@ -76,12 +76,11 @@ public sealed class InMemoryProductRepository(InMemoryStore store) : IProductRep
                 return Task.FromResult(false);
             }
 
-            foreach (var image in store.Images.Where(i => i.ProductId == productId))
+            // Deleting the product deletes its images; nothing else uses them.
+            foreach (var imageId in store.ProductImages.Where(p => p.ProductId == productId).Select(p => p.ImageId).ToList())
             {
-                store.ImageContents.Remove(image.ImageId);
+                store.RemoveImage(imageId);
             }
-
-            store.Images.RemoveAll(i => i.ProductId == productId);
             return Task.FromResult(true);
         }
     }
