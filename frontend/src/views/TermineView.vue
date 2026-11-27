@@ -7,6 +7,17 @@ import { events } from '../data/events'
 function datumUmwandeln(datum: string): Date {
   const [tag, monat, jahr] = datum.split('.').map(Number)
 
+  if (
+    tag === undefined ||
+    monat === undefined ||
+    jahr === undefined ||
+    !Number.isFinite(tag) ||
+    !Number.isFinite(monat) ||
+    !Number.isFinite(jahr)
+  ) {
+    return new Date(NaN)
+  }
+
   return new Date(jahr, monat - 1, tag)
 }
 
@@ -45,7 +56,7 @@ const kommendeTermine = computed(() => {
     <header class="seitenkopf">
       <p class="seiten-label">BBS I · SCHÜLERFIRMA</p>
 
-      <h1>Termine<span>.</span></h1>
+      <h1>Unsere <span>Termine.</span></h1>
 
       <p class="beschreibung">
         Hier findet ihr uns mit unserem Stand – kommt vorbei!
@@ -57,7 +68,7 @@ const kommendeTermine = computed(() => {
       <div class="bereich-kopf">
         <div>
           <p class="bereich-label">Auf einen Blick</p>
-          <h2 id="termine-titel">Kommende Termine</h2>
+          <h2 id="termine-titel">Wo ihr uns findet</h2>
         </div>
 
         <span class="termine-anzahl">
@@ -68,11 +79,11 @@ const kommendeTermine = computed(() => {
 
       <div v-if="kommendeTermine.length > 0" class="termine-liste">
         <article
-          v-for="event in kommendeTermine"
+          v-for="(event, index) in kommendeTermine"
           :key="event.startDate + event.name"
-          class="termin-karte"
+          class="termin-eintrag"
         >
-          <div class="datum" aria-hidden="true">
+          <div class="termin-datum">
             <span class="datum-tag">
               {{ event.startDate.split('.')[0] }}
             </span>
@@ -85,14 +96,28 @@ const kommendeTermine = computed(() => {
                   .toUpperCase()
               }}
             </span>
+
+            <span class="datum-jahr">
+              {{ datumUmwandeln(event.startDate).getFullYear() }}
+            </span>
           </div>
 
-          <div class="termin-info">
-            <h3>{{ event.name }}</h3>
+          <div class="termin-inhalt">
+            <div class="termin-kopf">
+              <div>
+                <span class="termin-index">
+                  TERMIN {{ String(index + 1).padStart(2, '0') }}
+                </span>
 
-            <p class="termin-meta">
-              <span v-if="event.startTime" class="meta-element">
-                <span class="meta-symbol" aria-hidden="true">◷</span>
+                <h3>{{ event.name }}</h3>
+              </div>
+
+              <span class="termin-symbol" aria-hidden="true">?</span>
+            </div>
+
+            <div class="termin-meta">
+              <span v-if="event.startTime">
+                <span class="meta-symbol" aria-hidden="true">?</span>
                 <span>
                   {{ event.startTime }}
                   <template v-if="event.endTime">
@@ -102,23 +127,21 @@ const kommendeTermine = computed(() => {
                 </span>
               </span>
 
-              <span class="meta-element">
-                <span class="meta-symbol" aria-hidden="true">⌖</span>
+              <span>
+                <span class="meta-symbol" aria-hidden="true">?</span>
                 <span>{{ event.location }}</span>
               </span>
-            </p>
+            </div>
 
             <p v-if="event.description" class="termin-beschreibung">
               {{ event.description }}
             </p>
           </div>
-
-          <span class="karten-akzent" aria-hidden="true">↗</span>
         </article>
       </div>
 
       <div v-else class="keine-termine">
-        <span class="leer-symbol" aria-hidden="true">✳</span>
+        <span class="leer-symbol" aria-hidden="true">?</span>
         <h3>Im Moment ist es ruhig.</h3>
         <p>
           Aktuell sind keine Termine geplant. Schaut bald wieder vorbei!
@@ -127,34 +150,35 @@ const kommendeTermine = computed(() => {
     </section>
 
     <aside class="archiv-hinweis">
-      <div class="archiv-symbol" aria-hidden="true">↗</div>
+      <div>
+        <p class="archiv-label">Schon neugierig?</p>
+        <p>
+          Ihr möchtet wissen, was wir bereits erlebt haben?
+          <RouterLink to="/archiv">
+            Entdeckt unser Veranstaltungsarchiv.
+          </RouterLink>
+        </p>
+      </div>
 
-      <p>
-        Ihr möchtet wissen, was wir bereits erlebt haben?
-        <RouterLink to="/archiv">
-          Entdeckt unser Veranstaltungsarchiv.
-        </RouterLink>
-      </p>
+      <span class="archiv-symbol" aria-hidden="true">?</span>
     </aside>
   </main>
 </template>
 
 <style scoped>
 .termine-seite {
-  --farbe-hintergrund: #f5f1e8;
-  --farbe-karte: #ffffff;
-  --farbe-karte-hover: #fafbf7;
-  --farbe-blau: #202d43;
-  --farbe-salbei: #a4aa91;
-  --farbe-salbei-hell: #e9ece3;
-  --farbe-text: #343b40;
-  --farbe-text-hell: #747a78;
-  --farbe-rand: #e4e5dc;
+  --farbe-hintergrund: #f5f4ef;
+  --farbe-blau: #4d648a;
+  --farbe-dunkel: #1e222c;
+  --farbe-salbei: #777659;
+  --farbe-grau: #8b949b;
+  --farbe-terracotta: #d9a477;
+  --farbe-rand: #deddd5;
 
   min-height: 100vh;
-  padding: 64px 24px 76px;
-  background-color: var(--farbe-hintergrund);
-  color: var(--farbe-text);
+  padding: 6rem 7%;
+  background: var(--farbe-hintergrund);
+  color: var(--farbe-dunkel);
 }
 
 .termine-seite,
@@ -166,393 +190,388 @@ const kommendeTermine = computed(() => {
 .termine-bereich,
 .archiv-hinweis {
   width: 100%;
-  max-width: 850px;
+  max-width: 1500px;
   margin-right: auto;
   margin-left: auto;
 }
 
+/* Page heading */
 .seitenkopf {
-  margin-bottom: 48px;
+  margin-bottom: 5rem;
 }
 
 .seiten-label {
-  margin: 0 0 15px;
-  color: #81896f;
-  font-size: 11px;
+  margin: 0 0 1.2rem;
+  color: var(--farbe-salbei);
+  font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 2.5px;
-  line-height: 1.6;
-  text-transform: uppercase;
+  letter-spacing: 0.16em;
 }
 
 .seitenkopf h1 {
-  margin: 0 0 15px;
-  color: var(--farbe-blau);
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: clamp(44px, 6vw, 60px);
-  font-weight: 400;
-  letter-spacing: -1.5px;
-  line-height: 1.15;
+  margin: 0;
+  color: var(--farbe-dunkel);
+  font-size: clamp(3.2rem, 5vw, 5rem);
+  font-weight: 800;
+  letter-spacing: -0.075em;
+  line-height: 0.98;
 }
 
 .seitenkopf h1 span {
-  color: var(--farbe-salbei);
+  color: var(--farbe-blau);
 }
 
 .beschreibung {
-  max-width: 580px;
-  margin: 0;
-  color: var(--farbe-text-hell);
-  font-size: 16px;
+  max-width: 490px;
+  margin: 1.3rem 0 0;
+  color: #68717c;
+  font-size: 0.9rem;
   line-height: 1.8;
 }
 
+/* Section heading */
 .bereich-kopf {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 20px;
-  margin-bottom: 22px;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--farbe-rand);
 }
 
 .bereich-label {
-  margin: 0 0 7px;
-  color: #81896f;
-  font-size: 11px;
+  margin: 0 0 0.6rem;
+  color: var(--farbe-salbei);
+  font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 1.8px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
 .bereich-kopf h2 {
   margin: 0;
-  color: var(--farbe-blau);
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: clamp(26px, 4vw, 34px);
-  font-weight: 400;
-  line-height: 1.3;
+  color: var(--farbe-dunkel);
+  font-size: clamp(2rem, 3.5vw, 3rem);
+  font-weight: 800;
+  letter-spacing: -0.065em;
+  line-height: 1.05;
 }
 
 .termine-anzahl {
   flex-shrink: 0;
-  padding: 8px 14px;
-  border: 1px solid #dce1d3;
-  border-radius: 999px;
-  background-color: var(--farbe-salbei-hell);
-  color: #59634f;
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.termine-liste {
-  display: grid;
-  gap: 13px;
-}
-
-.termin-karte {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 22px;
-  min-width: 0;
-  padding: 20px 22px;
-  overflow: hidden;
+  padding: 0.6rem 1rem;
   border: 1px solid var(--farbe-rand);
-  border-radius: 15px;
-  background-color: var(--farbe-karte);
-  box-shadow: 0 3px 12px rgb(32 45 67 / 3%);
-  transition:
-    background-color 180ms ease,
-    border-color 180ms ease,
-    box-shadow 180ms ease,
-    transform 180ms ease;
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--farbe-blau);
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 
-.termin-karte:hover {
-  transform: translateY(-2px);
-  border-color: #cbd2c0;
-  background-color: var(--farbe-karte-hover);
-  box-shadow: 0 8px 22px rgb(32 45 67 / 7%);
+/* Event list */
+.termine-liste {
+  border-top: 2px solid var(--farbe-dunkel);
 }
 
-.datum {
+.termin-eintrag {
+  display: grid;
+  grid-template-columns: 145px minmax(0, 1fr);
+  gap: 2.5rem;
+  padding: 2.3rem 1.5rem;
+  border-bottom: 1px solid var(--farbe-rand);
+  transition: background 0.25s ease, padding 0.25s ease;
+}
+
+.termin-eintrag:hover {
+  padding-right: 2rem;
+  padding-left: 2rem;
+  background: rgb(255 255 255 / 65%);
+}
+
+/* Date */
+.termin-datum {
   display: flex;
-  flex-shrink: 0;
-  width: 76px;
-  min-height: 82px;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border-radius: 11px;
-  background-color: var(--farbe-blau);
-  color: #ffffff;
+  align-items: flex-start;
+  align-self: flex-start;
+  padding-left: 1rem;
+  border-left: 4px solid var(--farbe-terracotta);
 }
 
 .datum-tag {
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 30px;
-  line-height: 1.2;
+  color: var(--farbe-blau);
+  font-size: 3.8rem;
+  font-weight: 800;
+  letter-spacing: -0.09em;
+  line-height: 0.95;
 }
 
 .datum-monat {
-  margin-top: 5px;
-  color: #d7dfd2;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1.3px;
+  margin-top: 0.4rem;
+  color: var(--farbe-salbei);
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
 }
 
-.termin-info {
-  flex: 1;
+.datum-jahr {
+  margin-top: 0.25rem;
+  color: var(--farbe-grau);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+/* Event information */
+.termin-inhalt {
   min-width: 0;
 }
 
-.termin-info h3 {
-  margin: 0 0 9px;
-  color: var(--farbe-blau);
-  font-size: 18px;
-  font-weight: 650;
-  line-height: 1.45;
-  overflow-wrap: anywhere;
+.termin-kopf {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
 }
 
+.termin-index {
+  display: block;
+  margin-bottom: 0.55rem;
+  color: var(--farbe-grau);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.termin-kopf h3 {
+  margin: 0;
+  color: var(--farbe-dunkel);
+  font-size: clamp(1.35rem, 2.2vw, 1.8rem);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  transition: color 0.2s ease;
+}
+
+.termin-eintrag:hover .termin-kopf h3 {
+  color: var(--farbe-blau);
+}
+
+.termin-symbol {
+  flex-shrink: 0;
+  color: var(--farbe-terracotta);
+  font-size: 1.5rem;
+  transition: transform 0.2s ease;
+}
+
+.termin-eintrag:hover .termin-symbol {
+  transform: translate(4px, -4px);
+}
+
+/* Event details */
 .termin-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 7px 18px;
-  margin: 0;
-  color: var(--farbe-text-hell);
-  font-size: 13px;
-  line-height: 1.7;
+  gap: 0.7rem 1.8rem;
+  margin-top: 1rem;
+  color: #68717c;
+  font-size: 0.8rem;
+  line-height: 1.5;
 }
 
-.meta-element {
-  display: inline-flex;
+.termin-meta > span {
+  display: flex;
   align-items: flex-start;
-  gap: 7px;
-  min-width: 0;
-  overflow-wrap: anywhere;
+  gap: 0.55rem;
 }
 
 .meta-symbol {
   flex-shrink: 0;
-  color: #81896f;
-  font-size: 17px;
-  line-height: 1.35;
+  color: var(--farbe-salbei);
+  font-size: 1rem;
 }
 
-.termin-info .termin-beschreibung {
-  margin: 9px 0 0;
-  color: var(--farbe-text-hell);
-  font-size: 14px;
-  line-height: 1.7;
-  overflow-wrap: anywhere;
+.termin-beschreibung {
+  max-width: 700px;
+  margin: 1rem 0 0;
+  color: #7b8188;
+  font-size: 0.85rem;
+  line-height: 1.75;
 }
 
-.karten-akzent {
-  display: flex;
-  flex-shrink: 0;
-  width: 35px;
-  height: 35px;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--farbe-rand);
-  border-radius: 50%;
-  color: #81896f;
-  font-size: 17px;
-  transition:
-    background-color 180ms ease,
-    border-color 180ms ease,
-    color 180ms ease;
-}
-
-.termin-karte:hover .karten-akzent {
-  border-color: var(--farbe-salbei);
-  background-color: var(--farbe-salbei-hell);
-  color: var(--farbe-blau);
-}
-
+/* No events */
 .keine-termine {
-  padding: 38px 24px;
-  border: 1px solid var(--farbe-rand);
-  border-radius: 15px;
-  background-color: var(--farbe-karte);
+  padding: 4rem 2rem;
+  border-bottom: 1px solid var(--farbe-rand);
   text-align: center;
 }
 
 .leer-symbol {
-  color: #81896f;
-  font-size: 28px;
+  display: block;
+  margin-bottom: 1rem;
+  color: var(--farbe-terracotta);
+  font-size: 2rem;
 }
 
 .keine-termine h3 {
-  margin: 12px 0 8px;
-  color: var(--farbe-blau);
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 24px;
-  font-weight: 400;
+  margin: 0 0 0.5rem;
+  color: var(--farbe-dunkel);
+  font-size: 1.4rem;
+  font-weight: 750;
 }
 
 .keine-termine p {
   margin: 0;
-  color: var(--farbe-text-hell);
-  font-size: 14px;
+  color: var(--farbe-grau);
+  font-size: 0.85rem;
   line-height: 1.7;
 }
 
+/* Archive hint */
 .archiv-hinweis {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-top: 28px;
-  padding: 19px 21px;
-  border: 1px solid #e0e3d8;
-  border-radius: 14px;
-  background-color: #e9ece3;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-top: 4rem;
+  padding: 1.8rem 2rem;
+  border: 1px solid var(--farbe-rand);
+  border-radius: 16px 16px 16px 4px;
+  background: #e8e5dc;
 }
 
-.archiv-symbol {
-  display: flex;
-  flex-shrink: 0;
-  width: 38px;
-  height: 38px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;
-  background-color: var(--farbe-blau);
-  color: #ffffff;
-  font-size: 19px;
+.archiv-label {
+  margin: 0 0 0.35rem;
+  color: var(--farbe-salbei);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
-.archiv-hinweis p {
+.archiv-hinweis p:last-child {
   margin: 0;
-  color: #59615a;
-  font-size: 14px;
-  line-height: 1.8;
+  color: var(--farbe-dunkel);
+  font-size: 0.85rem;
+  line-height: 1.7;
 }
 
 .archiv-hinweis a {
   color: var(--farbe-blau);
   font-weight: 700;
-  text-decoration-color: #81896f;
+  text-decoration-color: var(--farbe-terracotta);
   text-underline-offset: 4px;
 }
 
 .archiv-hinweis a:hover {
-  color: #687451;
+  color: var(--farbe-salbei);
 }
 
-.termine-seite a:focus-visible {
-  outline: 3px solid #81896f;
-  outline-offset: 4px;
-  border-radius: 3px;
+.archiv-symbol {
+  display: flex;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--farbe-dunkel);
+  color: #ffffff;
+  font-size: 1.2rem;
 }
 
-@media (max-width: 600px) {
+/* Responsive layout */
+@media (max-width: 700px) {
   .termine-seite {
-    padding: 42px 16px 52px;
+    padding: 4rem 1.25rem;
   }
 
   .seitenkopf {
-    margin-bottom: 38px;
+    margin-bottom: 3.5rem;
   }
 
   .seitenkopf h1 {
-    font-size: 44px;
-  }
-
-  .beschreibung {
-    font-size: 15px;
+    font-size: clamp(3rem, 12vw, 4.5rem);
   }
 
   .bereich-kopf {
     align-items: flex-start;
-    gap: 12px;
+    flex-direction: column;
+    gap: 1rem;
   }
 
-  .bereich-kopf h2 {
-    font-size: 27px;
+  .termin-eintrag {
+    grid-template-columns: 85px minmax(0, 1fr);
+    gap: 1.2rem;
+    padding: 1.8rem 0.5rem;
   }
 
-  .termine-anzahl {
-    padding: 7px 10px;
-    font-size: 11px;
+  .termin-eintrag:hover {
+    padding-right: 0.8rem;
+    padding-left: 0.8rem;
   }
 
-  .termin-karte {
-    gap: 14px;
-    padding: 14px;
-    border-radius: 13px;
-  }
-
-  .datum {
-    width: 62px;
-    min-height: 72px;
-    border-radius: 9px;
+  .termin-datum {
+    padding-left: 0.65rem;
+    border-left-width: 3px;
   }
 
   .datum-tag {
-    font-size: 26px;
+    font-size: 2.8rem;
   }
 
   .datum-monat {
-    font-size: 10px;
+    font-size: 0.7rem;
   }
 
-  .termin-info h3 {
-    font-size: 16px;
+  .datum-jahr {
+    font-size: 0.65rem;
+  }
+
+  .termin-kopf {
+    gap: 0.5rem;
+  }
+
+  .termin-kopf h3 {
+    font-size: 1.2rem;
   }
 
   .termin-meta {
-    gap: 5px 12px;
-    font-size: 12px;
-  }
-
-  .termin-info .termin-beschreibung {
-    font-size: 13px;
-  }
-
-  .karten-akzent {
-    display: none;
+    flex-direction: column;
+    gap: 0.5rem;
   }
 
   .archiv-hinweis {
-    gap: 12px;
-    padding: 15px;
+    padding: 1.2rem;
   }
 }
 
 @media (max-width: 380px) {
-  .bereich-kopf {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .termin-karte {
-    align-items: flex-start;
-    gap: 12px;
-    padding: 12px;
-  }
-
-  .datum {
-    width: 54px;
-    min-height: 66px;
+  .termin-eintrag {
+    grid-template-columns: 70px minmax(0, 1fr);
+    gap: 0.8rem;
   }
 
   .datum-tag {
-    font-size: 23px;
+    font-size: 2.4rem;
+  }
+
+  .termin-kopf h3 {
+    font-size: 1.05rem;
+  }
+
+  .termin-symbol {
+    font-size: 1.1rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .termin-karte,
-  .karten-akzent {
+  .termin-eintrag,
+  .termin-kopf h3,
+  .termin-symbol {
     transition: none;
-  }
-
-  .termin-karte:hover {
-    transform: none;
   }
 }
 </style>

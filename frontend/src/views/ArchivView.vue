@@ -19,9 +19,9 @@ const archivBilder: ArchivBild[] = [
     datum: '10. September 2026',
     jahr: 2026,
     beschreibung:
-      'Ein Rückblick auf unseren Verkaufsstand in der Pausenhalle.',
+      'Ein RÃ¼ckblick auf unseren Verkaufsstand in der Pausenhalle.',
     bild: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1400&q=85',
-    alt: 'Produkte und Verkaufsfläche an einem Verkaufsstand',
+    alt: 'Produkte und VerkaufsflÃ¤che an einem Verkaufsstand',
   },
   {
     id: 2,
@@ -39,7 +39,7 @@ const archivBilder: ArchivBild[] = [
     datum: '22. April 2026',
     jahr: 2026,
     beschreibung:
-      'Teamarbeit und gemeinsame Ideen gehören zu unserer Schülerfirma.',
+      'Teamarbeit und gemeinsame Ideen gehÃ¶ren zu unserer SchÃ¼lerfirma.',
     bild: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1400&q=85',
     alt: 'Gemeinsam an einem Tisch sitzen',
   },
@@ -103,12 +103,12 @@ onUnmounted(() => {
 <template>
   <main class="archiv-seite">
     <header class="seitenkopf">
-      <p class="seiten-label">BBS I · SCHÜLERFIRMA</p>
+      <p class="seiten-label">BBS I Â· SCHÃœLERFIRMA</p>
 
       <h1>Veranstaltungsarchiv</h1>
 
       <p class="beschreibung">
-        Erinnerungen, Begegnungen und besondere Momente –
+        Erinnerungen, Begegnungen und besondere Momente â€“
         hier findet ihr Einblicke in unsere vergangenen Veranstaltungen.
       </p>
     </header>
@@ -116,7 +116,7 @@ onUnmounted(() => {
     <section class="archiv-bereich" aria-labelledby="archiv-titel">
       <div class="bereich-kopf">
         <div>
-          <p class="bereich-label">Rückblicke & Erinnerungen</p>
+          <p class="bereich-label">RÃ¼ckblicke & Erinnerungen</p>
           <h2 id="archiv-titel">Unsere Bildergalerie</h2>
         </div>
 
@@ -155,7 +155,7 @@ onUnmounted(() => {
           :key="bild.id"
           class="galerie-karte"
           type="button"
-          :aria-label="`${bild.titel}, ${bild.datum}. Bild vergrößern.`"
+          :aria-label="`${bild.titel}, ${bild.datum}. Bild vergrÃ¶ÃŸern.`"
           @click="ausgewaehltesBild = bild"
         >
           <div class="bildbereich">
@@ -178,7 +178,7 @@ onUnmounted(() => {
         <span class="leer-symbol" aria-hidden="true">?</span>
         <h3>Keine Bilder gefunden.</h3>
         <p>
-          Versucht einen anderen Suchbegriff oder wählt ein anderes Jahr.
+          Versucht einen anderen Suchbegriff oder wÃ¤hlt ein anderes Jahr.
         </p>
       </div>
     </section>
@@ -187,7 +187,7 @@ onUnmounted(() => {
       <div class="archiv-symbol" aria-hidden="true">?</div>
 
       <p>
-        Ihr möchtet uns bei einer Veranstaltung besuchen?
+        Ihr mÃ¶chtet uns bei einer Veranstaltung besuchen?
         <a href="/termine">Hier findet ihr unsere kommenden Termine.</a>
       </p>
     </aside>
@@ -204,10 +204,10 @@ onUnmounted(() => {
        <button
         class="lightbox-schliessen"
         type="button"
-        aria-label="Bildansicht schließen"
+        aria-label="Bildansicht schlieÃŸen"
         @click.stop="lightboxSchliessen"
        >
-        <span aria-hidden="true">×</span>
+        <span aria-hidden="true">Ã—</span>
        </button>
 
         <div class="lightbox-inhalt">

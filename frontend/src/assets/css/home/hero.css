@@ -1,0 +1,514 @@
+
+/* =================================
+   HERO - PLAYFUL & CREATIVE
+================================= */
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  background: #f3f2ed;
+  color: #1e222c;
+  padding: 5rem 6%;
+}
+
+.hero-content {
+  width: 100%;
+  max-width: 1450px;
+  min-height: 650px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  align-items: center;
+  gap: 2rem;
+}
+
+/* LEFT SIDE */
+
+.hero-copy {
+  position: relative;
+  z-index: 5;
+  max-width: 590px;
+}
+
+/* Logo with an organic background shape */
+
+.hero-logo-frame {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  max-width: 100%;
+  padding: 1.35rem 1.8rem;
+  margin-bottom: 1.6rem;
+  background: #e9e5d5;
+  border-radius: 43% 57% 52% 48% / 55% 42% 58% 45%;
+  transform: rotate(-2deg);
+  box-shadow: 7px 7px 0 #d9a477;
+}
+
+.hero-logo-frame::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: -12px;
+  right: -10px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #e6dff0;
+}
+
+.hero-logo {
+  display: block;
+  width: clamp(250px, 30vw, 370px);
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+  margin: 0 0 1.2rem;
+  filter: brightness(0);
+}
+
+.hero-copy h1 {
+  font-size: clamp(3.5rem, 5.5vw, 6rem);
+  line-height: 0.98;
+  letter-spacing: -0.075em;
+  font-weight: 800;
+  margin: 0 0 1.7rem;
+  color: #1e222c;
+}
+
+.hero-copy h1 span {
+  display: block;
+  color: #4d648a;
+  position: relative;
+  width: fit-content;
+}
+
+.hero-copy h1 span::after {
+  content: "";
+  position: absolute;
+  width: 95%;
+  height: 10px;
+  left: 3%;
+  bottom: -12px;
+  background: #d9a477;
+  border-radius: 50%;
+  transform: rotate(-2deg);
+}
+
+.hero-description {
+  max-width: 490px;
+  font-size: 1rem;
+  line-height: 1.8;
+  color: #555a60;
+  margin: 2rem 0;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+}
+
+.primary-link,
+.secondary-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.25s ease;
+}
+
+.primary-link {
+  padding: 1rem 1.5rem;
+  border-radius: 50px;
+  background: #4d648a;
+  color: #ffffff;
+  box-shadow: 4px 5px 0 #d9a477;
+}
+
+.primary-link:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 3px 0 #d9a477;
+}
+
+.secondary-link {
+  color: #1e222c;
+  padding: 0.8rem 0;
+}
+
+.secondary-link:hover {
+  color: #4d648a;
+}
+
+.hero-bottom-note {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: 3.5rem;
+  font-size: 0.75rem;
+  color: #777659;
+}
+
+.hero-bottom-note > span:first-child {
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.hero-bottom-line {
+  width: 35px;
+  height: 2px;
+  background: #d9a477;
+}
+
+/* RIGHT SIDE - SCRAPBOOK COLLAGE */
+
+.hero-visual {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.hero-collage {
+  position: relative;
+  width: 100%;
+  max-width: 700px;
+  height: 620px;
+  margin: 0 auto;
+}
+
+/* Large organic background shapes */
+
+.collage-circle {
+  position: absolute;
+  width: 390px;
+  height: 390px;
+  border-radius: 46% 54% 62% 38% / 45% 43% 57% 55%;
+  background: #e7e6dd;
+  top: 14%;
+  left: 22%;
+  transform: rotate(-15deg);
+}
+
+.collage-circle::after {
+  content: "";
+  position: absolute;
+  width: 115px;
+  height: 115px;
+  border-radius: 50%;
+  background: #1e222c;
+  right: -30px;
+  top: 20px;
+}
+
+/* Decorative details */
+
+.collage-sparkle {
+  position: absolute;
+  top: 4%;
+  right: 14%;
+  z-index: 6;
+  color: #d9a477;
+  font-size: 5rem;
+  transform: rotate(15deg);
+}
+
+.collage-small-note {
+  position: absolute;
+  top: 10%;
+  left: 1%;
+  z-index: 6;
+  padding: 0.6rem 1rem;
+  background: #d9a477;
+  color: #1e222c;
+  font-size: 0.85rem;
+  font-weight: 700;
+  transform: rotate(-9deg);
+  box-shadow: 3px 4px 0 #1e222c;
+}
+
+/* Shared image styling */
+
+.collage-print,
+.collage-wood,
+.collage-bite {
+  position: absolute;
+}
+
+.collage-print img,
+.collage-wood img,
+.collage-bite img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s ease;
+  box-shadow: 0 15px 35px rgb(30 34 44 / 16%);
+}
+
+/* PRINT */
+
+.collage-print {
+  width: 260px;
+  height: 315px;
+  top: 6%;
+  left: 12%;
+  z-index: 3;
+  transform: rotate(-9deg);
+}
+
+.collage-print::before {
+  content: "";
+  position: absolute;
+  inset: -12px;
+  background: #dce3ed;
+  border-radius: 48% 48% 8px 8px;
+  transform: rotate(5deg);
+}
+
+.collage-print img {
+  position: relative;
+  border: 7px solid #ffffff;
+  border-radius: 48% 48% 8px 8px;
+}
+
+.collage-print .collage-label {
+  bottom: 20px;
+  left: -25px;
+  background: #d9a477;
+}
+
+/* HANDWERK */
+
+.collage-wood {
+  width: 225px;
+  height: 185px;
+  top: 25%;
+  right: 0;
+  z-index: 4;
+  transform: rotate(8deg);
+}
+
+.collage-wood::before {
+  content: "";
+  position: absolute;
+  inset: -9px;
+  background: #d9a477;
+  border-radius: 12px;
+  transform: rotate(-5deg);
+}
+
+.collage-wood img {
+  position: relative;
+  border: 6px solid #ffffff;
+  border-radius: 12px;
+  filter: contrast(1.08) saturate(1.1);
+}
+
+.collage-wood .collage-label {
+  bottom: -18px;
+  right: -18px;
+  background: #e6dff0;
+}
+
+/* BITE */
+
+.collage-bite {
+  width: 260px;
+  height: 215px;
+  bottom: 2%;
+  left: 24%;
+  z-index: 5;
+  transform: rotate(-5deg);
+}
+
+.collage-bite::before {
+  content: "";
+  position: absolute;
+  inset: -12px;
+  background:#1e222c;
+  border-radius: 48% 52% 45% 55%;
+  transform: rotate(8deg);
+}
+
+.collage-bite img {
+  position: relative;
+  border: 7px solid #ffffff;
+  border-radius: 48% 48% 12px 12px;
+}
+
+.collage-bite .collage-label {
+  bottom: -18px;
+  left: -18px;
+  background: #dce2d1;
+}
+
+/* Labels */
+
+.collage-label {
+  position: absolute;
+  display: inline-block;
+  padding: 0.65rem 1.1rem;
+  border-radius: 50px;
+  color: #1e222c;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  box-shadow: 3px 4px 0 rgb(30 34 44 / 15%);
+}
+
+/* Sticker */
+
+.collage-sticker {
+  position: absolute;
+  right: 1%;
+  bottom: 5%;
+  z-index: 6;
+  width: 115px;
+  height: 115px;
+  border-radius: 50%;
+  background: #e6dff0;
+  color: #1e222c;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  line-height: 1.35;
+  transform: rotate(12deg);
+  border: 2px dashed #777659;
+}
+
+.collage-sticker strong {
+  font-size: 0.95rem;
+}
+
+/* Hover effects */
+
+.collage-print:hover img {
+  transform: rotate(3deg) scale(1.04);
+}
+
+.collage-wood:hover img {
+  transform: rotate(-3deg) scale(1.04);
+}
+
+.collage-bite:hover img {
+  transform: rotate(3deg) scale(1.04);
+}
+
+/* =================================
+   RESPONSIVE DESIGN
+================================= */
+
+@media (max-width: 1050px) {
+  .hero {
+    padding: 4rem 5%;
+  }
+
+  .hero-content {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .hero-collage {
+    height: 510px;
+  }
+
+  .collage-circle {
+    width: 300px;
+    height: 300px;
+  }
+
+  .collage-print {
+    width: 205px;
+    height: 260px;
+  }
+
+  .collage-wood {
+    width: 180px;
+    height: 150px;
+  }
+
+  .collage-bite {
+    width: 205px;
+    height: 170px;
+  }
+
+  .collage-sticker {
+    width: 90px;
+    height: 90px;
+  }
+}
+
+
+@media (max-width: 750px) {
+  .hero {
+    padding: 3.5rem 6% 4rem;
+  }
+
+  .hero-content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .hero-copy {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 620px;
+  }
+
+  /* Center the logo on smaller screens */
+  .hero-logo-frame {
+    align-self: center;
+    margin-bottom: 2rem;
+  }
+
+  .hero-logo {
+    width: clamp(220px, 60vw, 330px);
+    transform: none;
+  }
+
+  .hero-copy h1 {
+    font-size: clamp(3.2rem, 9vw, 5rem);
+  }
+
+  /* Hide the collage on mobile and tablet */
+  .hero-visual {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    padding: 2.5rem 5% 3rem;
+  }
+
+  .hero-copy h1 {
+    font-size: clamp(2.8rem, 11vw, 4rem);
+  }
+
+  .hero-actions {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  .primary-link,
+  .secondary-link,
+  .collage-print img,
+  .collage-wood img,
+  .collage-bite img {
+    transition: none;
+  }
+}

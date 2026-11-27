@@ -1,0 +1,373 @@
+
+/* Product teaser */
+.products-section {
+  padding: 5.5rem 7%;
+  background: #f5f4ef;
+  color: #1e222c;
+}
+
+.products-teaser-container {
+  max-width: 1250px;
+  margin: 0 auto;
+}
+
+.products-teaser-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 3rem;
+  margin-bottom: 2.5rem;
+}
+
+.products-teaser-heading > div {
+  max-width: 700px;
+}
+
+.products-teaser-heading h2 {
+  margin: 0;
+  font-size: clamp(3rem, 5vw, 4.7rem);
+  font-weight: 800;
+  letter-spacing: -0.075em;
+  line-height: 0.98;
+}
+
+.products-teaser-heading h2 span {
+  display: block;
+  color: #4d648a;
+}
+
+.products-teaser-heading > p {
+  max-width: 370px;
+  margin: 0 0 0.3rem;
+  color: #68717c;
+  font-size: 0.9rem;
+  line-height: 1.8;
+}
+
+/* Main product cards */
+.products-teaser-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.products-teaser-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #e3e1d9;
+  border-radius: 25px 8px 25px 8px;
+  background: #ffffff;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.products-teaser-card:nth-child(2) {
+  margin-top: 1.2rem;
+  border-radius: 8px 25px 8px 25px;
+}
+
+.products-teaser-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 14px 30px rgb(30 34 44 / 9%);
+}
+
+/* Visual areas */
+.teaser-visual {
+  position: relative;
+  display: flex;
+  min-height: 230px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.print-teaser .teaser-visual {
+  background: #dce3ec;
+}
+
+.handwerk-teaser .teaser-visual {
+  background: #e6e3d5;
+}
+
+.teaser-number {
+  position: absolute;
+  top: 1.2rem;
+  left: 1.3rem;
+  color: rgb(30 34 44 / 60%);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.teaser-word {
+  position: relative;
+  z-index: 1;
+  color: #1e222c;
+  font-size: clamp(4rem, 7vw, 6.5rem);
+  font-weight: 800;
+  letter-spacing: -0.09em;
+  line-height: 1;
+}
+
+.handwerk-teaser .teaser-word {
+  font-size: clamp(3rem, 5.5vw, 5rem);
+}
+
+.teaser-tag {
+  position: relative;
+  z-index: 1;
+  margin-top: 0.7rem;
+  color: #4d648a;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-align: center;
+}
+
+.teaser-decoration {
+  position: absolute;
+  right: 12%;
+  top: 12%;
+  font-size: 4rem;
+  opacity: 0.35;
+  transform: rotate(15deg);
+}
+
+.print-decoration {
+  color: #4d648a;
+}
+
+.handwerk-decoration {
+  color: #777659;
+  right: 13%;
+  top: auto;
+  bottom: 10%;
+  transform: rotate(-15deg);
+}
+
+/* Text areas */
+.teaser-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.4rem 1.5rem;
+}
+
+.teaser-info h3 {
+  margin: 0 0 0.45rem;
+  color: #1e222c;
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.045em;
+}
+
+.teaser-info p {
+  max-width: 440px;
+  margin: 0;
+  color: #68717c;
+  font-size: 0.82rem;
+  line-height: 1.7;
+}
+
+.teaser-arrow {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #e8e5dc;
+  color: #1e222c;
+  font-size: 1.1rem;
+  transition: transform 0.2s ease;
+}
+
+.products-teaser-card:hover .teaser-arrow {
+  transform: rotate(45deg);
+}
+
+/* Bite note */
+.products-bite-note {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  margin-top: 2rem;
+  padding: 1.2rem 1.5rem;
+  border: 1px solid #e3e1d9;
+  border-radius: 8px 20px 8px 20px;
+  background: #ffffff;
+}
+
+.bite-note-symbol {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 45% 55% 50% 50%;
+  background: #eee2d3;
+  color: #b98559;
+  font-size: 1.3rem;
+}
+
+.bite-note-copy {
+  flex: 1;
+}
+
+.bite-note-label {
+  color: #b98559;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.bite-note-copy p {
+  margin: 0.3rem 0 0;
+  color: #68717c;
+  font-size: 0.82rem;
+  line-height: 1.7;
+}
+
+.bite-note-word {
+  color: #1e222c;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.08em;
+}
+
+/* Responsive */
+@media (max-width: 850px) {
+  .products-section {
+    padding: 4.5rem 6%;
+  }
+
+  .products-teaser-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .products-teaser-heading > p {
+    max-width: 500px;
+  }
+
+  .products-teaser-grid {
+    gap: 1rem;
+  }
+
+  .teaser-visual {
+    min-height: 200px;
+  }
+}
+
+@media (max-width: 600px) {
+  .products-section {
+    padding: 4rem 1.25rem;
+  }
+
+  .products-teaser-heading h2 {
+    font-size: clamp(2.8rem, 11vw, 4rem);
+  }
+
+  .products-teaser-grid {
+    grid-template-columns: 1fr;
+    gap: 1.2rem;
+  }
+
+  .products-teaser-card:nth-child(2) {
+    margin-top: 0;
+  }
+
+  .teaser-visual {
+    min-height: 190px;
+  }
+
+  .teaser-word {
+    font-size: 5rem;
+  }
+
+  .handwerk-teaser .teaser-word {
+    font-size: 3.7rem;
+  }
+
+  .products-bite-note {
+    align-items: flex-start;
+    gap: 0.9rem;
+    padding: 1rem;
+  }
+
+  .bite-note-word {
+    font-size: 1.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .products-teaser-card,
+  .teaser-arrow {
+    transition: none;
+  }
+}
+
+/* Temporary product images */
+.teaser-visual {
+  isolation: isolate;
+}
+
+.teaser-image {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.teaser-image-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    180deg,
+    rgb(30 34 44 / 15%) 0%,
+    rgb(30 34 44 / 25%) 45%,
+    rgb(30 34 44 / 65%) 100%
+  );
+}
+
+.teaser-number {
+  color: #ffffff;
+}
+
+.teaser-word {
+  color: #ffffff;
+  text-shadow: 0 2px 15px rgb(0 0 0 / 15%);
+}
+
+.teaser-tag {
+  color: #ffffff;
+}
+
+.teaser-decoration {
+  color: #ffffff;
+  opacity: 0.65;
+}
+
+/* Bite image */
+.bite-note-image {
+  flex-shrink: 0;
+  width: 100px;
+  height: 75px;
+  border-radius: 8px 18px 8px 18px;
+  object-fit: cover;
+}
+
+@media (max-width: 600px) {
+  .bite-note-image {
+    width: 75px;
+    height: 65px;
+  }
+}

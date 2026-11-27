@@ -43,7 +43,7 @@
               rel="noopener noreferrer"
               class="route-link"
             >
-              Route planen <span aria-hidden="true">?</span>
+              Route planen <span aria-hidden="true">↗</span>
             </a>
           </div>
 
@@ -61,7 +61,7 @@
               referrerpolicy="no-referrer-when-downgrade"
               tabindex="-1"
             ></iframe>
-            <span class="map-overlay">In Google Maps öffnen ?</span>
+            <span class="map-overlay">In Google Maps öffnen ↗</span>
           </a>
         </div>
 
@@ -75,7 +75,7 @@
 
           <nav class="footer-nav" aria-label="Footer-Navigation">
             <RouterLink to="/">Startseite</RouterLink>
-            <RouterLink to="/#produkte">Produkte</RouterLink>
+            <a href="/#produkte">Produkte</a>
             <RouterLink to="/termine">Termine</RouterLink>
             <RouterLink to="/archiv">Archiv</RouterLink>
             <a href="/#kontakt">Kontakt</a>
@@ -105,8 +105,8 @@
 
 <style scoped>
 .site-footer {
-  padding: 2.8rem 7% 1.2rem;
-  background: #202d43;
+  padding: 3.5rem 7% 1.4rem;
+  background: #1e222c;
   color: #ffffff;
 }
 
@@ -121,20 +121,20 @@
   grid-template-columns: 1fr 1fr;
   align-items: center;
   gap: 5rem;
-  padding-bottom: 2.5rem;
+  padding-bottom: 3rem;
 }
 
 /* Brand */
 .footer-brand {
   display: flex;
   align-items: center;
-  gap: 1.8rem;
+  gap: 2rem;
 }
 
 .footer-logo {
   display: block;
   flex-shrink: 0;
-  width: 145px;
+  width: 1px;
 }
 
 .footer-logo img {
@@ -145,23 +145,25 @@
 }
 
 .footer-brand-text {
-  max-width: 290px;
+  max-width: 310px;
 }
 
 .footer-subtitle {
-  margin: 0 0 0.8rem;
-  color: #a4aa91;
-  font-size: 0.62rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
+  margin: 0 0 0.9rem;
+  color: #d9a477;
+  font-family: "Trebuchet MS", sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
   line-height: 1.6;
 }
 
 .footer-description {
   margin: 0;
   color: #c5cbd2;
-  font-size: 0.85rem;
-  line-height: 1.8;
+  font-family: "Trebuchet MS", sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.9;
 }
 
 /* Location */
@@ -169,23 +171,25 @@
   display: grid;
   grid-template-columns: 0.8fr 1.2fr;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.8rem;
 }
 
 .location-info h3,
 .footer-link-group h3 {
-  margin: 0 0 1rem;
-  color: #a4aa91;
-  font-size: 0.68rem;
+  margin: 0 0 1.1rem;
+  color: #d9a477;
+  font-family: "Trebuchet MS", sans-serif;
+  font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.13em;
+  letter-spacing: 0.12em;
 }
 
 .location-info p {
   margin: 0;
   color: #c5cbd2;
-  font-size: 0.82rem;
-  line-height: 1.8;
+  font-family: "Trebuchet MS", sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.9;
 }
 
 .location-info .footer-school-name {
@@ -197,25 +201,30 @@
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
-  margin-top: 1rem;
+  margin-top: 1.1rem;
   padding-bottom: 0.3rem;
-  border-bottom: 1px solid #81896f;
+  border-bottom: 1px solid #d9a477;
   color: #ffffff;
-  font-size: 0.78rem;
+  font-family: "Trebuchet MS", sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
   text-decoration: none;
-  transition: gap 0.2s ease;
+  transition: gap 0.2s ease, color 0.2s ease;
 }
 
 .route-link:hover {
   gap: 1rem;
+  color: #d9a477;
 }
 
 /* Map */
 .footer-map {
   position: relative;
   display: block;
-  height: 145px;
+  height: 165px;
   overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 12px;
   background: #394b64;
 }
 
@@ -233,10 +242,11 @@
   right: 0;
   bottom: 0;
   left: 0;
-  padding: 0.6rem;
-  background: rgb(32 45 67 / 85%);
+  padding: 0.7rem;
+  background: rgb(30 34 44 / 88%);
   color: #ffffff;
-  font-size: 0.7rem;
+  font-family: "Trebuchet MS", sans-serif;
+  font-size: 0.75rem;
   text-align: center;
   opacity: 0;
   transition: opacity 0.2s ease;
@@ -252,14 +262,14 @@
   display: flex;
   align-items: flex-start;
   gap: 6rem;
-  padding: 1.5rem 0;
+  padding: 2rem 0;
   border-top: 1px solid rgb(255 255 255 / 15%);
 }
 
 .footer-link-group {
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  gap: 1rem;
 }
 
 .footer-link-group h3 {
@@ -271,18 +281,20 @@
   flex-direction: row;
   align-items: center;
   flex-wrap: wrap;
-  gap: 1.5rem;
+  gap: 1.6rem;
 }
 
 .footer-nav a {
   color: #d1d7df;
-  font-size: 0.82rem;
+  font-family: "Trebuchet MS", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
 .footer-nav a:hover {
-  color: #a4aa91;
+  color: #d9a477;
 }
 
 /* Copyright */
@@ -291,10 +303,11 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding-top: 1rem;
+  padding-top: 1.2rem;
   border-top: 1px solid rgb(255 255 255 / 15%);
   color: #aeb7c2;
-  font-size: 0.7rem;
+  font-family: "Trebuchet MS", sans-serif;
+  font-size: 0.78rem;
 }
 
 .footer-bottom p {
@@ -312,12 +325,12 @@
   }
 
   .footer-logo {
-    width: 115px;
+    width: 125px;
   }
 
   .footer-location {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 1.2rem;
   }
 
   .footer-map {
@@ -331,13 +344,13 @@
 
 @media (max-width: 700px) {
   .site-footer {
-    padding: 2.5rem 1.5rem 1rem;
+    padding: 2.8rem 1.5rem 1rem;
   }
 
   .footer-top {
     grid-template-columns: 1fr;
     gap: 2.5rem;
-    padding-bottom: 2rem;
+    padding-bottom: 2.5rem;
   }
 
   .footer-brand {
@@ -362,7 +375,7 @@
 
   .footer-links {
     flex-direction: column;
-    gap: 1.8rem;
+    gap: 2rem;
   }
 
   .footer-nav {
@@ -381,11 +394,11 @@
   }
 
   .footer-subtitle {
-    font-size: 0.56rem;
+    font-size: 0.6rem;
   }
 
   .footer-description {
-    font-size: 0.78rem;
+    font-size: 0.8rem;
   }
 
   .footer-location {
@@ -403,7 +416,7 @@
   .footer-bottom {
     align-items: flex-start;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.6rem;
   }
 }
 </style>

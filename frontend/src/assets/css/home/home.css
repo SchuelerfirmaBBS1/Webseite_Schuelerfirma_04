@@ -1,0 +1,21 @@
+.home {
+  --navy: #202d43;
+  --cream: #f5f1e8;
+  --white: #ffffff;
+  --sage: #a4aa91;
+  --terracotta: #b98d69;
+  --text: #343b40;
+  --muted: #747a78;
+
+  color: var(--navy);
+  background: var(--white);
+}
+
+/* Shared typography */
+.eyebrow {
+  margin: 0 0 1.2rem;
+  color: #858b70;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}

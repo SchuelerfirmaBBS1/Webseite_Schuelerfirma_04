@@ -1,4 +1,4 @@
-import type { Event } from '../types/Event'
+import type { Event } from '../types/event'
 
 export const events: Event[] = [
   {
@@ -7,31 +7,31 @@ export const events: Event[] = [
     endTime: '12:00',
     name: 'Verkaufsstand in der Pausenhalle',
     description: 'Besucht unseren Verkaufsstand in der Pausenhalle.',
-    location: 'BBS I Lüneburg',
+    location: 'BBS I LÃ¼neburg',
   },
   {
     startDate: '21.11.2026',
     startTime: '10:00',
     name: 'Tag der offenen T\u00FCr',
-    description: 'Lernt unsere Schülerfirma kennen.',
-    location: 'BBS I Lüneburg',
+    description: 'Lernt unsere SchÃ¼lerfirma kennen.',
+    location: 'BBS I LÃ¼neburg',
   },
   {
     startDate: '05.12.2026',
     startTime: '14:00',
     name: 'Weihnachtsmarkt / Basar',
-    location: 'BBS I Lüneburg',
+    location: 'BBS I LÃ¼neburg',
   },
   {
     startDate: '24.11.2026',
     startTime: '16:00',
     name: 'Weihnachtsessen',
-    location: 'BBS I Lüneburg',
+    location: 'BBS I LÃ¼neburg',
   },
   {
     startDate: '20.01.2027',
     startTime: '09:00',
-    name: 'Messe für Schülerunternehmen',
+    name: 'Messe fÃ¼r SchÃ¼lerunternehmen',
     location: 'Veranstaltungsort folgt',
   },
 ]

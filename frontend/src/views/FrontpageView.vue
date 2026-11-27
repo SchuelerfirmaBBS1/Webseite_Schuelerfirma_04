@@ -1,11 +1,13 @@
-
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { events } from '../data/events'
 
 /* Convert a date in DD.MM.YYYY format into a Date object */
 function parseEventDate(dateString: string): Date {
-  const [day, month, year] = dateString.split('.').map(Number)
+  const [day = 1, month = 1, year = 1970] = dateString
+    .split('.')
+    .map(Number)
+
   return new Date(year, month - 1, day)
 }
 
@@ -26,11 +28,11 @@ const upcomingEvents = computed(() => {
 
 /* Format the date for the event cards */
 function getDay(dateString: string): string {
-  return dateString.split('.')[0]
+  return dateString.split('.')[0] ?? ''
 }
 
 function getMonth(dateString: string): string {
-  const month = Number(dateString.split('.')[1])
+  const month = Number(dateString.split('.')[1] ?? '0')
 
   return [
     'JAN',
@@ -66,1395 +68,601 @@ function handleContactSubmit() {
 
 <template>
   <main class="home">
-    <!-- Hero section -->
-    <section class="hero">
-      <div class="hero-content">
-        <div class="hero-copy">
-          <p class="eyebrow">SCHÜLERUNTERNEHMEN · BBS I LÜNEBURG</p>
 
-          <h1>
-            Kreative Ideen.
-            <span>Nachhaltige Produkte.</span>
-            Echter Genuss.
-          </h1>
 
-          <p class="hero-description">
-            Wir verbinden moderne Technik, kreatives Handwerk
-            und nachhaltiges Wirtschaften. Von der Herstellung
-            bis zum Verkauf – bei uns steckt die ganze Klasse dahinter.
-          </p>
 
-          <a href="#produkte" class="primary-link">
-            Unsere Produktwelt entdecken
-            <span aria-hidden="true">?</span>
-          </a>
-        </div>
 
-        <div class="hero-visual">
-          <img
-            src="/images/hero-print-bite.png"
-            alt="Einblicke in die Produkte von PRINT&BITE"
-            class="hero-image"
-          />
-        </div>
+<!-- Hero section -->
+<section class="hero">
+  <div class="hero-content">
+
+    <!-- Left side: Introduction -->
+    <div class="hero-copy">
+
+      <div class="hero-logo-frame">
+       <img
+          src="/images/white_logo.png"
+          alt="PRINT&BITE"
+          class="hero-logo"
+        />
+</div>
+
+      <h1>
+        Aus Ideen wird
+        <span>etwas Besonderes.</span>
+      </h1>
+
+      <p class="hero-description">
+        Von nachhaltigen 3D-Druckideen über handwerkliche Holzprodukte
+        bis hin zu frisch gebackenen Snacks: Bei PRINT&BITE verbinden
+        wir Kreativität, Handwerk und Genuss. Als Schülerunternehmen
+        der BBS I Lüneburg machen wir aus unseren Ideen echte Produkte.
+      </p>
+
+      <div class="hero-actions">
+        <a href="#produkte" class="primary-link">
+          Unsere Produkte entdecken
+          <span aria-hidden="true">↗</span>
+        </a>
+
+        <a href="#ueber-uns" class="secondary-link">
+          Unser Team kennenlernen
+        </a>
       </div>
-    </section>
 
-    <!-- Product section -->
-    <section id="produkte" class="products-section">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">UNSERE PRODUKTWELT</p>
-          <h2>
-            Kreativität trifft
-            <span>auf Handwerk.</span>
-          </h2>
+      <div class="hero-bottom-note">
+        <span>HA26B</span>
+        <span class="hero-bottom-line"></span>
+        <span>Gemeinsam kreativ. Gemeinsam erfolgreich.</span>
+      </div>
+
+    </div>
+
+    <!-- Right side: Creative product collage -->
+    <div class="hero-visual" aria-label="Einblicke in die Produkte von PRINT&BITE">
+
+      <div class="hero-collage">
+
+        <!-- Decorative elements -->
+        <div class="collage-circle"></div>
+        <div class="collage-sparkle" aria-hidden="true">✳</div>
+        <div class="collage-small-note">Mit Ideen gemacht!</div>
+
+        <!-- PRINT -->
+        <div class="collage-print">
+          <img
+            src="\images\3D-Druck.png"
+          />
+          <span class="collage-label">PRINT</span>
         </div>
 
-        <p class="section-intro">
-          Bei PRINT&BITE entstehen Produkte mit Persönlichkeit.
-          Wir verbinden moderne 3D-Drucktechnik mit traditionellem
-          Handwerk und setzen kreative Ideen in die Realität um.
+        <!-- HANDWERK -->
+        <div class="collage-wood">
+          <img
+            src="\images\Handwerk-Ente.png"
+            alt="Beispiel eines handgefertigten Holzbretts"
+          />
+          <span class="collage-label">HANDWERK</span>
+        </div>
+
+        <!-- BITE -->
+        <div class="collage-bite">
+          <img
+            src="https://static.spotapps.co/spots/ae/bfd00975a4485dac6078c470ba5be5/full"
+            alt="Beispiel von frisch gebackenen Pizzaschnecken"
+          />
+          <span class="collage-label">BITE</span>
+        </div>
+
+        <div class="collage-sticker">
+          <span>IDEEN</span>
+          <strong>WERDEN</strong>
+          <span>REAL.</span>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+
+<!-- Product teaser -->
+<section id="produkte" class="products-section">
+  <div class="products-teaser-container">
+
+    <div class="products-teaser-heading">
+      <div>
+        <span class="section-eyebrow">UNSERE PRODUKTWELT</span>
+        <h2>
+          Kreative Ideen.
+          <span>Handgemacht & durchdacht.</span>
+        </h2>
+      </div>
+
+      <p>
+        Von nachhaltigen 3D-Druck-Produkten bis zu handgefertigten
+        Holzarbeiten – bei uns treffen verschiedene Ideen und
+        Fähigkeiten aufeinander.
+      </p>
+    </div>
+
+    <div class="products-teaser-grid">
+
+      <!-- PRINT -->
+      <article class="products-teaser-card print-teaser">
+        <div class="teaser-visual">
+          <img
+            class="teaser-image"
+            src="\images\3D-Druck.png"
+            alt="3D-gedrucktes Objekt neben einem 3D-Drucker"
+            loading="lazy"
+          />
+          <div class="teaser-image-overlay"></div>
+
+          <span class="teaser-number">01 / PRINT</span>
+          <span class="teaser-decoration print-decoration">✳</span>
+          <span class="teaser-word">PRINT</span>
+          <span class="teaser-tag">TECHNOLOGIE & NACHHALTIGKEIT</span>
+        </div>
+
+        <div class="teaser-info">
+          <div>
+            <h3>Aus Ideen wird etwas Greifbares.</h3>
+            <p>
+              Wir verwandeln recycelten Kunststoff in neue,
+              praktische und kreative 3D-Druck-Produkte.
+            </p>
+          </div>
+          <span class="teaser-arrow" aria-hidden="true">↗</span>
+        </div>
+      </article>
+
+      <!-- HANDWERK -->
+      <article class="products-teaser-card handwerk-teaser">
+        <div class="teaser-visual">
+          <img
+            class="teaser-image"
+            src="\images\Handwerk.png"
+            alt="Handgefertigte Holzfiguren und Holzarbeiten"
+            loading="lazy"
+          />
+          <div class="teaser-image-overlay"></div>
+
+          <span class="teaser-number">02 / HANDWERK</span>
+          <span class="teaser-decoration handwerk-decoration">✳</span>
+          <span class="teaser-word">HANDWERK</span>
+          <span class="teaser-tag">KOOPERATION MIT DER BBS II</span>
+        </div>
+
+        <div class="teaser-info">
+          <div>
+            <h3>Mit Liebe zum Detail gefertigt.</h3>
+            <p>
+              Gemeinsam mit der BBS II bieten wir handgefertigte
+              Holzprodukte an, bei denen Kreativität und
+              handwerkliches Können zusammenkommen.
+            </p>
+          </div>
+          <span class="teaser-arrow" aria-hidden="true">↗</span>
+        </div>
+      </article>
+
+    </div>
+
+    <!-- BITE -->
+    <div class="products-bite-note">
+      <img
+        class="bite-note-image"
+        src="https://images.unsplash.com/photo-1781722758469-975dd9e90643?auto=format&fit=crop&w=500&q=85"
+        alt="Gebackene herzhafte Röllchen"
+        loading="lazy"
+      />
+
+      <div class="bite-note-copy">
+        <span class="bite-note-label">UND NATÜRLICH AUCH BITE</span>
+        <p>
+          Neben unseren Produkten gibt es bei uns auch selbstgemachte
+          Snacks und Backwaren – frisch zubereitet und mit viel Freude
+          gemacht.
         </p>
       </div>
 
-      <div class="product-grid">
-        <!-- PRINT -->
-        <article class="product-card">
-          <div class="product-visual print-visual">
-            <span class="visual-number">01</span>
-            <span class="visual-category">KREATIVITÄT IN 3D</span>
+      <span class="bite-note-word">BITE</span>
+    </div>
 
-            <div class="visual-placeholder">
-              <span>PRINT</span>
-              <small>3D-gedruckte Produkte</small>
-            </div>
-          </div>
+  </div>
+</section>
 
-          <div class="product-info">
-            <div>
-              <p class="eyebrow">PRINT</p>
-              <h3>Ideen werden greifbar.</h3>
-              <p>
-                Kreative Produkte aus dem 3D-Drucker,
-                hergestellt aus recyceltem Kunststoff.
-              </p>
-            </div>
 
-            <span class="product-arrow" aria-hidden="true">?</span>
-          </div>
-        </article>
 
-        <!-- HANDWERK -->
-        <article class="product-card">
-          <div class="product-visual wood-visual">
-            <span class="visual-number">02</span>
-            <span class="visual-category">HANDWERK MIT CHARAKTER</span>
-
-            <div class="visual-placeholder">
-              <span>HANDWERK</span>
-              <small>Produkte aus Holz</small>
-            </div>
-          </div>
-
-          <div class="product-info">
-            <div>
-              <p class="eyebrow">HANDWERK</p>
-              <h3>Natürlich besonders.</h3>
-              <p>
-                Hochwertige Holzprodukte in Zusammenarbeit
-                mit der BBS II.
-              </p>
-            </div>
-
-            <span class="product-arrow" aria-hidden="true">?</span>
-          </div>
-        </article>
-      </div>
-    </section>
-
-    <!-- Sustainability section -->
-    <section class="sustainability-section">
-      <div class="sustainability-content">
-        <div class="sustainability-copy">
-          <p class="eyebrow">BEWUSST GESTALTEN · NEU DENKEN</p>
-
-          <h2>
-            Aus Alt wird
-            <span>etwas Neues.</span>
-          </h2>
-
-          <p class="sustainability-description">
-            Nachhaltigkeit beginnt bei den Materialien, die wir
-            verwenden. Beim 3D-Druck gibt es Möglichkeiten,
-            Kunststoff wiederzuverwenden und daraus neues
-            Filament für weitere Produkte herzustellen.
-          </p>
-
-          <p class="sustainability-description">
-            Die Recyclingfabrik aus Braunschweig zeigt, wie aus
-            Kunststoffresten wieder ein wertvoller Rohstoff
-            entstehen kann. So wird aus einem vermeintlichen
-            Abfallprodukt eine neue Möglichkeit.
-          </p>
-
-          <a
-            href="https://www.recyclingfabrik.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="sustainability-link"
-          >
-            Die Recyclingfabrik kennenlernen
-            <span aria-hidden="true">?</span>
-          </a>
-        </div>
-
-        <div class="sustainability-visual">
-          <div class="sustainability-image-placeholder">
-            <span class="recycling-symbol" aria-hidden="true">?</span>
-            <p>RECYCLING</p>
-            <span>Aus Kunststoff wird neues Filament.</span>
-          </div>
-
-          <div class="sustainability-caption">
-            <span>Ressourcen weiterdenken.</span>
-            <span>PRINT&BITE</span>
-          </div>
-        </div>
+<!-- Sustainability section -->
+<section class="sustainability-section">
+  <div class="sustainability-layout">
+    <div class="sustainability-copy">
+      <div class="sustainability-kicker">
+        <span></span>
+        NACHHALTIGKEIT · NEU GEDACHT
       </div>
 
-      <div class="quiz-teaser">
-        <div>
-          <p class="eyebrow">WISSEN, DAS WEITERHILFT</p>
-          <h3>Wie gut kennst du dich mit Plastik und Wasser aus?</h3>
-          <p>
-            Entdecke spannende Fakten rund um Kunststoff,
-            Recycling und einen bewussten Umgang mit Ressourcen.
-          </p>
-        </div>
+      <h2>
+        Aus Alt wird
+        <span>etwas Neues.</span>
+      </h2>
 
-        <div class="quiz-decoration" aria-hidden="true">
-          <span>?</span>
-        </div>
-      </div>
-    </section>
+      <p class="sustainability-lead">
+        Nachhaltigkeit beginnt bei den Materialien.
+      </p>
 
-    <!-- Upcoming events section -->
-    <section class="events-preview-section">
-      <div class="events-preview-heading">
-        <div>
-          <p class="eyebrow">IMMER AUF DEM LAUFENDEN</p>
-          <h2>
-            Was bei uns
-            <span>ansteht.</span>
-          </h2>
-        </div>
+      <p class="sustainability-description">
+        Für unsere PRINT-Produkte verwenden wir recyceltes
+        Kunststofffilament. So werden bereits verwendete
+        Kunststoffe zur Grundlage für neue kreative Ideen.
+      </p>
 
-        <RouterLink to="/termine" class="all-events-link">
-          Alle Termine ansehen
-          <span aria-hidden="true">?</span>
-        </RouterLink>
-      </div>
+      <p class="sustainability-description">
+        Wie aus Kunststoffresten wieder neues Filament entstehen
+        kann, zeigt beispielsweise die Recyclingfabrik aus
+        Braunschweig.
+      </p>
 
-      <div v-if="upcomingEvents.length > 0" class="events-preview-grid">
-        <article
-          v-for="event in upcomingEvents"
-          :key="event.name + event.startDate"
-          class="event-preview-card"
-        >
-          <div class="event-date">
-            <span class="event-day">{{ getDay(event.startDate) }}</span>
-            <span class="event-month">{{ getMonth(event.startDate) }}</span>
-          </div>
+      <a
+        href="https://www.recyclingfabrik.com/"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="sustainability-link"
+      >
+        <span>Die Recyclingfabrik kennenlernen</span>
+        <span aria-hidden="true">↗</span>
+      </a>
+    </div>
 
-          <div class="event-details">
-            <h3>{{ event.name }}</h3>
-
-            <div class="event-meta">
-              <span v-if="event.startTime || event.endTime">
-                <span aria-hidden="true">?</span>
-                {{ event.startTime }}
-                <template v-if="event.endTime">
-                  – {{ event.endTime }}
-                </template>
-              </span>
-
-              <span>
-                <span aria-hidden="true">?</span>
-                {{ event.location }}
-              </span>
-            </div>
-
-            <p v-if="event.description" class="event-description">
-              {{ event.description }}
-            </p>
-          </div>
-
-          <span class="event-card-arrow" aria-hidden="true">?</span>
-        </article>
+    <div class="recycling-process">
+      <div class="process-heading">
+        <span>VOM DRUCKREST ZUR NEUEN ROLLE</span>
+        <span>IN DREI SCHRITTEN</span>
       </div>
 
-      <div v-else class="no-events">
-        <p>Aktuell sind keine kommenden Termine geplant.</p>
-        <span>Schau gerne später wieder vorbei!</span>
-      </div>
-
-      <div class="events-preview-footer">
-        <span>Neue Termine und Veranstaltungen findest du hier.</span>
-
-        <RouterLink to="/termine">
-          Zur Terminübersicht
-          <span aria-hidden="true">?</span>
-        </RouterLink>
-      </div>
-    </section>
-
-    <!-- About us section -->
-    <section id="ueber-uns" class="about-section">
-      <div class="about-content">
-        <div class="about-visual">
-          <div class="about-image-placeholder">
-            <span class="about-image-label">HA26B · BBS I LÜNEBURG</span>
-
-            <div class="about-image-symbol" aria-hidden="true">
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
-
-            <div class="about-image-text">
-              <span>HIER ENTSTEHT</span>
-              <strong>PRINT&BITE</strong>
-            </div>
-
-            <span class="about-image-caption">
-              Unser Team · Unsere Ideen · Unser Unternehmen
-            </span>
-          </div>
-        </div>
-
-        <div class="about-copy">
-          <p class="eyebrow">DAS TEAM HINTER PRINT&BITE</p>
-
-          <h2>
-            Wir sind
-            <span>PRINT&BITE.</span>
-          </h2>
-
-          <p class="about-intro">
-            Hinter PRINT&BITE steckt die Klasse HA26B der
-            BBS I Lüneburg. Gemeinsam haben wir unser eigenes
-            Schülerunternehmen auf die Beine gestellt.
-          </p>
-
-          <p class="about-description">
-            Von der Entwicklung und Herstellung unserer Produkte
-            über den Verkauf bis hin zu Marketing und Organisation:
-            Jede und jeder bringt eigene Ideen und Fähigkeiten ein.
-            Dabei sammeln wir praktische Erfahrungen und lernen,
-            was es bedeutet, ein Unternehmen gemeinsam zu führen.
-          </p>
-
-          <p class="about-description">
-            Was uns verbindet, ist die Freude daran, etwas Eigenes
-            zu schaffen und aus kreativen Ideen echte Produkte
-            werden zu lassen.
-          </p>
-
-          <div class="about-values">
-            <span>Teamwork</span>
-            <span>Kreativität</span>
-            <span>Verantwortung</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Contact section -->
-    <section id="kontakt" class="contact-section">
-      <div class="contact-content">
-        <div class="contact-copy">
-          <p class="eyebrow">WIR SIND FÜR DICH DA</p>
-
-          <h2>
-            Wir freuen uns
-            <span>auf deine Nachricht.</span>
-          </h2>
-
-          <p class="contact-description">
-            Du hast Fragen zu unseren Produkten, möchtest mehr
-            über unser Schülerunternehmen erfahren oder mit uns
-            in Kontakt treten? Dann schreib uns gerne!
-          </p>
-
-          <div class="contact-note">
-            <span class="contact-note-symbol" aria-hidden="true">?</span>
-            <p>
-              Wir freuen uns über dein Interesse an PRINT&BITE
-              und melden uns gerne bei dir.
-            </p>
-          </div>
-        </div>
-
-        <form class="contact-form" @submit.prevent="handleContactSubmit">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="contact-name">Dein Name</label>
-              <input
-                id="contact-name"
-                v-model="contactForm.name"
-                type="text"
-                name="name"
-                placeholder="Vor- und Nachname"
-                autocomplete="name"
-                required
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="contact-email">Deine E-Mail-Adresse</label>
-              <input
-                id="contact-email"
-                v-model="contactForm.email"
-                type="email"
-                name="email"
-                placeholder="name@beispiel.de"
-                autocomplete="email"
-                required
-              />
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="contact-subject">Betreff</label>
-            <input
-              id="contact-subject"
-              v-model="contactForm.subject"
-              type="text"
-              name="subject"
-              placeholder="Worum geht es?"
-              required
+      <div class="process-grid">
+        <article class="process-card">
+          <div class="process-image">
+            <img
+              src="https://images.ndr.de/image/beb0e5cd-9b94-4fdb-a73b-5449fd8bafde/AAABlb3YzvM/AAABnR8VW9w/original/recyclingfabrik102.jpg"
+              alt="Gesammelte und zerkleinerte Reste aus dem 3D-Druck"
+              loading="lazy"
             />
+            <span class="process-number">01</span>
           </div>
 
-          <div class="form-group">
-            <label for="contact-message">Deine Nachricht</label>
-            <textarea
-              id="contact-message"
-              v-model="contactForm.message"
-              name="message"
-              rows="5"
-              placeholder="Schreib uns deine Nachricht ..."
-              required
-            ></textarea>
+          <div class="process-info">
+            <span class="process-step-label">SAMMELN</span>
+            <h3>Kunststoffreste</h3>
+            <p>
+              Fehldrucke und andere Reste aus dem 3D-Druck
+              werden gesammelt.
+            </p>
+          </div>
+        </article>
+
+        <article class="process-card">
+          <div class="process-image">
+            <img
+              src="https://die-region.de/fileadmin/user_upload/blogbeitraege/2022/12_Dezember/DSCF0080.jpg"
+              alt="Kleine Kunststoffstücke nach der Zerkleinerung"
+              loading="lazy"
+            />
+            <span class="process-number">02</span>
           </div>
 
-          <button type="submit" class="contact-submit">
-            Nachricht senden
-            <span aria-hidden="true">?</span>
-          </button>
+          <div class="process-info">
+            <span class="process-step-label">AUFBEREITEN</span>
+            <h3>Neues Granulat</h3>
+            <p>
+              Das Material wird sortiert und zerkleinert,
+              sodass es weiterverarbeitet werden kann.
+            </p>
+          </div>
+        </article>
 
-          <p v-if="contactFeedback" class="contact-feedback" role="status">
-            {{ contactFeedback }}
-          </p>
+        <article class="process-card">
+          <div class="process-image">
+            <img
+              src="https://colorfabb.com/media/catalog/product/c/o/color_per_batch4.jpg?bg-color=255%2C255%2C255&canvas=500%3A500&fit=bounds&height=500&optimize=medium&width=500"
+              alt="Rolle mit recyceltem Kunststofffilament"
+              loading="lazy"
+            />
+            <span class="process-number">03</span>
+          </div>
 
-          <p class="contact-privacy">
-            Hinweis: Das Formular ist noch nicht mit einem E-Mail-Versand
-            verbunden. Deine Eingaben werden aktuell nicht übertragen.
-          </p>
-        </form>
+          <div class="process-info">
+            <span class="process-step-label">WIEDERVERWENDEN</span>
+            <h3>Neues Filament</h3>
+            <p>
+              Aus dem aufbereiteten Kunststoff wird neues
+              Filament für den 3D-Druck hergestellt.
+            </p>
+          </div>
+        </article>
       </div>
-    </section>
+    </div>
+  </div>
+
+  <div class="sustainability-quiz">
+    <div class="quiz-copy">
+      <span class="quiz-label">WISSEN ENTDECKEN</span>
+      <h3>Wie gut kennst du dich mit Plastik und Wasser aus?</h3>
+      <p>
+        Teste dein Wissen und entdecke spannende Fakten
+        rund um Recycling und den bewussten Umgang mit Ressourcen.
+      </p>
+    </div>
+
+    <div class="quiz-decoration" aria-hidden="true">
+      <span>?</span>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- Upcoming events section -->
+<section class="events-preview-section">
+  <div class="events-preview-heading">
+    <div class="events-heading-copy">
+      <p class="eyebrow">TERMINE & VERANSTALTUNGEN</p>
+      <h2>
+        Wir sehen uns
+        <span>demnächst!</span>
+      </h2>
+      <p class="events-intro">
+        Ob Verkaufsaktion, Messe oder besondere Veranstaltung –
+        hier erfährst du, wo du PRINT&BITE als Nächstes treffen kannst.
+      </p>
+    </div>
+
+    <RouterLink to="/termine" class="all-events-link">
+      Alle Termine entdecken
+      <span aria-hidden="true">↗</span>
+    </RouterLink>
+  </div>
+
+  <div v-if="upcomingEvents.length > 0" class="events-preview-grid">
+    <article
+      v-for="(event, index) in upcomingEvents"
+      :key="event.name + event.startDate"
+      class="event-preview-card"
+    >
+      <div class="event-card-top">
+        <span class="event-card-index">
+          0{{ index + 1 }} / 03
+        </span>
+        <span class="event-card-mark" aria-hidden="true">✳</span>
+      </div>
+
+      <div class="event-date">
+        <span class="event-day">{{ getDay(event.startDate) }}</span>
+        <span class="event-month">{{ getMonth(event.startDate) }}</span>
+      </div>
+
+      <div class="event-details">
+        <h3>{{ event.name }}</h3>
+
+        <div class="event-meta">
+          <span v-if="event.startTime || event.endTime">
+            <span class="event-meta-icon" aria-hidden="true">◷</span>
+            {{ event.startTime }}
+            <template v-if="event.endTime">
+              – {{ event.endTime }}
+            </template>
+          </span>
+
+          <span>
+            <span class="event-meta-icon" aria-hidden="true">⌖</span>
+            {{ event.location }}
+          </span>
+        </div>
+
+        <p v-if="event.description" class="event-description">
+          {{ event.description }}
+        </p>
+      </div>
+
+      <div class="event-card-bottom">
+        <span>PRINT&BITE · HA26B</span>
+        <span aria-hidden="true">↗</span>
+      </div>
+    </article>
+  </div>
+
+  <div v-else class="no-events">
+    <span class="no-events-symbol" aria-hidden="true">✳</span>
+    <p>Aktuell sind keine kommenden Termine geplant.</p>
+    <span>Schau gerne später wieder vorbei!</span>
+  </div>
+
+  <div class="events-preview-footer">
+    <span>Wir freuen uns darauf, dich bei unseren Veranstaltungen zu sehen.</span>
+    <RouterLink to="/termine">
+      Zur vollständigen Terminübersicht
+      <span aria-hidden="true">↗</span>
+    </RouterLink>
+  </div>
+</section>
+
+
+
+<!-- About us section -->
+<section id="ueber-uns" class="about-section">
+  <div class="about-container">
+
+    <div class="about-intro">
+      <div class="about-photo">
+        <img
+          src="/images/ha26b_image.jpeg"
+          alt="Die Klasse HA26B – das Team hinter Print & Bite"
+        />
+        <span class="about-photo-caption">
+          Das Team hinter Print & Bite
+        </span>
+      </div>
+
+      <div class="about-intro-copy">
+        <span class="section-eyebrow">DAS TEAM HINTER PRINT & BITE</span>
+        <h2>Wir sind <span>Print & Bite!</span></h2>
+
+        <p>
+          Die Schülerfirma der Klasse HA26B an der einjährigen
+          Berufsfachschule Wirtschaft mit dem Schwerpunkt Handel und IT
+          an der BBS 1 in Lüneburg.
+        </p>
+
+        <p class="about-name">
+          Der Name ist bei uns Programm:
+        </p>
+
+        <p>
+          Wir verbinden moderne Technologie mit leckerem Genuss und
+          handgemachter Qualität.
+        </p>
+      </div>
+    </div>
+
+    <div class="about-who">
+      <span class="section-eyebrow">WER WIR SIND</span>
+      <h3>Eine Klasse. Ein Unternehmen. Viele Ideen.</h3>
+
+      <p>
+        Hinter Print & Bite steht die gesamte Klasse HA26B. Als angehende
+        Spezialisten für Handel und IT lernen wir Wirtschaft nicht nur aus
+        Büchern, sondern führen unser eigenes reales Unternehmen. Von der
+        technischen Umsetzung im 3D-Druck über das Backen in der Küche bis
+        hin zum Verkauf und dem Marketing liegt alles komplett in unserer Hand.
+      </p>
+    </div>
+
+    <div class="about-areas">
+      <div class="about-areas-heading">
+        <span class="section-eyebrow">WAS WIR MACHEN</span>
+        <h3>Drei Bereiche, eine gemeinsame Idee.</h3>
+        <p>
+          Unsere Schülerfirma teilt sich in drei kreative und nachhaltige
+          Bereiche auf:
+        </p>
+      </div>
+
+      <div class="about-area-grid">
+        <article class="about-area-card">
+          <span class="about-area-number">01</span>
+          <h4>Print</h4>
+          <span class="about-area-subtitle">Technologie & Nachhaltigkeit</span>
+          <p>
+            Wir fertigen moderne Produkte im 3D-Druck, für die wir
+            ausschließlich recyceltes Plastik verwenden. Nachhaltigkeit
+            steht bei uns im Fokus!
+          </p>
+        </article>
+
+        <article class="about-area-card">
+          <span class="about-area-number">02</span>
+          <h4>Bite</h4>
+          <span class="about-area-subtitle">Genuss aus eigener Herstellung</span>
+          <p>
+            Für den perfekten Snack zwischendurch backen wir frische
+            Pizzaschnecken selbst und bieten leckere Brezeln an.
+          </p>
+        </article>
+
+        <article class="about-area-card">
+          <span class="about-area-number">03</span>
+          <h4>Kooperation & Handwerk</h4>
+          <span class="about-area-subtitle">Gemeinsam etwas schaffen</span>
+          <p>
+            In enger Zusammenarbeit mit der BBS 2 vertreiben wir außerdem
+            hochwertige handwerklich Holzprodukte.
+          </p>
+        </article>
+      </div>
+    </div>
+
+    <div class="about-why">
+      <div class="about-why-heading">
+        <span class="section-eyebrow">WARUM WIR DAS MACHEN</span>
+        <h3>Mehr als nur Unterricht.</h3>
+      </div>
+
+      <div class="about-why-copy">
+        <p>
+          Durch den Schwerpunkt Handel und IT verbinden wir kaufmännisches
+          Wissen mit digitaler Praxis. Wir lernen, wie man Produkte
+          kalkuliert, Kunden begeistert und nachhaltige Prozesse umsetzt.
+          Die Schülerfirma ist für uns als Klasse HA26B der perfekte Start
+          in die berufliche Zukunft, bei dem wir als Team zusammenwachsen
+          und echte Verantwortung übernehmen.
+        </p>
+
+        <p class="about-closing">
+          Unterstützt unsere Schülerfirma und probiert unsere Produkte –
+          wir freuen uns auf euch!
+        </p>
+      </div>
+    </div>
+
+  </div>
+</section>
   </main>
 </template>
 
+
+<style scoped src="../assets/css/home/home.css"></style>
+<style scoped src="../assets/css/home/hero.css"></style>
+<style scoped src="../assets/css/home/products.css"></style>
+<style scoped src="../assets/css/home/sustainability.css"></style>
+<style scoped src="../assets/css/home/events.css"></style>
+<style scoped src="../assets/css/home/about.css"></style>
+
 <style scoped>
-.home {
-  --navy: #202d43;
-  --cream: #f5f1e8;
-  --white: #ffffff;
-  --sage: #a4aa91;
-  --terracotta: #b98d69;
-  --text: #343b40;
-  --muted: #747a78;
+/* Responsive */
+@media (max-width: 1000px) {
 
-  color: var(--navy);
-  background: var(--white);
-}
-
-/* Shared typography */
-.eyebrow {
-  margin: 0 0 1.2rem;
-  color: #858b70;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-}
-
-/* Hero */
 .hero {
-  padding: 0;
-  overflow: hidden;
-  background: var(--cream);
+  padding-right: 5%;
+  padding-left: 5%;
 }
 
 .hero-content {
-  display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
-  align-items: center;
-  gap: 0;
-  width: 100%;
-  max-width: none;
-  margin: 0;
-}
-
-.hero-copy {
-  position: relative;
-  z-index: 2;
-  padding: 3rem 0 3rem 7%;
-  margin-right: -5rem;
-}
-
-.hero-copy h1 {
-  max-width: 680px;
-  margin: 0;
-  font-size: clamp(2.8rem, 5vw, 5.3rem);
-  font-weight: 500;
-  letter-spacing: -0.065em;
-  line-height: 1.08;
-}
-
-.hero-copy h1 span,
-.section-heading h2 span,
-.sustainability-copy h2 span,
-.events-preview-heading h2 span {
-  display: block;
-  color: #81896f;
-}
-
-.hero-description {
-  max-width: 470px;
-  margin: 1.8rem 0 2rem;
-  color: var(--muted);
-  font-size: 1rem;
-  line-height: 1.85;
-}
-
-.primary-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 2rem;
-  padding: 1rem 1.4rem;
-  background: var(--navy);
-  color: var(--white);
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-decoration: none;
-  transition: background 0.2s ease, gap 0.2s ease;
-}
-
-.primary-link:hover {
-  gap: 2.5rem;
-  background: #394b64;
-}
-
-/* Hero image with soft fade */
-.hero-image {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-}
-
-.hero-visual::before {
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-  background: linear-gradient(
-    to right,
-    var(--cream) 0%,
-    rgb(245 241 232 / 85%) 12%,
-    rgb(245 241 232 / 35%) 32%,
-    transparent 58%
-  );
-  content: "";
-  pointer-events: none;
-}
-
-.hero-image {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-}
-
-/* Products */
-.products-section {
-  max-width: 1500px;
-  margin: 0 auto;
-  padding: 5rem 7%;
-}
-
-.section-heading {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 3rem;
-  margin-bottom: 2.5rem;
-}
-
-.section-heading h2 {
-  margin: 0;
-  font-size: clamp(2.4rem, 4.5vw, 4.2rem);
-  font-weight: 500;
-  letter-spacing: -0.06em;
-  line-height: 1.12;
-}
-
-.section-intro {
-  max-width: 360px;
-  margin: 0 0 0.4rem;
-  color: var(--muted);
-  font-size: 0.95rem;
-  line-height: 1.85;
-}
-
-/* Two equal product columns */
-.product-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 2rem;
 }
 
-.product-card {
-  min-width: 0;
+.hero-composition {
+  min-height: 390px;
 }
 
-/* Product visuals */
-.product-visual {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 480px;
-  overflow: hidden;
-  isolation: isolate;
+.hero-card {
+  width: 190px;
+  height: 205px;
+  padding: 1.1rem;
 }
 
-/* PRINT placeholder */
-.print-visual {
-  background:
-    radial-gradient(ellipse at 50% 45%, rgb(255 255 255 / 65%), transparent 48%),
-    linear-gradient(135deg, #e7e8df, #d5d9cc);
-}
-
-.print-visual::before {
-  position: absolute;
-  z-index: -1;
-  top: 50%;
-  left: 50%;
-  width: 230px;
-  height: 230px;
-  border: 1px solid rgb(32 45 67 / 16%);
-  border-radius: 34% 66% 55% 45% / 45% 42% 58% 55%;
-  background:
-    linear-gradient(145deg, rgb(255 255 255 / 75%), rgb(164 170 145 / 30%));
-  box-shadow:
-    18px 18px 0 rgb(32 45 67 / 5%),
-    34px 34px 0 rgb(32 45 67 / 3%);
-  content: "";
-  transform: translate(-50%, -50%) rotate(-18deg);
-}
-
-.print-visual::after {
-  position: absolute;
-  z-index: -1;
-  top: 20%;
-  right: 16%;
-  width: 75px;
-  height: 75px;
-  border: 1px solid rgb(32 45 67 / 18%);
-  border-radius: 50%;
-  content: "";
-}
-
-.wood-visual {
-  background:
-    linear-gradient(135deg, rgb(255 255 255 / 25%), transparent 45%),
-    #e5e0d3;
-}
-
-.wood-visual::before {
-  position: absolute;
-  z-index: -1;
-  top: 50%;
-  left: 50%;
-  width: 58%;
-  height: 48%;
-  border: 1px solid rgb(91 72 52 / 22%);
-  border-radius: 3px;
-  background:
-    repeating-linear-gradient(
-      8deg,
-      transparent 0,
-      transparent 17px,
-      rgb(112 87 59 / 9%) 18px,
-      transparent 20px
-    ),
-    linear-gradient(135deg, #cbb99c, #b49d7d 55%, #d8c8ae);
-  box-shadow:
-    12px 12px 0 rgb(83 66 47 / 9%),
-    22px 22px 0 rgb(83 66 47 / 5%);
-  content: "";
-  transform: translate(-50%, -50%) rotate(-7deg);
-}
-
-.wood-visual::after {
-  position: absolute;
-  z-index: -1;
-  right: 17%;
-  bottom: 18%;
-  width: 90px;
+.hero-card-image {
   height: 90px;
-  border: 1px solid rgb(91 72 52 / 20%);
-  border-radius: 50%;
-  content: "";
 }
 
-.visual-number {
-  position: absolute;
-  top: 1.3rem;
-  left: 1.3rem;
-  color: var(--navy);
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.visual-category {
-  position: absolute;
-  top: 1.5rem;
-  right: 1.3rem;
-  color: #626a60;
-  font-size: 0.62rem;
-  letter-spacing: 0.1em;
-}
-
-.visual-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 1.5rem;
-  color: var(--navy);
-  text-align: center;
-}
-
-.visual-placeholder span {
-  font-size: clamp(2.5rem, 5vw, 4.5rem);
-  font-weight: 600;
-  letter-spacing: -0.06em;
-}
-
-.visual-placeholder small {
-  color: #656c66;
-  font-size: 0.75rem;
-}
-
-/* Product information */
-.product-info {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  padding-top: 1.5rem;
-}
-
-.product-info .eyebrow {
-  margin-bottom: 0.6rem;
-}
-
-.product-info h3 {
-  margin: 0 0 0.7rem;
-  font-size: clamp(1.25rem, 1.7vw, 1.7rem);
-  font-weight: 500;
-  letter-spacing: -0.04em;
-}
-
-.product-info p:last-child {
-  max-width: 400px;
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.88rem;
-  line-height: 1.8;
-}
-
-.product-arrow {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  border: 1px solid #d8d9d1;
-  border-radius: 50%;
-  transition: color 0.2s ease, background 0.2s ease;
-}
-
-.product-card:hover .product-arrow {
-  color: white;
-  background: var(--navy);
-}
-
-/* Sustainability */
-.sustainability-section {
-  padding: 4.5rem 7%;
-  background: #e9ece3;
-}
-
-.sustainability-content {
-  display: grid;
-  grid-template-columns: 0.9fr 1.1fr;
-  align-items: center;
-  gap: 3.5rem;
-  max-width: 1350px;
-  margin: 0 auto;
-}
-
-.sustainability-copy h2 {
-  margin: 0;
-  font-size: clamp(2.8rem, 4.5vw, 4.5rem);
-  font-weight: 500;
-  letter-spacing: -0.06em;
-  line-height: 1.1;
-}
-
-.sustainability-description {
-  max-width: 490px;
-  margin: 1.5rem 0 0;
-  color: #626b63;
-  font-size: 0.95rem;
-  line-height: 1.9;
-}
-
-.sustainability-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 1.5rem;
-  margin-top: 2rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid #858b70;
-  color: var(--navy);
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-decoration: none;
-  transition: gap 0.2s ease;
-}
-
-.sustainability-link:hover {
-  gap: 2rem;
-}
-
-.sustainability-visual {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.hero-composition {
   min-height: 430px;
-  overflow: hidden;
-  background: #d4dbcd;
 }
-
-.sustainability-image-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  color: #455442;
-  text-align: center;
-}
-
-.recycling-symbol {
-  font-size: 7rem;
-  font-weight: 300;
-  line-height: 1;
-}
-
-.sustainability-image-placeholder p {
-  margin: 1.5rem 0 0.5rem;
-  font-size: 1.1rem;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-}
-
-.sustainability-image-placeholder span:last-child {
-  font-size: 0.8rem;
-}
-
-.sustainability-caption {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 1.2rem 1.4rem;
-  background: rgb(32 45 67 / 75%);
-  color: white;
-  font-size: 0.72rem;
-  letter-spacing: 0.05em;
-}
-
-/* Quiz teaser */
-.quiz-teaser {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 2rem;
-  max-width: 1350px;
-  margin: 3rem auto 0;
-  padding: 2.5rem 3rem;
-  background: #f5f1e8;
-}
-
-.quiz-teaser h3 {
-  max-width: 650px;
-  margin: 0;
-  font-size: clamp(1.5rem, 2.5vw, 2.2rem);
-  font-weight: 500;
-  letter-spacing: -0.04em;
-}
-
-.quiz-teaser p:last-child {
-  max-width: 600px;
-  margin: 0.8rem 0 0;
-  color: var(--muted);
-  font-size: 0.9rem;
-  line-height: 1.8;
-}
-
-.quiz-decoration {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: 90px;
-  height: 90px;
-  border: 1px solid #a4aa91;
-  border-radius: 50%;
-  color: #81896f;
-  font-family: Georgia, serif;
-  font-size: 3.5rem;
-}
-
-/* Upcoming events */
-.events-preview-section {
-  max-width: 1500px;
-  margin: 0 auto;
-  padding: 5rem 7%;
-}
-
-.events-preview-heading {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 2rem;
-  margin-bottom: 2.5rem;
-}
-
-.events-preview-heading h2 {
-  margin: 0;
-  font-size: clamp(2.4rem, 4.5vw, 4.2rem);
-  font-weight: 500;
-  letter-spacing: -0.06em;
-  line-height: 1.12;
-}
-
-.all-events-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 1.2rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid #a4aa91;
-  color: var(--navy);
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-decoration: none;
-  white-space: nowrap;
-  transition: gap 0.2s ease;
-}
-
-.all-events-link:hover {
-  gap: 1.7rem;
-}
-
-.events-preview-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1.2rem;
-}
-
-.event-preview-card {
-  position: relative;
-  display: flex;
-  align-items: flex-start;
-  gap: 1.2rem;
-  min-width: 0;
-  min-height: 190px;
-  padding: 1.5rem;
-  border: 1px solid #e5e4dc;
-  background: #faf9f5;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.event-preview-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 25px rgb(32 45 67 / 7%);
-}
-
-.event-date {
-  display: flex;
-  flex-shrink: 0;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 58px;
-  height: 68px;
-  background: #e9ece3;
-  color: var(--navy);
-}
-
-.event-day {
+.hero-card strong {
   font-size: 1.7rem;
-  font-weight: 600;
-  line-height: 1;
 }
 
-.event-month {
-  margin-top: 0.35rem;
-  color: #747a68;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
+.hero-shape-back {
+  width: 220px;
+  height: 220px;
 }
 
-.event-details {
-  min-width: 0;
-  padding-right: 0.5rem;
+.product-visual {
+  min-height: 350px;
 }
-
-.event-details h3 {
-  margin: 0.1rem 0 0.8rem;
-  font-size: 1.1rem;
-  font-weight: 600;
-  line-height: 1.4;
-}
-
-.event-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-  color: var(--muted);
-  font-size: 0.78rem;
-  line-height: 1.5;
-}
-
-.event-meta span span {
-  display: inline-block;
-  width: 18px;
-  color: #858b70;
-}
-
-.event-description {
-  margin: 0.8rem 0 0;
-  color: #747a78;
-  font-size: 0.8rem;
-  line-height: 1.6;
-}
-
-.event-card-arrow {
-  position: absolute;
-  right: 1.2rem;
-  bottom: 1rem;
-  color: #858b70;
-  font-size: 1rem;
-}
-
-.no-events {
-  padding: 2.5rem;
-  background: #f5f1e8;
-  text-align: center;
-}
-
-.no-events p {
-  margin: 0;
-  font-weight: 600;
-}
-
-.no-events span {
-  display: block;
-  margin-top: 0.5rem;
-  color: var(--muted);
-  font-size: 0.85rem;
-}
-
-.events-preview-footer {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-top: 1.5rem;
-  padding-top: 1.2rem;
-  border-top: 1px solid #e5e4dc;
-  color: var(--muted);
-  font-size: 0.78rem;
-}
-
-.events-preview-footer a {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  color: var(--navy);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-/* About us */
-.about-section {
-  padding: 5rem 7%;
-  background: var(--cream);
-}
-
-.about-content {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: center;
-  gap: 5rem;
-  max-width: 1350px;
-  margin: 0 auto;
-}
-
-.about-visual {
-  min-width: 0;
-}
-
-.about-image-placeholder {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 480px;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 25% 30%, rgb(255 255 255 / 45%), transparent 35%),
-    linear-gradient(145deg, #c9cdbb, #9da68f);
-  color: var(--navy);
-}
-
-.about-image-label {
-  position: absolute;
-  top: 1.5rem;
-  left: 1.5rem;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-}
-
-.about-image-symbol {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 0.7rem;
-  height: 130px;
-  margin-bottom: 1.5rem;
-}
-
-.about-image-symbol span {
-  display: block;
-  width: 55px;
-  border-radius: 50% 50% 10px 10px;
-  background: rgb(32 45 67 / 65%);
-}
-
-.about-image-symbol span:nth-child(1) {
-  height: 85px;
-}
-
-.about-image-symbol span:nth-child(2) {
-  height: 120px;
-  background: rgb(32 45 67 / 85%);
-}
-
-.about-image-symbol span:nth-child(3) {
-  height: 95px;
-}
-
-.about-image-text {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.about-image-text span {
-  font-size: 0.7rem;
-  letter-spacing: 0.2em;
-}
-
-.about-image-text strong {
-  font-size: clamp(2rem, 4vw, 3.5rem);
-  font-weight: 600;
-  letter-spacing: -0.06em;
-}
-
-.about-image-caption {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  padding: 1.2rem;
-  background: rgb(32 45 67 / 75%);
-  color: white;
-  font-size: 0.7rem;
-  letter-spacing: 0.05em;
-  text-align: center;
-}
-
-.about-copy h2 {
-  margin: 0;
-  font-size: clamp(2.8rem, 4.5vw, 4.5rem);
-  font-weight: 500;
-  letter-spacing: -0.06em;
-  line-height: 1.1;
-}
-
-.about-copy h2 span {
-  display: block;
-  color: #81896f;
-}
-
-.about-intro {
-  margin: 1.5rem 0 0;
-  color: var(--navy);
-  font-size: 1.05rem;
-  font-weight: 500;
-  line-height: 1.8;
-}
-
-.about-description {
-  margin: 1rem 0 0;
-  color: var(--muted);
-  font-size: 0.9rem;
-  line-height: 1.9;
-}
-
-.about-values {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.7rem;
-  margin-top: 2rem;
-}
-
-.about-values span {
-  padding: 0.7rem 1rem;
-  border: 1px solid #c9cdbb;
-  color: #626b63;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-}
-
-/* Contact section */
-.contact-section {
-  padding: 5rem 7%;
-  background: #ffffff;
-}
-
-.contact-content {
-  display: grid;
-  grid-template-columns: 0.85fr 1.15fr;
-  align-items: start;
-  gap: 5rem;
-  max-width: 1350px;
-  margin: 0 auto;
-}
-
-.contact-copy h2 {
-  margin: 0;
-  font-size: clamp(2.8rem, 4.5vw, 4.5rem);
-  font-weight: 500;
-  letter-spacing: -0.06em;
-  line-height: 1.1;
-}
-
-.contact-copy h2 span {
-  display: block;
-  color: #81896f;
-}
-
-.contact-description {
-  max-width: 430px;
-  margin: 1.5rem 0 0;
-  color: var(--muted);
-  font-size: 0.95rem;
-  line-height: 1.9;
-}
-
-.contact-note {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  max-width: 430px;
-  margin-top: 2rem;
-  padding: 1.2rem;
-  background: var(--cream);
-}
-
-.contact-note-symbol {
-  color: #858b70;
-  font-size: 1.3rem;
-}
-
-.contact-note p {
-  margin: 0;
-  color: #626b63;
-  font-size: 0.82rem;
-  line-height: 1.7;
-}
-
-/* Contact form */
-.contact-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.2rem;
-  padding: 2rem;
-  background: #f8f7f2;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.2rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-}
-
-.form-group label {
-  color: var(--navy);
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.form-group input,
-.form-group textarea {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 0.9rem 1rem;
-  border: 1px solid #deded5;
-  border-radius: 0;
-  outline: none;
-  background: #ffffff;
-  color: var(--navy);
-  font: inherit;
-  font-size: 0.85rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.form-group input {
-  min-height: 48px;
-}
-
-.form-group textarea {
-  min-height: 140px;
-  resize: vertical;
-}
-
-.form-group input::placeholder,
-.form-group textarea::placeholder {
-  color: #a1a49d;
-}
-
-.form-group input:focus,
-.form-group textarea:focus {
-  border-color: #858b70;
-  box-shadow: 0 0 0 2px rgb(133 139 112 / 12%);
-}
-
-.contact-submit {
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 2rem;
-  align-self: flex-start;
-  min-width: 210px;
-  padding: 1rem 1.3rem;
-  border: 0;
-  background: var(--navy);
-  color: #ffffff;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s ease, gap 0.2s ease;
-}
-
-.contact-submit:hover {
-  gap: 2.5rem;
-  background: #394b64;
-}
-
-.contact-feedback {
-  margin: 0;
-  color: #626b63;
-  font-size: 0.85rem;
-  line-height: 1.6;
-}
-
-.contact-privacy {
-  margin: 0;
-  color: #858b86;
-  font-size: 0.72rem;
-  line-height: 1.6;
-}
-
-/* Responsive */
-@media (max-width: 1000px) {
-  .hero-content {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  }
-
-  .hero-copy {
-    margin-right: -3rem;
-  }
-
-  .hero-visual {
-    height: 430px;
-    max-height: 430px;
-  }
-
-  .hero {
-    margin-top: 0;
-    padding-top: 0;
-  }
-
-  .hero-content {
-    margin-top: 0;
-  }
-
-  .product-visual {
-    min-height: 380px;
-  }
-
-  .sustainability-content {
-    gap: 2.5rem;
-  }
-
-  .sustainability-visual {
-    min-height: 360px;
-  }
 
   .events-preview-grid {
     grid-template-columns: 1fr;
@@ -1478,38 +686,64 @@ function handleContactSubmit() {
 }
 
 @media (max-width: 700px) {
-  .hero {
-    padding: 0;
-  }
 
-  .hero-content {
-    grid-template-columns: 1fr;
-    gap: 0;
-  }
+.hero {
+  padding: 2.5rem 1.25rem;
+}
 
-  .hero-copy {
-    padding: 1.5rem 1.25rem 2rem;
-    margin-right: 0;
-  }
+.hero-content {
+  grid-template-columns: 1fr;
+  gap: 2.5rem;
+}
 
-  .hero-copy h1 {
-    font-size: clamp(2.6rem, 11vw, 4rem);
-  }
+.hero-copy {
+  padding: 0;
+}
 
-  .hero-visual {
-    display: none;
-  }
+.hero-copy h1 {
+  font-size: clamp(2.8rem, 12vw, 4.5rem);
+}
+
+.hero-bottom-note {
+  margin-top: 2.5rem;
+}
+
+.hero-visual {
+  width: auto;
+  max-width: 500px;
+  margin: 0 auto;
+  transform: none;
+}
+
+.hero-composition {
+  min-height: 390px;
+}
+.hero-card {
+  width: 180px;
+  height: 195px;
+  padding: 1rem;
+}
+
+.hero-card-image {
+  height: 85px;
+}
+
 
   .products-section {
     padding: 3.5rem 1.25rem;
   }
+
+.product-grid {
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+.product-visual {
+  min-height: 350px;
+}
 }
 
 @media (max-width: 450px) {
-  .quiz-teaser {
-    flex-direction: column-reverse;
-    gap: 1rem;
-  }
 
   .form-row {
     grid-template-columns: 1fr;
