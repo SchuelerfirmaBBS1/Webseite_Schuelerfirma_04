@@ -1,6 +1,7 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import logoWordmark from '@/assets/brand/logo-wordmark.png'
 
 const { t, locale } = useI18n()
 
@@ -17,20 +18,13 @@ function toggleLanguage() {
     <div class="header-inner">
 
       <!-- Brand -->
+      <!-- The wordmark image already contains the name and subtitle -->
       <RouterLink to="/" class="brand" aria-label="PRINT&BITE – Startseite">
         <img
-          src="/images/logo-header.png"
-          alt="PRINT&BITE"
-          class="brand-logo"
+          :src="logoWordmark"
+          alt="PRINT&BITE – ein Schülerunternehmen der BBS I Lüneburg"
+          class="brand-wordmark"
         />
-
-        <span class="brand-text">
-          <span class="brand-name">PRINT&BITE</span>
-          <span class="brand-subtitle">
-            Schülerunternehmen
-            <span>der BBS I Lüneburg</span>
-          </span>
-        </span>
       </RouterLink>
 
       <!-- Navigation -->
@@ -55,10 +49,10 @@ function toggleLanguage() {
           {{ t('navigation.about') }}
         </a>
 
-        <a href="/#kontakt" class="contact-link">
+        <RouterLink to="/kontakt" class="contact-link">
           {{ t('navigation.contact') }}
           <span aria-hidden="true">↗</span>
-        </a>
+        </RouterLink>
 
         <!-- Language Switch -->
         <button
@@ -106,37 +100,12 @@ function toggleLanguage() {
   text-decoration: none;
 }
 
-.brand-logo {
+/* The wordmark is dark on transparent; invert it to white for the dark header */
+.brand-wordmark {
   display: block;
-  width: 85px;
+  width: 240px;
   height: auto;
-  object-fit: contain;
-}
-
-.brand-text {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-}
-
-.brand-name {
-  color: #ffffff;
-  font-family: Georgia, serif;
-  font-size: 1.45rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  line-height: 1.2;
-}
-
-.brand-subtitle {
-  display: flex;
-  flex-direction: column;
-  color: #b8bec8;
-  font-family: Arial, sans-serif;
-  font-size: 0.68rem;
-  font-weight: 400;
-  letter-spacing: 0.025em;
-  line-height: 1.4;
+  filter: invert(1);
 }
 
 /* Navigation */
@@ -238,16 +207,8 @@ function toggleLanguage() {
     gap: 1.2rem;
   }
 
-  .brand-logo {
-    width: 105px;
-  }
-
-  .brand {
-    gap: 0.7rem;
-  }
-
-  .brand-name {
-    font-size: 1.25rem;
+  .brand-wordmark {
+    width: 200px;
   }
 
   .navigation {
@@ -267,8 +228,8 @@ function toggleLanguage() {
     padding: 0.9rem 1rem;
   }
 
-  .brand-logo {
-    width: 115px;
+  .brand-wordmark {
+    width: 220px;
   }
 
   .navigation {
@@ -283,16 +244,8 @@ function toggleLanguage() {
 }
 
 @media (max-width: 420px) {
-  .brand-logo {
-    width: 95px;
-  }
-
-  .brand-name {
-    font-size: 1.15rem;
-  }
-
-  .brand-subtitle {
-    font-size: 0.62rem;
+  .brand-wordmark {
+    width: 190px;
   }
 
   .navigation {

@@ -78,7 +78,7 @@
             <a href="/#produkte">Produkte</a>
             <RouterLink to="/termine">Termine</RouterLink>
             <RouterLink to="/archiv">Archiv</RouterLink>
-            <a href="/#kontakt">Kontakt</a>
+            <RouterLink to="/kontakt">Kontakt</RouterLink>
           </nav>
         </div>
 

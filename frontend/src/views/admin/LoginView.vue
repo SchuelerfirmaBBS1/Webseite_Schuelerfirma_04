@@ -41,36 +41,74 @@ async function submit() {
 </script>
 
 <template>
-  <h1>Admin-Anmeldung</h1>
+  <main class="admin-page">
+    <div class="login-content">
+      <header class="page-head">
+        <p class="page-label">PRINT&amp;BITE · INTERN</p>
+        <h1>Admin-<span>Anmeldung.</span></h1>
+        <p class="page-description">
+          Dieser Bereich ist nur für das Team der Schülerfirma.
+        </p>
+      </header>
 
-  <!-- Tailwind's base styles remove input borders, so "border" keeps the fields visible -->
-  <form @submit.prevent="submit">
-    <div>
-      <label for="username" class="block">Benutzername</label>
-      <input
-        id="username"
-        v-model="form.username"
-        type="text"
-        autocomplete="username"
-        class="border"
-        required
-      />
+      <form class="login-form" @submit.prevent="submit">
+        <div class="form-group">
+          <label for="username">Benutzername</label>
+          <input
+            id="username"
+            v-model="form.username"
+            type="text"
+            autocomplete="username"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Passwort</label>
+          <input
+            id="password"
+            v-model="form.password"
+            type="password"
+            autocomplete="current-password"
+            required
+          />
+        </div>
+
+        <p v-if="error" class="form-error" role="alert">{{ error }}</p>
+
+        <button type="submit" class="submit-button" :disabled="submitting">
+          {{ submitting ? 'Anmelden …' : 'Anmelden' }}
+          <span aria-hidden="true">→</span>
+        </button>
+      </form>
     </div>
-
-    <div>
-      <label for="password" class="block">Passwort</label>
-      <input
-        id="password"
-        v-model="form.password"
-        type="password"
-        autocomplete="current-password"
-        class="border"
-        required
-      />
-    </div>
-
-    <p v-if="error" role="alert">{{ error }}</p>
-
-    <button type="submit" class="border" :disabled="submitting">Anmelden</button>
-  </form>
+  </main>
 </template>
+
+<style scoped src="../../assets/css/admin/admin.css"></style>
+
+<style scoped>
+.login-content {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  align-items: start;
+  gap: 5rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  padding: 2rem;
+  background: #ffffff;
+}
+
+@media (max-width: 850px) {
+  .login-content {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+}
+</style>

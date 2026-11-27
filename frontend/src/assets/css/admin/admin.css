@@ -1,0 +1,163 @@
+/* Shared styles for the admin pages, following the look of the public subpages (Termine, Archiv) */
+.admin-page {
+  --navy: #202d43;
+  --navy-hover: #394b64;
+  --sage: #777659;
+  --background: #f5f4ef;
+  --border: #deded5;
+  --muted: #68717c;
+  --error: #a3423a;
+
+  min-height: 70vh;
+  padding: 6rem 7%;
+  background: var(--background);
+  color: var(--navy);
+}
+
+.admin-page,
+.admin-page * {
+  box-sizing: border-box;
+}
+
+/* Page heading */
+.page-label {
+  margin: 0 0 1.2rem;
+  color: var(--sage);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.page-head h1 {
+  margin: 0;
+  font-size: clamp(2.6rem, 4.5vw, 4rem);
+  font-weight: 800;
+  letter-spacing: -0.06em;
+  line-height: 1.05;
+}
+
+.page-head h1 span {
+  color: #4d648a;
+}
+
+.page-description {
+  max-width: 430px;
+  margin: 1.3rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.8;
+}
+
+/* Form fields */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.form-group label {
+  color: var(--navy);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.form-group input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0;
+  outline: none;
+  background: #ffffff;
+  color: var(--navy);
+  font: inherit;
+  font-size: 0.85rem;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.form-group input:focus-visible {
+  border-color: #858b70;
+  box-shadow: 0 0 0 2px rgb(133 139 112 / 25%);
+}
+
+.form-error {
+  margin: 0;
+  padding: 0.8rem 1rem;
+  border-left: 3px solid var(--error);
+  background: #f7ebe8;
+  color: var(--error);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+/* Buttons */
+.submit-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  align-self: flex-start;
+  min-width: 210px;
+  padding: 1rem 1.3rem;
+  border: 1px solid var(--navy);
+  background: var(--navy);
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    gap 0.2s ease;
+}
+
+.submit-button:hover:not(:disabled) {
+  gap: 2.5rem;
+  background: var(--navy-hover);
+}
+
+.submit-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.secondary-button {
+  padding: 0.85rem 1.3rem;
+  border: 1px solid var(--navy);
+  background: transparent;
+  color: var(--navy);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.secondary-button:hover {
+  background: var(--navy);
+  color: #ffffff;
+}
+
+.submit-button:focus-visible,
+.secondary-button:focus-visible {
+  outline: 2px solid #d9a477;
+  outline-offset: 3px;
+}
+
+@media (max-width: 700px) {
+  .admin-page {
+    padding: 3.5rem 1.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .form-group input,
+  .submit-button,
+  .secondary-button {
+    transition: none;
+  }
+}
