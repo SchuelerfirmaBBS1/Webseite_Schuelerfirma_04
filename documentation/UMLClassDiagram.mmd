@@ -46,25 +46,7 @@ class Product {
     +bool IsActive
 }
 
-class ProductImage {
-    +int ProductImageId
-    +int ProductId
-    +string FileName
-    +string? Description
-    +string ContentType
-    +long Length
-    +int SortOrder
-    +bool IsPrimary
-}
-
 Category "1" --> "*" Product
-class ProductImageContent {
-    +int ProductImageId
-    +byte[] Data
-}
-
-Product "1" --> "*" ProductImage
-ProductImage "1" --> "1" ProductImageContent
 
 class Event {
     +int EventId
@@ -75,23 +57,28 @@ class Event {
     +DateTime? EndDateTime
 }
 
-class EventImage {
-    +int EventImageId
-    +int EventId
+%% One image model for all owners: exactly one of ProductId / EventId is set (CK_Images_ExactlyOneOwner).
+%% EventId comes with the events (#14).
+class Image {
+    +int ImageId
+    +int? ProductId
+    +int? EventId
     +string FileName
     +string? Description
     +string ContentType
     +long Length
     +int SortOrder
+    +bool IsPrimary
 }
 
-class EventImageContent {
-    +int EventImageId
+class ImageContent {
+    +int ImageId
     +byte[] Data
 }
 
-Event "1" --> "*" EventImage
-EventImage "1" --> "1" EventImageContent
+Product "1" --> "*" Image
+Event "1" --> "*" Image
+Image "1" --> "1" ImageContent
 
 class ContactRequest {
     +int ContactRequestId

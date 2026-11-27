@@ -43,22 +43,6 @@ erDiagram
         bool IsActive
     }
 
-    PRODUCT_IMAGES {
-        int ProductImageId PK
-        int ProductId FK
-        string FileName
-        string? Description
-        string ContentType
-        long Length
-        int SortOrder
-        bool IsPrimary
-    }
-
-    PRODUCT_IMAGE_CONTENTS {
-        int ProductImageId PK, FK
-        byte[] Data
-    }
-
     EVENTS {
         int EventId PK
         string Name
@@ -68,18 +52,22 @@ erDiagram
         datetime? EndDateTime
     }
 
-    EVENT_IMAGES {
-        int EventImageId PK
-        int EventId FK
+    %% One image table for all owners: exactly one of ProductId / EventId is set (CK_Images_ExactlyOneOwner).
+    %% EventId comes with the events (#14).
+    IMAGES {
+        int ImageId PK
+        int? ProductId FK
+        int? EventId FK
         string FileName
         string? Description
         string ContentType
         long Length
         int SortOrder
+        bool IsPrimary
     }
 
-    EVENT_IMAGE_CONTENTS {
-        int EventImageId PK, FK
+    IMAGE_CONTENTS {
+        int ImageId PK, FK
         byte[] Data
     }
 
@@ -100,10 +88,9 @@ erDiagram
     }
 
     CATEGORIES ||--o{ PRODUCTS : contains
-    PRODUCTS ||--o{ PRODUCT_IMAGES : has
-    PRODUCT_IMAGES ||--|| PRODUCT_IMAGE_CONTENTS : stores
-    EVENTS ||--o{ EVENT_IMAGES : has
-    EVENT_IMAGES ||--|| EVENT_IMAGE_CONTENTS : stores
+    PRODUCTS |o--o{ IMAGES : has
+    EVENTS |o--o{ IMAGES : has
+    IMAGES ||--|| IMAGE_CONTENTS : stores
 
     ROLES ||--o{ USERS : assigned_to
     USERS ||--o{ USER_SESSIONS : has

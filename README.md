@@ -192,7 +192,7 @@ Alle Endpunkte verlangen die Berechtigung `users.manage` (Standard: nur Admin). 
 
 ### Produkte und Kategorien
 
-Besucher sehen die Produkte ohne Anmeldung (Produktseite #23). Das Team pflegt Produkte und Kategorien im Verwaltungsbereich (#11). Produktbilder liegen in der Datenbank (Tabelle `ProductImageContents`, siehe `documentation/Datenbank-Implementierung.md` und „Bilder“ unten).
+Besucher sehen die Produkte ohne Anmeldung (Produktseite #23). Das Team pflegt Produkte und Kategorien im Verwaltungsbereich (#11). Produktbilder liegen wie alle Bilder in der Datenbank (Tabellen `Images` und `ImageContents`, siehe `documentation/Datenbank-Implementierung.md` und „Bilder“ unten).
 
 **Öffentlich** (anonym):
 
@@ -222,9 +222,9 @@ Besucher sehen die Produkte ohne Anmeldung (Produktseite #23). Das Team pflegt P
 
 ### Bilder
 
-Bilder werden hochgeladen, geprüft, umgewandelt und **in der Datenbank** gespeichert, nie im Dateisystem. Umgesetzt ist das für Produktbilder; Terminbilder (#14) nutzen dieselbe Verarbeitung.
+Bilder werden hochgeladen, geprüft, umgewandelt und **in der Datenbank** gespeichert, nie im Dateisystem. Es gibt **ein Bildmodell** (`Image`) für alle Besitzer: Jedes Bild gehört zu genau einem Produkt oder (mit #14) einem Termin, die Datenbank prüft das (`CK_Images_ExactlyOneOwner`). Wird der Besitzer gelöscht, verschwinden seine Bilder samt Daten. Umgesetzt sind bisher die Produktbilder; Terminbilder kommen mit #14 und nutzen Modell, Speicher und Verarbeitung mit.
 
-- **Upload:** `multipart/form-data` mit einer oder mehreren Dateien im Feld `files` (in der Swagger UI direkt auswählbar). Neue Bilder kommen ans Ende der Reihenfolge; hat das Produkt noch kein Hauptbild, wird das erste neue Bild Hauptbild. Antwort `201` mit den neuen Bildern (`productImageId`, `fileName`, `description`, `contentType`, `length`, `sortOrder`, `isPrimary`, `url`).
+- **Upload:** `multipart/form-data` mit einer oder mehreren Dateien im Feld `files` (in der Swagger UI direkt auswählbar). Neue Bilder kommen ans Ende der Reihenfolge; hat das Produkt noch kein Hauptbild, wird das erste neue Bild Hauptbild. Antwort `201` mit den neuen Bildern (`imageId`, `fileName`, `description`, `contentType`, `length`, `sortOrder`, `isPrimary`, `url`).
 - **Prüfung:** Erlaubt sind nur JPEG, PNG und WebP, erkannt am **Dateiinhalt**, nicht an Endung oder `Content-Type`. SVG wird nie angenommen: Die Bilder kommen von derselben Domain wie der Verwaltungsbereich, ein Skript im SVG liefe mit der Session des Betrachters. Ist eine Datei ungültig, wird keine gespeichert (`400`, Meldung am Feld `files` mit dem Dateinamen).
 - **Umwandlung:** Das Bild wird nach der EXIF-Ausrichtung aufrecht gedreht, auf höchstens `Images:MaxDimension` Pixel verkleinert und im gleichen Format neu kodiert. Gespeichert wird nur das Ergebnis, ohne Metadaten: keine EXIF-Daten (GPS-Position aus Handyfotos!), kein XMP, keine Textfelder, kein Farbprofil (Farben werden nach sRGB umgerechnet).
 - **Grenzen:** siehe `Images:*` unter „Konfiguration“. Zu große Dateien oder Anfragen → `413`; zu viele Pixel, zu viele Dateien oder beschädigte Dateien → `400`.
