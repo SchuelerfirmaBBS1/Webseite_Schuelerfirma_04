@@ -4,19 +4,14 @@ using Schuelerfirma.Api.Domain;
 namespace Schuelerfirma.Api.Tests.Persistence;
 
 /// <summary>The repositories under test; they must share one underlying store.</summary>
-/// <param name="AddProductImage">
-/// Stores an image record together with its image data directly. Test seam until the image upload (#13) brings
-/// repository methods for it.
-/// </param>
-/// <param name="GetProductImageData">Reads the stored image data of an image, <c>null</c> if there is none.</param>
 public sealed record Repositories(
     IUserRepository Users,
     IRoleRepository Roles,
     IUserSessionRepository Sessions,
     ICategoryRepository Categories,
     IProductRepository Products,
-    Func<ProductImage, byte[], Task> AddProductImage,
-    Func<int, Task<byte[]?>> GetProductImageData);
+    IImageRepository Images,
+    IProductImageRepository ProductImages);
 
 /// <summary>
 /// Base class of all repository contract tests. Every storage implementation (in-memory now, EF Core / MySQL
@@ -82,23 +77,25 @@ public abstract class RepositoryContractTests
     /// <summary>Stand-in image data (the JPEG signature followed by a few bytes).</summary>
     protected static readonly byte[] ImageData = [0xFF, 0xD8, 0xFF, 0xE0, 1, 2, 3, 4];
 
-    /// <summary>Stores a new image of <paramref name="productId"/> with <see cref="ImageData"/>.</summary>
+    /// <summary>
+    /// Stores a new image of <paramref name="productId"/> with <paramref name="data"/> (default <see cref="ImageData"/>);
+    /// returns the assignment with <see cref="ProductImage.Image"/> set.
+    /// </summary>
     protected static async Task<ProductImage> AddImageAsync(
-        Repositories repos, int productId, int sortOrder, bool isPrimary = false)
+        Repositories repos, int productId, int sortOrder, bool isPrimary = false, byte[]? data = null)
     {
-        var image = NewImage(productId, sortOrder, isPrimary);
-        await repos.AddProductImage(image, ImageData);
-        return image;
+        data ??= ImageData;
+        var image = NewImage(sortOrder, data.Length);
+        var assignment = new ProductImage { ProductId = productId, Image = image, SortOrder = sortOrder, IsPrimary = isPrimary };
+        await repos.ProductImages.AddAsync(assignment, image, data);
+        return assignment;
     }
 
-    protected static ProductImage NewImage(int productId, int sortOrder, bool isPrimary = false) => new()
+    protected static Image NewImage(int number, long length) => new()
     {
-        ProductId = productId,
-        FileName = $"bild-{sortOrder}.jpg",
-        Description = $"Bild {sortOrder}",
+        FileName = $"bild-{number}.jpg",
+        Description = $"Bild {number}",
         ContentType = "image/jpeg",
-        Length = ImageData.Length,
-        SortOrder = sortOrder,
-        IsPrimary = isPrimary,
+        Length = length,
     };
 }

@@ -48,7 +48,7 @@ FROM runtime AS api
 
 # Writable data directories. They belong to the non-root user, so named volumes mounted here
 # inherit that owner on first use. Everything else in the container stays read-only (compose).
-RUN mkdir -p /var/lib/schuelerfirma/keys /var/lib/schuelerfirma/images \
+RUN mkdir -p /var/lib/schuelerfirma/keys \
     && chown -R "$APP_UID:$APP_UID" /var/lib/schuelerfirma
 
 COPY --from=build /app/publish .

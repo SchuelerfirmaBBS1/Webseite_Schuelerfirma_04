@@ -4,7 +4,7 @@ using Schuelerfirma.Api.Domain;
 
 namespace Schuelerfirma.Api.Infrastructure.Persistence.Configurations;
 
-/// <summary>Configures the database mapping for <see cref="ProductImage"/>.</summary>
+/// <summary>Configures the database mapping for <see cref="ProductImage"/>, the assignment of images to products.</summary>
 public sealed class ProductImageConfiguration : IEntityTypeConfiguration<ProductImage>
 {
     /// <inheritdoc />
@@ -12,38 +12,32 @@ public sealed class ProductImageConfiguration : IEntityTypeConfiguration<Product
     {
         builder.ToTable("ProductImages");
 
-        builder.HasKey(image => image.ProductImageId);
+        // The image is the key: an image belongs to at most one product.
+        builder.HasKey(link => link.ImageId);
 
-        builder.Property(image => image.ProductImageId)
-            .ValueGeneratedOnAdd();
+        builder.Property(link => link.ImageId)
+            .ValueGeneratedNever();
 
-        builder.Property(image => image.FileName)
-            .HasMaxLength(ProductImage.FileNameMaxLength)
+        builder.Property(link => link.SortOrder)
             .IsRequired();
 
-        builder.Property(image => image.Description)
-            .HasMaxLength(ProductImage.DescriptionMaxLength)
-            .IsRequired(false);
-
-        builder.Property(image => image.ContentType)
-            .HasMaxLength(ProductImage.ContentTypeMaxLength)
+        builder.Property(link => link.IsPrimary)
             .IsRequired();
 
-        builder.Property(image => image.Length)
-            .IsRequired();
-
-        builder.Property(image => image.SortOrder)
-            .IsRequired();
-
-        builder.Property(image => image.IsPrimary)
-            .IsRequired();
-
-        builder.HasIndex(image => image.ProductId)
+        builder.HasIndex(link => link.ProductId)
             .HasDatabaseName("IX_ProductImages_ProductId");
 
-        builder.HasOne(image => image.Product)
+        // Deleting the product only removes the assignment; EfProductRepository deletes the images first.
+        builder.HasOne(link => link.Product)
             .WithMany(product => product.Images)
-            .HasForeignKey(image => image.ProductId)
+            .HasForeignKey(link => link.ProductId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Deleting an image removes its assignment.
+        builder.HasOne(link => link.Image)
+            .WithOne()
+            .HasForeignKey<ProductImage>(link => link.ImageId)
             .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
     }

@@ -123,12 +123,25 @@ public sealed class EfProductRepository(IDbContextFactory<SchuelerfirmaDbContext
     public async Task<bool> DeleteAsync(int productId, CancellationToken cancellationToken = default)
     {
         await using var db = await contextFactory.CreateDbContextAsync(cancellationToken);
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
 
-        // The foreign key of ProductImages deletes the image rows (ON DELETE CASCADE).
+        // Images do not point to their owner, so the database would only remove the assignments: delete the images
+        // first (their data and assignments go with them, ON DELETE CASCADE), then the product.
+        await db.Images
+            .Where(i => db.ProductImages.Any(p => p.ImageId == i.ImageId && p.ProductId == productId))
+            .ExecuteDeleteAsync(cancellationToken);
         var deleted = await db.Products
             .Where(p => p.ProductId == productId)
             .ExecuteDeleteAsync(cancellationToken);
-        return deleted > 0;
+
+        if (deleted == 0)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            return false;
+        }
+
+        await transaction.CommitAsync(cancellationToken);
+        return true;
     }
 
     private static IQueryable<Product> Loaded(SchuelerfirmaDbContext db) =>
@@ -136,7 +149,8 @@ public sealed class EfProductRepository(IDbContextFactory<SchuelerfirmaDbContext
             .AsNoTracking()
             .AsSplitQuery()
             .Include(p => p.Category)
-            .Include(p => p.Images.OrderBy(i => i.SortOrder).ThenBy(i => i.ProductImageId));
+            .Include(p => p.Images.OrderBy(i => i.SortOrder).ThenBy(i => i.ImageId))
+            .ThenInclude(i => i.Image);
 
     private static IQueryable<Product> Visible(IQueryable<Product> products) =>
         products.Where(p => p.IsActive && p.Category!.IsVisible);

@@ -4,7 +4,7 @@ namespace Schuelerfirma.Api.Application.Abstractions;
 
 /// <summary>
 /// Storage for products. Returned products are detached copies with <see cref="Product.Category"/> and
-/// <see cref="Product.Images"/> (ordered by <see cref="ProductImage.SortOrder"/>) loaded.
+/// <see cref="Product.Images"/> (ordered by <see cref="ProductImage.SortOrder"/>, each with its <see cref="Image"/>) loaded.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -15,7 +15,7 @@ namespace Schuelerfirma.Api.Application.Abstractions;
 /// </para>
 /// <para>
 /// EF Core: foreign key to <see cref="Category"/> without cascading delete (a missing category is reported as
-/// <see cref="InvalidOperationException"/>), images and their image data (<see cref="ProductImageContent"/>) are deleted together with their product.
+/// <see cref="InvalidOperationException"/>), the images of a product (records, data and assignments) are deleted together with it.
 /// </para>
 /// </remarks>
 public interface IProductRepository
@@ -54,7 +54,7 @@ public interface IProductRepository
     /// <returns><c>false</c> if the product does not exist.</returns>
     Task<bool> SetPriceVisibilityAsync(int productId, bool isPriceVisible, CancellationToken cancellationToken = default);
 
-    /// <summary>Deletes the product together with its image records (not the image files).</summary>
+    /// <summary>Deletes the product together with its images and their image data.</summary>
     /// <returns><c>false</c> if the product does not exist.</returns>
     Task<bool> DeleteAsync(int productId, CancellationToken cancellationToken = default);
 }

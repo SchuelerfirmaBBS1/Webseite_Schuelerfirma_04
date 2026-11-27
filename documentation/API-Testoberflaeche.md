@@ -73,10 +73,11 @@ Beenden mit `Strg+C`.
   |---|---|---|
   | `auth` | `/api/auth/...` | Anmeldung, Abmeldung, eigener Benutzer, CSRF-Token. **Hier anfangen.** |
   | `admin` | `/api/admin/...` | nur mit Login **und** passender Berechtigung der Rolle |
-  | `public` | `/api/public/...` | ohne Login (für Besucher der Webseite; noch leer) |
+  | `public` | `/api/public/...` | ohne Login (für Besucher der Webseite: Produkte, Kategorien, Bilder) |
 
 - Ein Klick auf einen Endpunkt klappt ihn auf. Dort stehen Beschreibung, Parameter, Beispiel-Body und alle möglichen Antworten mit Statuscode.
 - „Try it out“ ist schon aktiv: Body bzw. Parameter ausfüllen und **Execute** klicken.
+- Bilder hochladen (`POST /api/admin/products/{productId}/images`): Bei `files` mit **Add item** eine oder mehrere Dateien auswählen. Erlaubt sind JPEG, PNG und WebP; das gespeicherte Bild lässt sich danach über die `url` aus der Antwort im Browser öffnen.
 - Unter „Responses“ erscheinen danach die echte Antwort (Code, Body, Header) und der passende `curl`-Befehl.
 - Ganz unten unter „Schemas“ stehen alle Request- und Response-Typen.
 

@@ -145,7 +145,9 @@ public abstract class ProductRepositoryContractTests : RepositoryContractTests
 
         Assert.Equal([0, 1, 2], loaded!.Images.Select(i => i.SortOrder));
         Assert.True(loaded.Images.First().IsPrimary);
+        Assert.Equal(["bild-0.jpg", "bild-1.jpg", "bild-2.jpg"], loaded.Images.Select(i => i.Image!.FileName));
         Assert.Equal([0, 1, 2], visible.Single().Images.Select(i => i.SortOrder));
+        Assert.All(visible.Single().Images, i => Assert.NotNull(i.Image));
     }
 
     [Fact]
@@ -233,7 +235,8 @@ public abstract class ProductRepositoryContractTests : RepositoryContractTests
         var image = await AddImageAsync(repos, product.ProductId, sortOrder: 0);
 
         Assert.True(await repos.Products.DeleteAsync(product.ProductId));
-        Assert.Null(await repos.GetProductImageData(image.ProductImageId));
+        // The image itself is gone, not only its assignment.
+        Assert.Null(await repos.Images.GetFileAsync(image.ImageId));
         Assert.Null(await repos.Products.GetByIdAsync(product.ProductId));
         Assert.False(await repos.Products.DeleteAsync(product.ProductId));
 
@@ -250,12 +253,9 @@ public abstract class ProductRepositoryContractTests : RepositoryContractTests
         // 1 MiB: a plain BLOB column (64 KiB) would cut it off, MEDIUMBLOB holds it.
         var data = new byte[1024 * 1024];
         Random.Shared.NextBytes(data);
-        var image = NewImage(product.ProductId, sortOrder: 0);
-        image.Length = data.Length;
+        var image = await AddImageAsync(repos, product.ProductId, sortOrder: 0, data: data);
 
-        await repos.AddProductImage(image, data);
-
-        Assert.Equal(data, await repos.GetProductImageData(image.ProductImageId));
-        Assert.Equal(data.Length, (await repos.Products.GetByIdAsync(product.ProductId))!.Images.Single().Length);
+        Assert.Equal(data, (await repos.Images.GetFileAsync(image.ImageId))?.Data);
+        Assert.Equal(data.Length, (await repos.Products.GetByIdAsync(product.ProductId))!.Images.Single().Image!.Length);
     }
 }

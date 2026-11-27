@@ -43,22 +43,6 @@ erDiagram
         bool IsActive
     }
 
-    PRODUCT_IMAGES {
-        int ProductImageId PK
-        int ProductId FK
-        string FileName
-        string? Description
-        string ContentType
-        long Length
-        int SortOrder
-        bool IsPrimary
-    }
-
-    PRODUCT_IMAGE_CONTENTS {
-        int ProductImageId PK, FK
-        byte[] Data
-    }
-
     EVENTS {
         int EventId PK
         string Name
@@ -68,18 +52,32 @@ erDiagram
         datetime? EndDateTime
     }
 
-    EVENT_IMAGES {
-        int EventImageId PK
-        int EventId FK
+    %% Owners point to their images through an assignment table; IMAGES knows no owner.
+    %% EVENT_IMAGES comes with the events (#14).
+    IMAGES {
+        int ImageId PK
         string FileName
         string? Description
         string ContentType
         long Length
-        int SortOrder
     }
 
-    EVENT_IMAGE_CONTENTS {
-        int EventImageId PK, FK
+    PRODUCT_IMAGES {
+        int ImageId PK, FK
+        int ProductId FK
+        int SortOrder
+        bool IsPrimary
+    }
+
+    EVENT_IMAGES {
+        int ImageId PK, FK
+        int EventId FK
+        int SortOrder
+        bool IsPrimary
+    }
+
+    IMAGE_CONTENTS {
+        int ImageId PK, FK
         byte[] Data
     }
 
@@ -101,9 +99,10 @@ erDiagram
 
     CATEGORIES ||--o{ PRODUCTS : contains
     PRODUCTS ||--o{ PRODUCT_IMAGES : has
-    PRODUCT_IMAGES ||--|| PRODUCT_IMAGE_CONTENTS : stores
+    PRODUCT_IMAGES |o--|| IMAGES : assigns
     EVENTS ||--o{ EVENT_IMAGES : has
-    EVENT_IMAGES ||--|| EVENT_IMAGE_CONTENTS : stores
+    EVENT_IMAGES |o--|| IMAGES : assigns
+    IMAGES ||--|| IMAGE_CONTENTS : stores
 
     ROLES ||--o{ USERS : assigned_to
     USERS ||--o{ USER_SESSIONS : has

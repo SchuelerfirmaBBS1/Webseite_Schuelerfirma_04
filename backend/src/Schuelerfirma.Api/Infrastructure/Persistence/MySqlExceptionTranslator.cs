@@ -37,6 +37,17 @@ internal static class MySqlExceptionTranslator
         return exception;
     }
 
+    public static Exception TranslateProductImageException(Exception exception)
+    {
+        var mysqlEx = FindMySqlException(exception);
+        if (mysqlEx?.Number == ForeignKeyConstraintErrorNumber)
+        {
+            return new InvalidOperationException("Referenced product does not exist.", exception);
+        }
+
+        return exception;
+    }
+
     /// <summary>Whether a delete failed because other rows still reference the row (MySQL error 1451).</summary>
     public static bool IsRowStillReferenced(Exception exception) =>
         FindMySqlException(exception)?.Number == RowIsReferencedErrorNumber;

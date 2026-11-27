@@ -404,7 +404,7 @@ Die Fixture in `MySqlRepositoryTests.cs` kommt bewusst ohne `docker exec` aus (e
 
 ## 8. Ausblick: geplante Entities (noch nicht im Code)
 
-Die Diagramme enthalten weitere Entities, für die es noch **keine** Domain-Klassen und Interfaces gibt: `Category`, `Product`, `ProductImage`, `Event`, `EventImage`, `ContactRequest`, `ApplicationSettings`. Sie gehören nicht zu #22, sondern entstehen mit den jeweiligen Features. Wer sie anlegt, folgt demselben Muster:
+Die Diagramme enthalten weitere Entities, für die es noch **keine** Domain-Klassen und Interfaces gibt: `Category`, `Product`, `Image`, `Event`, `ContactRequest`, `ApplicationSettings`. Sie gehören nicht zu #22, sondern entstehen mit den jeweiligen Features. Wer sie anlegt, folgt demselben Muster:
 
 1. Entity in `Domain/` (ohne EF-Attribute, Längen als Konstanten, Zeitstempel UTC).
 2. Repository-Interface in `Application/Abstractions/` mit XML-Kommentaren zum erwarteten Verhalten.
@@ -414,7 +414,9 @@ Die Diagramme enthalten weitere Entities, für die es noch **keine** Domain-Klas
 
 Hinweise aus den Diagrammen:
 
-- Bilder (`ProductImage`, `EventImage`) liegen in der Datenbank, nicht im Dateisystem. Die Bild-Entity enthält nur die Angaben für Listen (Dateiname, Beschreibung, `ContentType`, `Length` in Bytes, Reihenfolge). Die Bilddaten (`byte[] Data`, Spaltentyp `MEDIUMBLOB`, höchstens 16 MiB) stehen in einer eigenen Tabelle (`ProductImageContents`, `EventImageContents`), deren Primärschlüssel zugleich der Fremdschlüssel auf das Bild ist (`ON DELETE CASCADE`). Die Bild-Entity hat **keine** Navigation zu ihren Daten: Produkte werden in jeder Liste mit ihren Bildern geladen, die Bilddaten dürfen dabei nie mitkommen. Bild und Daten werden in einer Transaktion gespeichert. Umgesetzt ist das bisher für Produktbilder (#47); Upload und Auslieferung folgen mit #13.
+- Bilder liegen in der Datenbank, nicht im Dateisystem, und es gibt **ein Bildmodell für alle Besitzer**: `Image` (Dateiname, Beschreibung, `ContentType`, `Length` in Bytes) kennt keinen Besitzer. **Die Besitzer verweisen auf ihre Bilder** über eine eigene Zuordnungstabelle mit Reihenfolge und Hauptbild: `ProductImages` (`ImageId` als Primärschlüssel, also höchstens ein Produkt pro Bild; `ProductId`, `SortOrder`, `IsPrimary`), mit #14 ebenso `EventImages`. Ein neuer Besitzer bringt nur seine Zuordnung mit, `Image` bleibt unverändert.
+- Die Datenbank löscht beim Löschen des Besitzers nur die Zuordnung. Deshalb löscht das Repository des Besitzers dessen Bilder in derselben Transaktion mit (`EfProductRepository.DeleteAsync`); Daten und Zuordnung folgen per `ON DELETE CASCADE`. Bild, Daten und Zuordnung werden beim Upload in einer Transaktion angelegt (`IProductImageRepository.AddAsync`), es gibt also keine Bilder ohne Besitzer. Contract-Tests prüfen beides.
+- Die Bilddaten (`byte[] Data`, Spaltentyp `MEDIUMBLOB`, höchstens 16 MiB) stehen in `ImageContents`, deren Primärschlüssel zugleich der Fremdschlüssel auf das Bild ist (`ON DELETE CASCADE`). `Image` hat **keine** Navigation zu den Daten: Produkte werden in jeder Liste mit ihren Bildern geladen, die Daten dürfen dabei nie mitkommen. Gelesen werden sie nur über `IImageRepository.GetFileAsync`, immer für ein einzelnes Bild und erst, nachdem das Repository des Besitzers bestätigt hat, dass das Bild dazugehört und (für Besucher) sichtbar ist (`IProductImageRepository.ContainsAsync`). Gespeichert wird nie die hochgeladene Datei, sondern nur das Ergebnis von `IImageProcessor` (siehe README, Abschnitt „Bilder“).
 - `Product.Price` ist `decimal?`. Präzision explizit festlegen (z. B. `decimal(10,2)`).
 - `ApplicationSettings` ist eine Tabelle mit genau einer Zeile (Ziel-Adresse für Kontaktanfragen).
 - `Event.StartDateTime`/`EndDateTime` als UTC speichern; die Umrechnung in deutsche Zeit macht das Frontend.

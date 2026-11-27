@@ -3,6 +3,7 @@ using Schuelerfirma.Api.Application.Users;
 using Schuelerfirma.Api.Infrastructure;
 using Schuelerfirma.Api.Infrastructure.Auth;
 using Schuelerfirma.Api.Infrastructure.Http;
+using Schuelerfirma.Api.Infrastructure.Images;
 using Schuelerfirma.Api.Infrastructure.InMemory;
 using Schuelerfirma.Api.Infrastructure.OpenApi;
 using Schuelerfirma.Api.Infrastructure.Persistence;
@@ -18,6 +19,8 @@ builder.Services.AddSessionAuthentication();
 builder.Services.AddRolePermissions();
 builder.Services.AddScoped<UserAdministrationService>();
 builder.Services.AddScoped<ProductCatalogService>();
+builder.Services.AddScoped<ProductImageService>();
+builder.Services.AddImageProcessing();
 builder.Services.AddCsrfProtection();
 builder.Services.AddClientRateLimiting();
 

@@ -15,31 +15,8 @@ internal static class InMemoryRepositories
             new InMemoryUserSessionRepository(store),
             new InMemoryCategoryRepository(store),
             new InMemoryProductRepository(store),
-            (image, data) => AddProductImage(store, image, data),
-            imageId => GetProductImageData(store, imageId));
-    }
-
-    private static Task AddProductImage(InMemoryStore store, ProductImage image, byte[] data)
-    {
-        lock (store.Sync)
-        {
-            var stored = InMemoryStore.Copy(image);
-            stored.ProductImageId = store.ProductImages.Count == 0 ? 1 : store.ProductImages.Max(i => i.ProductImageId) + 1;
-            store.ProductImages.Add(stored);
-            store.ProductImageContents[stored.ProductImageId] =
-                new ProductImageContent { ProductImageId = stored.ProductImageId, Data = [.. data] };
-            image.ProductImageId = stored.ProductImageId;
-            return Task.CompletedTask;
-        }
-    }
-
-    private static Task<byte[]?> GetProductImageData(InMemoryStore store, int imageId)
-    {
-        lock (store.Sync)
-        {
-            return Task.FromResult(
-                store.ProductImageContents.TryGetValue(imageId, out var content) ? (byte[]?)[.. content.Data] : null);
-        }
+            new InMemoryImageRepository(store),
+            new InMemoryProductImageRepository(store));
     }
 }
 
@@ -64,6 +41,11 @@ public class InMemoryCategoryRepositoryTests : CategoryRepositoryContractTests
 }
 
 public class InMemoryProductRepositoryTests : ProductRepositoryContractTests
+{
+    protected override Repositories CreateRepositories() => InMemoryRepositories.Create();
+}
+
+public class InMemoryProductImageRepositoryTests : ProductImageRepositoryContractTests
 {
     protected override Repositories CreateRepositories() => InMemoryRepositories.Create();
 }

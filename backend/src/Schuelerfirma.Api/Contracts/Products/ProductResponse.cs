@@ -1,3 +1,4 @@
+using Schuelerfirma.Api.Contracts.Images;
 using Schuelerfirma.Api.Domain;
 
 namespace Schuelerfirma.Api.Contracts.Products;
@@ -21,7 +22,7 @@ public sealed record ProductResponse(
     decimal? Price,
     bool IsPriceVisible,
     bool IsActive,
-    IReadOnlyList<ProductImageResponse> Images)
+    IReadOnlyList<ImageResponse> Images)
 {
     /// <summary>Maps a product loaded by the repository.</summary>
     public static ProductResponse From(Product product) => new(
@@ -33,25 +34,7 @@ public sealed record ProductResponse(
         product.Price,
         product.IsPriceVisible,
         product.IsActive,
-        [.. product.Images.Select(ProductImageResponse.From)]);
-}
-
-/// <summary>An image of a product as the admin area sees it.</summary>
-/// <param name="ProductImageId">Id of the image.</param>
-/// <param name="FileName">Original file name of the upload.</param>
-/// <param name="Description">Description (alternative text), or <c>null</c>.</param>
-/// <param name="SortOrder">Position in the list; lower values come first.</param>
-/// <param name="IsPrimary">Whether this is the main image.</param>
-public sealed record ProductImageResponse(
-    int ProductImageId,
-    string FileName,
-    string? Description,
-    int SortOrder,
-    bool IsPrimary)
-{
-    /// <summary>Maps an image.</summary>
-    public static ProductImageResponse From(ProductImage image) =>
-        new(image.ProductImageId, image.FileName, image.Description, image.SortOrder, image.IsPrimary);
+        [.. product.Images.Select(ProductImageResponses.ForAdmin)]);
 }
 
 /// <summary>A category as the admin area sees it.</summary>

@@ -7,7 +7,7 @@
 
 # A domain name gets a certificate automatically, HTTP is redirected to HTTPS.
 {$SITE_ADDRESS} {
-	# Upper limit for request bodies; keep it at least as large as the upload limit of #13.
+	# Upper limit for request bodies; keep it a little above the API upload limit (Images:MaxRequestSizeBytes).
 	request_body {
 		max_size {$MAX_REQUEST_BODY}
 	}
