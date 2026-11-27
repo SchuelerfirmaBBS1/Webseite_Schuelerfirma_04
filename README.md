@@ -187,7 +187,7 @@ Alle Endpunkte verlangen die Berechtigung `users.manage` (Standard: nur Admin). 
 
 ### Produkte und Kategorien
 
-Besucher sehen die Produkte ohne Anmeldung (Produktseite #23). Das Team pflegt Produkte und Kategorien im Verwaltungsbereich (#11). Die Bild-Endpunkte (Upload, Bearbeiten, Löschen, Auslieferung der Datei) folgen zusammen mit dem Bildspeicher aus #13. Bis dahin ist die Liste `images` immer leer.
+Besucher sehen die Produkte ohne Anmeldung (Produktseite #23). Das Team pflegt Produkte und Kategorien im Verwaltungsbereich (#11). Die Bilder werden in der Datenbank gespeichert (Tabelle `ProductImageContents`, siehe `documentation/Datenbank-Implementierung.md`). Die Bild-Endpunkte (Upload, Bearbeiten, Löschen, Auslieferung) folgen mit #13. Bis dahin ist die Liste `images` immer leer.
 
 **Öffentlich** (anonym):
 
@@ -209,7 +209,7 @@ Besucher sehen die Produkte ohne Anmeldung (Produktseite #23). Das Team pflegt P
 - Die Rolle User hat standardmäßig `products.read` und `products.toggle-price-visibility`: Sie darf also nur den Preis ein- und ausblenden, sonst nichts ändern.
 - Validierung: Name Pflicht (Produkt max. 200, Kategorie max. 100 Zeichen), Beschreibung max. 4000 Zeichen, Preis optional, ≥ 0 und höchstens zwei Nachkommastellen, Kategorie muss existieren. Texte sind reiner Text und werden unverändert gespeichert; das Frontend gibt sie als Text aus (nie `v-html`).
 - Fehler: `400` bei ungültigen Eingaben (Meldung am Feld, z. B. `CategoryId` bei unbekannter Kategorie), `404` bei unbekannter ID, `409` bei doppeltem Kategorienamen (Groß-/Kleinschreibung zählt nicht) und beim Löschen einer Kategorie, die noch Produkte enthält.
-- Löschen eines Produkts löscht auch seine Bild-Einträge. Jede Änderung wird mit dem handelnden Benutzer geloggt.
+- Löschen eines Produkts löscht auch seine Bilder samt Bilddaten. Jede Änderung wird mit dem handelnden Benutzer geloggt.
 
 ### CSRF-Schutz: Hinweise fürs Frontend
 

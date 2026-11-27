@@ -49,9 +49,14 @@ erDiagram
         string FileName
         string? Description
         string ContentType
-        string FilePath
+        long Length
         int SortOrder
         bool IsPrimary
+    }
+
+    PRODUCT_IMAGE_CONTENTS {
+        int ProductImageId PK, FK
+        byte[] Data
     }
 
     EVENTS {
@@ -69,8 +74,13 @@ erDiagram
         string FileName
         string? Description
         string ContentType
-        string FilePath
+        long Length
         int SortOrder
+    }
+
+    EVENT_IMAGE_CONTENTS {
+        int EventImageId PK, FK
+        byte[] Data
     }
 
     CONTACT_REQUESTS {
@@ -91,7 +101,9 @@ erDiagram
 
     CATEGORIES ||--o{ PRODUCTS : contains
     PRODUCTS ||--o{ PRODUCT_IMAGES : has
+    PRODUCT_IMAGES ||--|| PRODUCT_IMAGE_CONTENTS : stores
     EVENTS ||--o{ EVENT_IMAGES : has
+    EVENT_IMAGES ||--|| EVENT_IMAGE_CONTENTS : stores
 
     ROLES ||--o{ USERS : assigned_to
     USERS ||--o{ USER_SESSIONS : has

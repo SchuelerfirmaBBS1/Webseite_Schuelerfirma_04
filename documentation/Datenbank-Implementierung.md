@@ -414,7 +414,7 @@ Die Diagramme enthalten weitere Entities, für die es noch **keine** Domain-Klas
 
 Hinweise aus den Diagrammen:
 
-- Bilder (`ProductImage`, `EventImage`) werden laut aktuellem Modell als Datei abgelegt (`FilePath`), nicht als `byte[]` in der Datenbank.
+- Bilder (`ProductImage`, `EventImage`) liegen in der Datenbank, nicht im Dateisystem. Die Bild-Entity enthält nur die Angaben für Listen (Dateiname, Beschreibung, `ContentType`, `Length` in Bytes, Reihenfolge). Die Bilddaten (`byte[] Data`, Spaltentyp `MEDIUMBLOB`, höchstens 16 MiB) stehen in einer eigenen Tabelle (`ProductImageContents`, `EventImageContents`), deren Primärschlüssel zugleich der Fremdschlüssel auf das Bild ist (`ON DELETE CASCADE`). Die Bild-Entity hat **keine** Navigation zu ihren Daten: Produkte werden in jeder Liste mit ihren Bildern geladen, die Bilddaten dürfen dabei nie mitkommen. Bild und Daten werden in einer Transaktion gespeichert. Umgesetzt ist das bisher für Produktbilder (#47); Upload und Auslieferung folgen mit #13.
 - `Product.Price` ist `decimal?`. Präzision explizit festlegen (z. B. `decimal(10,2)`).
 - `ApplicationSettings` ist eine Tabelle mit genau einer Zeile (Ziel-Adresse für Kontaktanfragen).
 - `Event.StartDateTime`/`EndDateTime` als UTC speichern; die Umrechnung in deutsche Zeit macht das Frontend.
