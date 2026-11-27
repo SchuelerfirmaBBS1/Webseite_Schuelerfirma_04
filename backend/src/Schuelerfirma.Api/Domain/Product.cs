@@ -16,7 +16,11 @@ public class Product
     public const int PriceDecimalPlaces = 2;
 
     /// <summary>Highest price the database column (<c>decimal(10,2)</c>) can hold.</summary>
-    public const double PriceMaxValue = 99_999_999.99;
+    /// <remarks>
+    /// A <c>decimal</c> on purpose: as a <c>double</c> the value is not exact, and depending on the runtime the
+    /// conversion to <c>decimal</c> ends up slightly below 99,999,999.99, which then rejects the highest price.
+    /// </remarks>
+    public const decimal PriceMaxValue = 99_999_999.99m;
 
     /// <summary>Primary key.</summary>
     public int ProductId { get; set; }

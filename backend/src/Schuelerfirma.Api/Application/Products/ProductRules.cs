@@ -8,7 +8,7 @@ public static class ProductRules
     /// <summary>Whether <paramref name="price"/> is between 0 and the column maximum with at most two decimal places.</summary>
     public static bool IsValidPrice(decimal price) =>
         price >= 0
-        && price <= (decimal)Product.PriceMaxValue
+        && price <= Product.PriceMaxValue
         && decimal.Round(price, Product.PriceDecimalPlaces) == price;
 
     /// <summary>Removes leading and trailing white space; an empty or blank text becomes <c>null</c>.</summary>
