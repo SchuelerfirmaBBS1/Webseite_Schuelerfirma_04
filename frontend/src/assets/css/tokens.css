@@ -1,0 +1,70 @@
+/*
+ * Design tokens: the single source for colours, type, spacing, shapes and motion.
+ * Components and pages use these variables only, never raw values.
+ * Kept deliberately small: add a token only when no existing one fits.
+ * Preview of everything: /styleguide (dev server only).
+ */
+:root {
+  /* Colours: the Lastenheft palette plus one signal colour and two surfaces */
+  --color-blue: #4d648a; /* primary: buttons, highlights, shadows */
+  --color-ink: #1e222c; /* contrast: all text, header, footer, borders */
+  --color-grey: #8b949b; /* secondary: lines, placeholders, never for body text */
+  --color-sage: #777659; /* labels, small accents */
+  --color-terracotta: #d9a477; /* signal: call-to-actions and playful accents only */
+  --color-cream: #f5f1e8; /* page background */
+  --color-white: #ffffff; /* cards, fields, light sections */
+  --color-error: #a3423a; /* form errors only */
+
+  /* Fonts: swap here once the Lastenheft fonts (Best Swashed, Archibrazo) are licensed */
+  --font-display: Georgia, 'Times New Roman', serif;
+  --font-body: 'Trebuchet MS', 'Segoe UI', system-ui, sans-serif;
+
+  /* Type scale */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.375rem;
+  --text-xl: clamp(1.75rem, 1.3rem + 1.5vw, 2.5rem);
+  --text-2xl: clamp(2.5rem, 1.6rem + 3.5vw, 4.5rem);
+
+  /* Headings: heavy serif with tight tracking (look of the front page hero) */
+  --weight-heading: 800;
+  --tracking-heading: -0.05em;
+  --leading-heading: 1;
+
+  --weight-bold: 700;
+  --leading-body: 1.7;
+  --tracking-label: 0.16em;
+
+  /* Spacing: five steps, nothing in between */
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2.5rem;
+  --space-xl: 4rem;
+
+  /* Layout */
+  --container-width: 72rem;
+  --container-padding: clamp(var(--space-sm), 5vw, var(--space-lg));
+
+  /* Shapes */
+  --radius-sm: 6px; /* fields, stickers */
+  --radius-md: 12px; /* images */
+  --radius-organic: 24px 8px 24px 8px; /* cards, modals */
+  --radius-pill: 999px; /* buttons, tags */
+  --border: 2px solid var(--color-ink);
+
+  /* One hard offset shadow. Colour: blue by default; terracotta on dark or blue
+     surfaces (set --shadow-color on the surface, BaseSection tone="dark" does it) */
+  --shadow-color: var(--color-blue);
+  --shadow-offset: 6px 6px 0;
+  --shadow-offset-pressed: 2px 2px 0;
+
+  /* Focus */
+  --focus-ring: 0 0 0 3px var(--color-white), 0 0 0 5px var(--color-blue);
+
+  /* Motion */
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --ease-out: cubic-bezier(0.2, 0.7, 0.3, 1);
+}

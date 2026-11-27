@@ -62,11 +62,12 @@
 
 .hero-logo {
   display: block;
-  width: clamp(250px, 30vw, 370px);
+  /* Image mark only (printer, no lettering), so smaller than the former full logo */
+  width: clamp(150px, 16vw, 210px);
   max-width: 100%;
   height: auto;
   object-fit: contain;
-  margin: 0 0 1.2rem;
+  margin: 0;
   filter: brightness(0);
 }
 
@@ -472,7 +473,7 @@
   }
 
   .hero-logo {
-    width: clamp(220px, 60vw, 330px);
+    width: clamp(140px, 40vw, 200px);
     transform: none;
   }
 

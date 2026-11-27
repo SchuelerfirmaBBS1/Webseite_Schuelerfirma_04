@@ -81,8 +81,8 @@ function handleContactSubmit() {
 
       <div class="hero-logo-frame">
        <img
-          src="/images/white_logo.png"
-          alt="PRINT&BITE"
+          src="/images/logo-header.png"
+          alt="PRINT&BITE Logo: 3D-Drucker"
           class="hero-logo"
         />
 </div>

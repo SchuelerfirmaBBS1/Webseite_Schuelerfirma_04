@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import TermineView from '../views/TermineView.vue'
 import ArchivView from '../views/ArchivView.vue'
 import FrontpageView from '../views/FrontpageView.vue'
@@ -10,6 +10,18 @@ declare module 'vue-router' {
     requiresAuth?: boolean
   }
 }
+
+// Dev-only pages. import.meta.env.DEV is replaced by `false` in production builds,
+// so these routes and their components are dropped from the bundle entirely.
+const devRoutes: RouteRecordRaw[] = import.meta.env.DEV
+  ? [
+      {
+        path: '/styleguide',
+        name: 'styleguide',
+        component: () => import('../views/dev/StyleguideView.vue'),
+      },
+    ]
+  : []
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -46,6 +58,7 @@ const router = createRouter({
       component: () => import('../views/admin/AdminView.vue'),
       meta: { requiresAuth: true },
     },
+    ...devRoutes,
   ],
 })
 
