@@ -192,7 +192,7 @@ Alle Endpunkte verlangen die Berechtigung `users.manage` (Standard: nur Admin). 
 
 ### Produkte und Kategorien
 
-Besucher sehen die Produkte ohne Anmeldung (Produktseite #23). Das Team pflegt Produkte und Kategorien im Verwaltungsbereich (#11). Produktbilder liegen wie alle Bilder in der Datenbank (Tabellen `Images` und `ImageContents`, siehe `documentation/Datenbank-Implementierung.md` und „Bilder“ unten).
+Besucher sehen die Produkte ohne Anmeldung (Produktseite #23). Das Team pflegt Produkte und Kategorien im Verwaltungsbereich (#11). Produktbilder liegen wie alle Bilder in der Datenbank (Tabellen `Images`, `ImageContents` und die Zuordnung `ProductImages`, siehe `documentation/Datenbank-Implementierung.md` und „Bilder“ unten).
 
 **Öffentlich** (anonym):
 
@@ -222,7 +222,7 @@ Besucher sehen die Produkte ohne Anmeldung (Produktseite #23). Das Team pflegt P
 
 ### Bilder
 
-Bilder werden hochgeladen, geprüft, umgewandelt und **in der Datenbank** gespeichert, nie im Dateisystem. Es gibt **ein Bildmodell** (`Image`) für alle Besitzer: Jedes Bild gehört zu genau einem Produkt oder (mit #14) einem Termin, die Datenbank prüft das (`CK_Images_ExactlyOneOwner`). Wird der Besitzer gelöscht, verschwinden seine Bilder samt Daten. Umgesetzt sind bisher die Produktbilder; Terminbilder kommen mit #14 und nutzen Modell, Speicher und Verarbeitung mit.
+Bilder werden hochgeladen, geprüft, umgewandelt und **in der Datenbank** gespeichert, nie im Dateisystem. Es gibt **ein Bildmodell** (`Image`) für alle Besitzer. Ein Bild kennt seinen Besitzer nicht; Produkte verweisen über `ProductImages` (mit Reihenfolge und Hauptbild) auf ihre Bilder, Termine bekommen mit #14 ihre eigene Zuordnung. Wird der Besitzer gelöscht, verschwinden seine Bilder samt Daten. Umgesetzt sind bisher die Produktbilder; Terminbilder nutzen Modell, Speicher und Verarbeitung mit.
 
 - **Upload:** `multipart/form-data` mit einer oder mehreren Dateien im Feld `files` (in der Swagger UI direkt auswählbar). Neue Bilder kommen ans Ende der Reihenfolge; hat das Produkt noch kein Hauptbild, wird das erste neue Bild Hauptbild. Antwort `201` mit den neuen Bildern (`imageId`, `fileName`, `description`, `contentType`, `length`, `sortOrder`, `isPrimary`, `url`).
 - **Prüfung:** Erlaubt sind nur JPEG, PNG und WebP, erkannt am **Dateiinhalt**, nicht an Endung oder `Content-Type`. SVG wird nie angenommen: Die Bilder kommen von derselben Domain wie der Verwaltungsbereich, ein Skript im SVG liefe mit der Session des Betrachters. Ist eine Datei ungültig, wird keine gespeichert (`400`, Meldung am Feld `files` mit dem Dateinamen).

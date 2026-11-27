@@ -52,16 +52,26 @@ erDiagram
         datetime? EndDateTime
     }
 
-    %% One image table for all owners: exactly one of ProductId / EventId is set (CK_Images_ExactlyOneOwner).
-    %% EventId comes with the events (#14).
+    %% Owners point to their images through an assignment table; IMAGES knows no owner.
+    %% EVENT_IMAGES comes with the events (#14).
     IMAGES {
         int ImageId PK
-        int? ProductId FK
-        int? EventId FK
         string FileName
         string? Description
         string ContentType
         long Length
+    }
+
+    PRODUCT_IMAGES {
+        int ImageId PK, FK
+        int ProductId FK
+        int SortOrder
+        bool IsPrimary
+    }
+
+    EVENT_IMAGES {
+        int ImageId PK, FK
+        int EventId FK
         int SortOrder
         bool IsPrimary
     }
@@ -88,8 +98,10 @@ erDiagram
     }
 
     CATEGORIES ||--o{ PRODUCTS : contains
-    PRODUCTS |o--o{ IMAGES : has
-    EVENTS |o--o{ IMAGES : has
+    PRODUCTS ||--o{ PRODUCT_IMAGES : has
+    PRODUCT_IMAGES |o--|| IMAGES : assigns
+    EVENTS ||--o{ EVENT_IMAGES : has
+    EVENT_IMAGES |o--|| IMAGES : assigns
     IMAGES ||--|| IMAGE_CONTENTS : stores
 
     ROLES ||--o{ USERS : assigned_to

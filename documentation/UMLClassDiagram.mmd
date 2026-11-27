@@ -57,18 +57,14 @@ class Event {
     +DateTime? EndDateTime
 }
 
-%% One image model for all owners: exactly one of ProductId / EventId is set (CK_Images_ExactlyOneOwner).
-%% EventId comes with the events (#14).
+%% Owners point to their images through an assignment with position and main-image flag;
+%% Image itself knows no owner. EventImage comes with the events (#14).
 class Image {
     +int ImageId
-    +int? ProductId
-    +int? EventId
     +string FileName
     +string? Description
     +string ContentType
     +long Length
-    +int SortOrder
-    +bool IsPrimary
 }
 
 class ImageContent {
@@ -76,8 +72,24 @@ class ImageContent {
     +byte[] Data
 }
 
-Product "1" --> "*" Image
-Event "1" --> "*" Image
+class ProductImage {
+    +int ImageId
+    +int ProductId
+    +int SortOrder
+    +bool IsPrimary
+}
+
+class EventImage {
+    +int ImageId
+    +int EventId
+    +int SortOrder
+    +bool IsPrimary
+}
+
+Product "1" --> "*" ProductImage
+ProductImage "1" --> "1" Image
+Event "1" --> "*" EventImage
+EventImage "1" --> "1" Image
 Image "1" --> "1" ImageContent
 
 class ContactRequest {
