@@ -38,20 +38,33 @@ public sealed record ProductResponse(
 
 /// <summary>An image of a product as the admin area sees it.</summary>
 /// <param name="ProductImageId">Id of the image.</param>
-/// <param name="FileName">Original file name of the upload.</param>
+/// <param name="FileName">Original file name of the upload; plain text, only for display.</param>
 /// <param name="Description">Description (alternative text), or <c>null</c>.</param>
+/// <param name="ContentType">Media type of the stored image.</param>
+/// <param name="Length">Size of the stored image in bytes.</param>
 /// <param name="SortOrder">Position in the list; lower values come first.</param>
 /// <param name="IsPrimary">Whether this is the main image.</param>
+/// <param name="Url">Where the admin area loads the image, also for inactive products (needs a login).</param>
 public sealed record ProductImageResponse(
     int ProductImageId,
     string FileName,
     string? Description,
+    string ContentType,
+    long Length,
     int SortOrder,
-    bool IsPrimary)
+    bool IsPrimary,
+    string Url)
 {
     /// <summary>Maps an image.</summary>
-    public static ProductImageResponse From(ProductImage image) =>
-        new(image.ProductImageId, image.FileName, image.Description, image.SortOrder, image.IsPrimary);
+    public static ProductImageResponse From(ProductImage image) => new(
+        image.ProductImageId,
+        image.FileName,
+        image.Description,
+        image.ContentType,
+        image.Length,
+        image.SortOrder,
+        image.IsPrimary,
+        $"/api/admin/products/{image.ProductId}/images/{image.ProductImageId}/file");
 }
 
 /// <summary>A category as the admin area sees it.</summary>

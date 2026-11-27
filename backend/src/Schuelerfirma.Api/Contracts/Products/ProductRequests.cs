@@ -54,3 +54,16 @@ public sealed record PriceVisibilityRequest(
 public sealed record SaveCategoryRequest(
     [Required(ErrorMessage = "Bitte einen Namen angeben."), StringLength(Category.NameMaxLength, ErrorMessage = "Der Name darf höchstens {1} Zeichen lang sein.")] string Name,
     [Required(ErrorMessage = "Bitte angeben, ob die Kategorie sichtbar ist.")] bool? IsVisible);
+
+/// <summary>Body of <c>PUT /api/admin/products/{id}/images/{imageId}</c>; all fields are replaced.</summary>
+/// <param name="Description">Description (alternative text), at most 500 characters, plain text; <c>null</c> removes it.</param>
+/// <param name="SortOrder">Position in the list (0 or more); lower values come first.</param>
+/// <param name="IsPrimary">Whether this is the main image; making it the main image takes the flag from the others.</param>
+public sealed record UpdateProductImageRequest(
+    [StringLength(ProductImage.DescriptionMaxLength, ErrorMessage = "Die Beschreibung darf höchstens {1} Zeichen lang sein.")] string? Description,
+    [Required(ErrorMessage = "Bitte eine Reihenfolge angeben."), Range(0, int.MaxValue, ErrorMessage = "Die Reihenfolge darf nicht negativ sein.")] int? SortOrder,
+    [Required(ErrorMessage = "Bitte angeben, ob es das Hauptbild ist.")] bool? IsPrimary)
+{
+    /// <summary>The fields for <see cref="ProductImageService"/>.</summary>
+    public ProductImageInput ToInput() => new(Description, SortOrder!.Value, IsPrimary!.Value);
+}
