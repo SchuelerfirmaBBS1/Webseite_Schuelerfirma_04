@@ -1,0 +1,21 @@
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: schuelerfirma
+      MYSQL_USER: schuelerfirma_app
+      MYSQL_PASSWORD: development-password
+      MYSQL_ROOT_PASSWORD: development-root-password
+    ports:
+      # Loopback only: a published port bypasses the host firewall.
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - schuelerfirma-mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pdevelopment-root-password"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  schuelerfirma-mysql:

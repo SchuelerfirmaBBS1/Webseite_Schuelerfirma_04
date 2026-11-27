@@ -1,0 +1,10 @@
+node_modules/
+dist/
+dist-ssr/
+coverage/
+# Vite's .env files are public by design and part of the build; only *.local holds machine-specific values.
+*.local
+.eslintcache
+*.tsbuildinfo
+Dockerfile
+.dockerignore

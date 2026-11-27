@@ -1,0 +1,11 @@
+# Only src/ is needed for the image; keep build output, tests and anything secret out of the context.
+**/bin/
+**/obj/
+tests/
+**/*.user
+**/secrets.json
+**/.env
+**/.env.*
+**/appsettings.*.local.json
+Dockerfile
+.dockerignore
