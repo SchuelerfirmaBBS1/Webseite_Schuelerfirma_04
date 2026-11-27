@@ -7,7 +7,8 @@ services:
       MYSQL_PASSWORD: development-password
       MYSQL_ROOT_PASSWORD: development-root-password
     ports:
-      - "3306:3306"
+      # Loopback only: a published port bypasses the host firewall.
+      - "127.0.0.1:3306:3306"
     volumes:
       - schuelerfirma-mysql:/var/lib/mysql
     healthcheck:

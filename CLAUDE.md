@@ -21,6 +21,7 @@ Das Datenmodell ist in den Mermaid-Diagrammen `documentation/UMLClassDiagram.mmd
 | Backend   | C# / ASP.NET Core (Web API), Entity Framework Core                        | `backend/`       |
 | Datenbank | MySQL 8.4 (über EF Core, Provider `Pomelo.EntityFrameworkCore.MySql`)    | –                |
 | Doku      | Mermaid-Diagramme (`.mmd`)                                                | `documentation/` |
+| Deployment | Docker Compose: Caddy (Proxy + Vue-Build), API, `migrate` (EF-Migration-Bundle), MySQL | `deploy/`, `backend/Dockerfile`, `frontend/Dockerfile`, `scripts/` |
 
 Das Backend liegt unter `backend/` (.NET 10, Solution `Schuelerfirma.slnx`):
 
@@ -91,6 +92,15 @@ dotnet ef database update --project src/Schuelerfirma.Api
 - Benutzerverwaltung: Fachlogik und Schutzregeln liegen in `UserAdministrationService` (`Application/Users/`), der Controller übersetzt nur in HTTP. Benutzer nie löschen, nur deaktivieren; jede Admin-Aktion mit handelndem Benutzer loggen, temporäre Passwörter nie. Wer `users.manage` hat, ergibt sich aus der Konfiguration, nie aus dem Rollennamen.
 - Eingaben aus dem Kontaktformular validieren.
 
+### Deployment
+
+- In `deploy/compose.yaml` veröffentlicht **nur `proxy`** Ports (80/443). Andere Dienste bekommen kein `ports:` (höchstens `expose:`), zur Fehlersuche nur mit `127.0.0.1:`-Präfix; kein `network_mode: host`. Grund: Docker umgeht mit veröffentlichten Ports `ufw`/`firewalld`. `scripts/check-exposed-ports.sh` prüft das (auch in der CI); Tests dazu in `scripts/tests/`.
+- Die API vertraut `X-Forwarded-For` nur von `PROXY_IP` (feste Proxy-Adresse im Netz `edge`; andere Container bekommen ihre Adresse aus `EDGE_DYNAMIC_RANGE`). Die Datenbank hängt nur im Netz `backend` (`internal: true`).
+- Die .NET-Container laufen als Nicht-Root mit `read_only`, `cap_drop: [ALL]` und `no-new-privileges`. Was die API schreiben muss, kommt als Volume unter `/var/lib/schuelerfirma/` (im Dockerfile anlegen und dem App-Benutzer geben), Temporäres nach `/tmp` (tmpfs).
+- Neue Konfiguration, die auf dem Server gebraucht wird: als Variable in `deploy/compose.yaml` durchreichen und mit Platzhalter in `deploy/.env.example` eintragen; Secrets nie in die Compose-Datei.
+- Docker-Hub-Images voll qualifiziert angeben (`docker.io/library/...`), sonst scheitert Podman an Kurznamen.
+- Die `dotnet-ef`-Version im `backend/Dockerfile` (`DOTNET_EF_VERSION`) mit der EF-Core-Version im API-Projekt aktuell halten.
+
 ### Sprache
 
 - Kommunikation mit dem User, Projektdoku (README, CLAUDE.md) und UI-Texte der Webseite: **Deutsch**.
@@ -106,7 +116,7 @@ dotnet ef database update --project src/Schuelerfirma.Api
 
 ## CI und Releases
 
-- `.github/workflows/ci.yml` läuft bei Pushes und PRs auf `main`/`dev`. Die CI prüft nur, ob alles technisch funktioniert, nicht den Code-Stil. Frontend: oxlint und eslint (ohne `--fix`), Type-Check, `npm test`, Build. Backend: `dotnet build` + `dotnet test`, sobald unter `backend/` ein Projekt liegt. Vor dem Push dieselben Checks lokal ausführen.
+- `.github/workflows/ci.yml` läuft bei Pushes und PRs auf `main`/`dev`. Die CI prüft nur, ob alles technisch funktioniert, nicht den Code-Stil. Frontend: oxlint und eslint (ohne `--fix`), Type-Check, `npm test`, Build. Backend: `dotnet build` + `dotnet test`, sobald unter `backend/` ein Projekt liegt. Deployment: Tests des Prüfskripts, `scripts/check-exposed-ports.sh` gegen `deploy/compose.yaml` (mit `deploy/.env.example`) und Bau aller Images ohne Push. Vor dem Push dieselben Checks lokal ausführen.
 - `.github/workflows/release.yml` nutzt release-please mit getrennter Config pro Branch:
   - `dev` → `release-please-config.dev.json` / `.release-please-manifest.dev.json`, Minor-Bump (v1.1.0 → v1.2.0), kein CHANGELOG, nur GitHub-Release-Notes.
   - `main` → `release-please-config.json` / `.release-please-manifest.json`, Major-Bump (v1.2.0 → v2.0.0), schreibt `CHANGELOG.md`.
