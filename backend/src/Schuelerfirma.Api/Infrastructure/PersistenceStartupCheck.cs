@@ -22,7 +22,7 @@ public static class PersistenceStartupCheck
         Type[] required =
         [
             typeof(IUserRepository), typeof(IRoleRepository), typeof(IUserSessionRepository),
-            typeof(ICategoryRepository), typeof(IProductRepository), typeof(IProductImageRepository),
+            typeof(ICategoryRepository), typeof(IProductRepository), typeof(IImageRepository),
         ];
 
         var registrations = services.GetRequiredService<IServiceProviderIsService>();

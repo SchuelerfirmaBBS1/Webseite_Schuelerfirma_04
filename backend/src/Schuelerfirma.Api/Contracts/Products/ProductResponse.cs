@@ -1,3 +1,4 @@
+using Schuelerfirma.Api.Contracts.Images;
 using Schuelerfirma.Api.Domain;
 
 namespace Schuelerfirma.Api.Contracts.Products;
@@ -21,7 +22,7 @@ public sealed record ProductResponse(
     decimal? Price,
     bool IsPriceVisible,
     bool IsActive,
-    IReadOnlyList<ProductImageResponse> Images)
+    IReadOnlyList<ImageResponse> Images)
 {
     /// <summary>Maps a product loaded by the repository.</summary>
     public static ProductResponse From(Product product) => new(
@@ -33,38 +34,7 @@ public sealed record ProductResponse(
         product.Price,
         product.IsPriceVisible,
         product.IsActive,
-        [.. product.Images.Select(ProductImageResponse.From)]);
-}
-
-/// <summary>An image of a product as the admin area sees it.</summary>
-/// <param name="ProductImageId">Id of the image.</param>
-/// <param name="FileName">Original file name of the upload; plain text, only for display.</param>
-/// <param name="Description">Description (alternative text), or <c>null</c>.</param>
-/// <param name="ContentType">Media type of the stored image.</param>
-/// <param name="Length">Size of the stored image in bytes.</param>
-/// <param name="SortOrder">Position in the list; lower values come first.</param>
-/// <param name="IsPrimary">Whether this is the main image.</param>
-/// <param name="Url">Where the admin area loads the image, also for inactive products (needs a login).</param>
-public sealed record ProductImageResponse(
-    int ProductImageId,
-    string FileName,
-    string? Description,
-    string ContentType,
-    long Length,
-    int SortOrder,
-    bool IsPrimary,
-    string Url)
-{
-    /// <summary>Maps an image.</summary>
-    public static ProductImageResponse From(ProductImage image) => new(
-        image.ProductImageId,
-        image.FileName,
-        image.Description,
-        image.ContentType,
-        image.Length,
-        image.SortOrder,
-        image.IsPrimary,
-        $"/api/admin/products/{image.ProductId}/images/{image.ProductImageId}/file");
+        [.. product.Images.Select(ImageResponse.From)]);
 }
 
 /// <summary>A category as the admin area sees it.</summary>

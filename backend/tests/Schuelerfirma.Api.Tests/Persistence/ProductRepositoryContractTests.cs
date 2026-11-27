@@ -1,4 +1,5 @@
 using Schuelerfirma.Api.Application.Abstractions;
+using Schuelerfirma.Api.Application.Images;
 using Schuelerfirma.Api.Domain;
 
 namespace Schuelerfirma.Api.Tests.Persistence;
@@ -233,7 +234,7 @@ public abstract class ProductRepositoryContractTests : RepositoryContractTests
         var image = await AddImageAsync(repos, product.ProductId, sortOrder: 0);
 
         Assert.True(await repos.Products.DeleteAsync(product.ProductId));
-        Assert.Null(await repos.ProductImages.GetFileAsync(product.ProductId, image.ProductImageId));
+        Assert.Null(await repos.Images.GetFileAsync(ImageOwner.Product(product.ProductId), image.ImageId));
         Assert.Null(await repos.Products.GetByIdAsync(product.ProductId));
         Assert.False(await repos.Products.DeleteAsync(product.ProductId));
 
@@ -253,9 +254,9 @@ public abstract class ProductRepositoryContractTests : RepositoryContractTests
         var image = NewImage(product.ProductId, sortOrder: 0);
         image.Length = data.Length;
 
-        await repos.ProductImages.AddAsync(image, data);
+        await repos.Images.AddAsync(image, data);
 
-        Assert.Equal(data, (await repos.ProductImages.GetFileAsync(product.ProductId, image.ProductImageId))?.Data);
+        Assert.Equal(data, (await repos.Images.GetFileAsync(ImageOwner.Product(product.ProductId), image.ImageId))?.Data);
         Assert.Equal(data.Length, (await repos.Products.GetByIdAsync(product.ProductId))!.Images.Single().Length);
     }
 }

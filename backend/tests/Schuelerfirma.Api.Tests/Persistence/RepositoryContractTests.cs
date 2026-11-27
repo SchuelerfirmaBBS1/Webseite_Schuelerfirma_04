@@ -10,7 +10,7 @@ public sealed record Repositories(
     IUserSessionRepository Sessions,
     ICategoryRepository Categories,
     IProductRepository Products,
-    IProductImageRepository ProductImages);
+    IImageRepository Images);
 
 /// <summary>
 /// Base class of all repository contract tests. Every storage implementation (in-memory now, EF Core / MySQL
@@ -77,15 +77,15 @@ public abstract class RepositoryContractTests
     protected static readonly byte[] ImageData = [0xFF, 0xD8, 0xFF, 0xE0, 1, 2, 3, 4];
 
     /// <summary>Stores a new image of <paramref name="productId"/> with <see cref="ImageData"/>.</summary>
-    protected static async Task<ProductImage> AddImageAsync(
+    protected static async Task<Image> AddImageAsync(
         Repositories repos, int productId, int sortOrder, bool isPrimary = false)
     {
         var image = NewImage(productId, sortOrder, isPrimary);
-        await repos.ProductImages.AddAsync(image, ImageData);
+        await repos.Images.AddAsync(image, ImageData);
         return image;
     }
 
-    protected static ProductImage NewImage(int productId, int sortOrder, bool isPrimary = false) => new()
+    protected static Image NewImage(int productId, int sortOrder, bool isPrimary = false) => new()
     {
         ProductId = productId,
         FileName = $"bild-{sortOrder}.jpg",

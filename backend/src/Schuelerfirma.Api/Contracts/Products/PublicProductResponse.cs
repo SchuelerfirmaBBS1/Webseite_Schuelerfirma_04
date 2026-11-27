@@ -1,10 +1,11 @@
+using Schuelerfirma.Api.Contracts.Images;
 using Schuelerfirma.Api.Domain;
 
 namespace Schuelerfirma.Api.Contracts.Products;
 
 /// <summary>
 /// A product as visitors see it. Own class for the public area: it has no internal fields (<c>IsActive</c>,
-/// <c>IsPriceVisible</c>, file paths), and a hidden price never leaves the server.
+/// <c>IsPriceVisible</c>, file names), and a hidden price never leaves the server.
 /// </summary>
 /// <param name="Id">Id of the product.</param>
 /// <param name="CategoryId">Id of the category.</param>
@@ -20,7 +21,7 @@ public sealed record PublicProductResponse(
     string Name,
     string? Description,
     decimal? Price,
-    IReadOnlyList<PublicProductImageResponse> Images)
+    IReadOnlyList<PublicImageResponse> Images)
 {
     /// <summary>Maps a product that visitors may see; replaces a hidden price by <c>null</c>.</summary>
     public static PublicProductResponse From(Product product) => new(
@@ -30,18 +31,7 @@ public sealed record PublicProductResponse(
         product.Name,
         product.Description,
         product.IsPriceVisible ? product.Price : null,
-        [.. product.Images.Select(image => PublicProductImageResponse.From(product.ProductId, image))]);
-}
-
-/// <summary>An image of a product as visitors see it.</summary>
-/// <param name="Url">Where the file can be downloaded (relative to the website).</param>
-/// <param name="Description">Description (alternative text), or <c>null</c>.</param>
-/// <param name="IsPrimary">Whether this is the main image.</param>
-public sealed record PublicProductImageResponse(string Url, string? Description, bool IsPrimary)
-{
-    /// <summary>Maps an image of the product with id <paramref name="productId"/>.</summary>
-    public static PublicProductImageResponse From(int productId, ProductImage image) => new(
-        $"/api/public/products/{productId}/images/{image.ProductImageId}/file", image.Description, image.IsPrimary);
+        [.. product.Images.Select(PublicImageResponse.From)]);
 }
 
 /// <summary>A category as visitors see it.</summary>

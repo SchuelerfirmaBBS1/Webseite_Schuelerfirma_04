@@ -46,6 +46,6 @@ public class Product
     /// <summary>Whether visitors see the product at all.</summary>
     public bool IsActive { get; set; }
 
-    /// <summary>Images of the product, ordered by <see cref="ProductImage.SortOrder"/> when loaded by a repository.</summary>
-    public ICollection<ProductImage> Images { get; set; } = [];
+    /// <summary>Images of the product, ordered by <see cref="Image.SortOrder"/> when loaded by a repository.</summary>
+    public ICollection<Image> Images { get; set; } = [];
 }

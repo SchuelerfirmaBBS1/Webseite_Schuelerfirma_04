@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Schuelerfirma.Api.Application.Auth;
 using Schuelerfirma.Api.Application.Images;
 using Schuelerfirma.Api.Application.Products;
+using Schuelerfirma.Api.Contracts.Images;
 using Schuelerfirma.Api.Contracts.Products;
 using Schuelerfirma.Api.Infrastructure.Auth;
 using Schuelerfirma.Api.Infrastructure.Images;
@@ -34,7 +35,7 @@ public class AdminProductImagesController(ProductImageService productImages) : A
     [HasPermission(Permissions.ProductsManage)]
     [ImageUploadLimits]
     [Consumes("multipart/form-data")]
-    [ProducesResponseType<IReadOnlyList<ProductImageResponse>>(StatusCodes.Status201Created)]
+    [ProducesResponseType<IReadOnlyList<ImageResponse>>(StatusCodes.Status201Created)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status413PayloadTooLarge)]
@@ -55,7 +56,7 @@ public class AdminProductImagesController(ProductImageService productImages) : A
             return this.ToActionResult(result);
         }
 
-        IReadOnlyList<ProductImageResponse> created = [.. result.Value!.Select(ProductImageResponse.From)];
+        IReadOnlyList<ImageResponse> created = [.. result.Value!.Select(ImageResponse.From)];
         return Created($"/api/admin/products/{productId}", created);
     }
 
@@ -65,13 +66,13 @@ public class AdminProductImagesController(ProductImageService productImages) : A
     /// <response code="404">The product has no such image.</response>
     [HttpPut("{imageId:int}")]
     [HasPermission(Permissions.ProductsManage)]
-    [ProducesResponseType<ProductImageResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ImageResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Update(int productId, int imageId, UpdateProductImageRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Update(int productId, int imageId, UpdateImageRequest request, CancellationToken cancellationToken)
     {
         var result = await productImages.UpdateAsync(ActingUserId, productId, imageId, request.ToInput(), cancellationToken);
-        return result.Error == CatalogError.None ? Ok(ProductImageResponse.From(result.Value!)) : this.ToActionResult(result);
+        return result.Error == CatalogError.None ? Ok(ImageResponse.From(result.Value!)) : this.ToActionResult(result);
     }
 
     /// <summary>Deletes an image together with its data.</summary>

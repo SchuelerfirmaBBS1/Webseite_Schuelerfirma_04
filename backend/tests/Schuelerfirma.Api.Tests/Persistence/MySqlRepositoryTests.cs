@@ -50,8 +50,8 @@ public sealed class MySqlContainerFixture : IAsyncLifetime
         await using var db = await ContextFactory.CreateDbContextAsync();
         await db.UserSessions.ExecuteDeleteAsync();
         await db.Users.ExecuteDeleteAsync();
-        await db.ProductImageContents.ExecuteDeleteAsync();
-        await db.ProductImages.ExecuteDeleteAsync();
+        await db.ImageContents.ExecuteDeleteAsync();
+        await db.Images.ExecuteDeleteAsync();
         await db.Products.ExecuteDeleteAsync();
         await db.Categories.ExecuteDeleteAsync();
     }
@@ -63,7 +63,7 @@ public sealed class MySqlContainerFixture : IAsyncLifetime
             new EfUserSessionRepository(ContextFactory),
             new EfCategoryRepository(ContextFactory),
             new EfProductRepository(ContextFactory),
-            new EfProductImageRepository(ContextFactory));
+            new EfImageRepository(ContextFactory));
 
     public async Task DisposeAsync()
     {
@@ -152,8 +152,8 @@ public sealed class MySqlProductRepositoryTests(MySqlContainerFixture fixture)
 }
 
 [Collection(MySqlCollection.Name)]
-public sealed class MySqlProductImageRepositoryTests(MySqlContainerFixture fixture)
-    : ProductImageRepositoryContractTests, IAsyncLifetime
+public sealed class MySqlImageRepositoryTests(MySqlContainerFixture fixture)
+    : ImageRepositoryContractTests, IAsyncLifetime
 {
     public Task InitializeAsync() => fixture.ResetDatabaseAsync();
     public Task DisposeAsync() => Task.CompletedTask;

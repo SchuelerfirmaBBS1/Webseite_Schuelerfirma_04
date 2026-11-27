@@ -1,8 +1,9 @@
+using Schuelerfirma.Api.Application.Images;
 using Schuelerfirma.Api.Domain;
 
 namespace Schuelerfirma.Api.Tests.Persistence;
 
-public abstract class ProductImageRepositoryContractTests : RepositoryContractTests
+public abstract class ImageRepositoryContractTests : RepositoryContractTests
 {
     private async Task<(Repositories Repos, Category Category, Product Product)> ProductAsync(bool isActive = true, bool categoryVisible = true)
     {
@@ -18,10 +19,10 @@ public abstract class ProductImageRepositoryContractTests : RepositoryContractTe
         var (repos, _, product) = await ProductAsync();
 
         var image = await AddImageAsync(repos, product.ProductId, sortOrder: 3, isPrimary: true);
-        var loaded = await repos.ProductImages.GetAsync(product.ProductId, image.ProductImageId);
-        var file = await repos.ProductImages.GetFileAsync(product.ProductId, image.ProductImageId);
+        var loaded = await repos.Images.GetAsync(ImageOwner.Product(product.ProductId), image.ImageId);
+        var file = await repos.Images.GetFileAsync(ImageOwner.Product(product.ProductId), image.ImageId);
 
-        Assert.True(image.ProductImageId > 0);
+        Assert.True(image.ImageId > 0);
         Assert.Equal(("bild-3.jpg", "Bild 3", "image/jpeg", (long)ImageData.Length, 3, true),
             (loaded!.FileName, loaded.Description, loaded.ContentType, loaded.Length, loaded.SortOrder, loaded.IsPrimary));
         Assert.Equal("image/jpeg", file!.ContentType);
@@ -29,11 +30,28 @@ public abstract class ProductImageRepositoryContractTests : RepositoryContractTe
     }
 
     [Fact]
+    public async Task Add_WithoutOwner_Throws_AndNoOwnerFindsNothing()
+    {
+        // The database checks "exactly one owner" as well (CK_Images_ExactlyOneOwner); the repositories reject it
+        // before, with an exception that names the problem.
+        var (repos, _, product) = await ProductAsync();
+        var stored = await AddImageAsync(repos, product.ProductId, sortOrder: 0);
+        var withoutOwner = NewImage(product.ProductId, sortOrder: 1);
+        withoutOwner.ProductId = null;
+
+        await Assert.ThrowsAsync<ArgumentException>(() => repos.Images.AddAsync(withoutOwner, ImageData));
+        Assert.Null(await repos.Images.GetAsync(new ImageOwner(null), stored.ImageId));
+        Assert.Null(await repos.Images.GetFileAsync(new ImageOwner(null), stored.ImageId));
+        Assert.False(await repos.Images.DeleteAsync(new ImageOwner(null), stored.ImageId));
+        Assert.Equal([stored.ImageId], (await repos.Products.GetByIdAsync(product.ProductId))!.Images.Select(i => i.ImageId));
+    }
+
+    [Fact]
     public async Task Add_ToUnknownProduct_Throws()
     {
         var repos = CreateRepositories();
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => repos.ProductImages.AddAsync(NewImage(9999, 0), ImageData));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => repos.Images.AddAsync(NewImage(9999, 0), ImageData));
     }
 
     [Fact]
@@ -43,15 +61,15 @@ public abstract class ProductImageRepositoryContractTests : RepositoryContractTe
         var other = await AddProductAsync(repos, category.CategoryId, "Orangensaft");
         var image = await AddImageAsync(repos, product.ProductId, sortOrder: 0);
 
-        Assert.Null(await repos.ProductImages.GetAsync(other.ProductId, image.ProductImageId));
-        Assert.Null(await repos.ProductImages.GetFileAsync(other.ProductId, image.ProductImageId));
-        Assert.Null(await repos.ProductImages.GetVisibleFileAsync(other.ProductId, image.ProductImageId));
-        Assert.False(await repos.ProductImages.DeleteAsync(other.ProductId, image.ProductImageId));
-        Assert.False(await repos.ProductImages.UpdateAsync(new ProductImage
+        Assert.Null(await repos.Images.GetAsync(ImageOwner.Product(other.ProductId), image.ImageId));
+        Assert.Null(await repos.Images.GetFileAsync(ImageOwner.Product(other.ProductId), image.ImageId));
+        Assert.Null(await repos.Images.GetVisibleFileAsync(ImageOwner.Product(other.ProductId), image.ImageId));
+        Assert.False(await repos.Images.DeleteAsync(ImageOwner.Product(other.ProductId), image.ImageId));
+        Assert.False(await repos.Images.UpdateAsync(new Image
         {
-            ProductId = other.ProductId, ProductImageId = image.ProductImageId, Description = "X",
+            ProductId = other.ProductId, ImageId = image.ImageId, Description = "X",
         }));
-        Assert.NotNull(await repos.ProductImages.GetAsync(product.ProductId, image.ProductImageId));
+        Assert.NotNull(await repos.Images.GetAsync(ImageOwner.Product(product.ProductId), image.ImageId));
     }
 
     [Fact]
@@ -64,9 +82,9 @@ public abstract class ProductImageRepositoryContractTests : RepositoryContractTe
 
         var second = await AddImageAsync(repos, product.ProductId, sortOrder: 1, isPrimary: true);
 
-        Assert.False((await repos.ProductImages.GetAsync(product.ProductId, first.ProductImageId))!.IsPrimary);
-        Assert.True((await repos.ProductImages.GetAsync(product.ProductId, second.ProductImageId))!.IsPrimary);
-        Assert.True((await repos.ProductImages.GetAsync(other.ProductId, otherMain.ProductImageId))!.IsPrimary);
+        Assert.False((await repos.Images.GetAsync(ImageOwner.Product(product.ProductId), first.ImageId))!.IsPrimary);
+        Assert.True((await repos.Images.GetAsync(ImageOwner.Product(product.ProductId), second.ImageId))!.IsPrimary);
+        Assert.True((await repos.Images.GetAsync(ImageOwner.Product(other.ProductId), otherMain.ImageId))!.IsPrimary);
     }
 
     [Fact]
@@ -76,10 +94,10 @@ public abstract class ProductImageRepositoryContractTests : RepositoryContractTe
         var first = await AddImageAsync(repos, product.ProductId, sortOrder: 0, isPrimary: true);
         var second = await AddImageAsync(repos, product.ProductId, sortOrder: 1);
 
-        var updated = await repos.ProductImages.UpdateAsync(new ProductImage
+        var updated = await repos.Images.UpdateAsync(new Image
         {
             ProductId = product.ProductId,
-            ProductImageId = second.ProductImageId,
+            ImageId = second.ImageId,
             Description = null,
             SortOrder = 7,
             IsPrimary = true,
@@ -87,13 +105,13 @@ public abstract class ProductImageRepositoryContractTests : RepositoryContractTe
 
         var loaded = await repos.Products.GetByIdAsync(product.ProductId);
         Assert.True(updated);
-        Assert.Equal([first.ProductImageId, second.ProductImageId], loaded!.Images.Select(i => i.ProductImageId));
+        Assert.Equal([first.ImageId, second.ImageId], loaded!.Images.Select(i => i.ImageId));
         Assert.Equal([false, true], loaded.Images.Select(i => i.IsPrimary));
         Assert.Null(loaded.Images.Last().Description);
         Assert.Equal(7, loaded.Images.Last().SortOrder);
         // The file name and the data stay as they are.
         Assert.Equal("bild-1.jpg", loaded.Images.Last().FileName);
-        Assert.Equal(ImageData, (await repos.ProductImages.GetFileAsync(product.ProductId, second.ProductImageId))!.Data);
+        Assert.Equal(ImageData, (await repos.Images.GetFileAsync(ImageOwner.Product(product.ProductId), second.ImageId))!.Data);
     }
 
     [Fact]
@@ -102,13 +120,13 @@ public abstract class ProductImageRepositoryContractTests : RepositoryContractTe
         var (repos, _, product) = await ProductAsync();
         var main = await AddImageAsync(repos, product.ProductId, sortOrder: 0, isPrimary: true);
 
-        var updated = await repos.ProductImages.UpdateAsync(new ProductImage
+        var updated = await repos.Images.UpdateAsync(new Image
         {
-            ProductId = product.ProductId, ProductImageId = 9999, IsPrimary = true,
+            ProductId = product.ProductId, ImageId = 9999, IsPrimary = true,
         });
 
         Assert.False(updated);
-        Assert.True((await repos.ProductImages.GetAsync(product.ProductId, main.ProductImageId))!.IsPrimary);
+        Assert.True((await repos.Images.GetAsync(ImageOwner.Product(product.ProductId), main.ImageId))!.IsPrimary);
     }
 
     [Fact]
@@ -118,12 +136,12 @@ public abstract class ProductImageRepositoryContractTests : RepositoryContractTe
         var image = await AddImageAsync(repos, product.ProductId, sortOrder: 0);
         var kept = await AddImageAsync(repos, product.ProductId, sortOrder: 1);
 
-        Assert.True(await repos.ProductImages.DeleteAsync(product.ProductId, image.ProductImageId));
+        Assert.True(await repos.Images.DeleteAsync(ImageOwner.Product(product.ProductId), image.ImageId));
 
-        Assert.Null(await repos.ProductImages.GetAsync(product.ProductId, image.ProductImageId));
-        Assert.Null(await repos.ProductImages.GetFileAsync(product.ProductId, image.ProductImageId));
-        Assert.False(await repos.ProductImages.DeleteAsync(product.ProductId, image.ProductImageId));
-        Assert.Equal([kept.ProductImageId], (await repos.Products.GetByIdAsync(product.ProductId))!.Images.Select(i => i.ProductImageId));
+        Assert.Null(await repos.Images.GetAsync(ImageOwner.Product(product.ProductId), image.ImageId));
+        Assert.Null(await repos.Images.GetFileAsync(ImageOwner.Product(product.ProductId), image.ImageId));
+        Assert.False(await repos.Images.DeleteAsync(ImageOwner.Product(product.ProductId), image.ImageId));
+        Assert.Equal([kept.ImageId], (await repos.Products.GetByIdAsync(product.ProductId))!.Images.Select(i => i.ImageId));
     }
 
     [Fact]
@@ -132,7 +150,7 @@ public abstract class ProductImageRepositoryContractTests : RepositoryContractTe
         var (repos, _, product) = await ProductAsync();
         var image = await AddImageAsync(repos, product.ProductId, sortOrder: 0);
 
-        var file = await repos.ProductImages.GetVisibleFileAsync(product.ProductId, image.ProductImageId);
+        var file = await repos.Images.GetVisibleFileAsync(ImageOwner.Product(product.ProductId), image.ImageId);
 
         Assert.Equal(ImageData, file?.Data);
     }
@@ -146,8 +164,8 @@ public abstract class ProductImageRepositoryContractTests : RepositoryContractTe
         var (repos, _, product) = await ProductAsync(isActive, categoryVisible);
         var image = await AddImageAsync(repos, product.ProductId, sortOrder: 0);
 
-        Assert.Null(await repos.ProductImages.GetVisibleFileAsync(product.ProductId, image.ProductImageId));
-        Assert.NotNull(await repos.ProductImages.GetFileAsync(product.ProductId, image.ProductImageId));
+        Assert.Null(await repos.Images.GetVisibleFileAsync(ImageOwner.Product(product.ProductId), image.ImageId));
+        Assert.NotNull(await repos.Images.GetFileAsync(ImageOwner.Product(product.ProductId), image.ImageId));
     }
 
     [Fact]
@@ -155,8 +173,8 @@ public abstract class ProductImageRepositoryContractTests : RepositoryContractTe
     {
         var (repos, _, product) = await ProductAsync();
 
-        Assert.Null(await repos.ProductImages.GetAsync(product.ProductId, 9999));
-        Assert.Null(await repos.ProductImages.GetFileAsync(9999, 9999));
-        Assert.Null(await repos.ProductImages.GetVisibleFileAsync(product.ProductId, 9999));
+        Assert.Null(await repos.Images.GetAsync(ImageOwner.Product(product.ProductId), 9999));
+        Assert.Null(await repos.Images.GetFileAsync(ImageOwner.Product(9999), 9999));
+        Assert.Null(await repos.Images.GetVisibleFileAsync(ImageOwner.Product(product.ProductId), 9999));
     }
 }

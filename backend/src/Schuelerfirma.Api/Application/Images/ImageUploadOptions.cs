@@ -17,9 +17,9 @@ public sealed class ImageUploadOptions : IValidatableObject
 
     /// <summary>
     /// Largest file per image in bytes, for the upload and for the processed image that is stored. At most
-    /// <see cref="ProductImageContent.DataMaxLength"/> (column size). Larger uploads are answered with <c>413</c>.
+    /// <see cref="ImageContent.DataMaxLength"/> (column size). Larger uploads are answered with <c>413</c>.
     /// </summary>
-    [Range(1, ProductImageContent.DataMaxLength, ErrorMessage = "Images:MaxFileSizeBytes must be between 1 and 16777215.")]
+    [Range(1, ImageContent.DataMaxLength, ErrorMessage = "Images:MaxFileSizeBytes must be between 1 and 16777215.")]
     public int MaxFileSizeBytes { get; set; } = 10 * 1024 * 1024;
 
     /// <summary>Largest request body of an upload in bytes (all files together). Larger requests get <c>413</c>.</summary>

@@ -15,7 +15,7 @@ internal static class InMemoryRepositories
             new InMemoryUserSessionRepository(store),
             new InMemoryCategoryRepository(store),
             new InMemoryProductRepository(store),
-            new InMemoryProductImageRepository(store));
+            new InMemoryImageRepository(store));
     }
 }
 
@@ -44,7 +44,7 @@ public class InMemoryProductRepositoryTests : ProductRepositoryContractTests
     protected override Repositories CreateRepositories() => InMemoryRepositories.Create();
 }
 
-public class InMemoryProductImageRepositoryTests : ProductImageRepositoryContractTests
+public class InMemoryImageRepositoryTests : ImageRepositoryContractTests
 {
     protected override Repositories CreateRepositories() => InMemoryRepositories.Create();
 }

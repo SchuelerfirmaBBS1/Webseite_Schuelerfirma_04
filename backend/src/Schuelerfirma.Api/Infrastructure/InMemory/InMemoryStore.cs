@@ -23,16 +23,16 @@ public sealed class InMemoryStore
 
     internal List<Product> Products { get; } = [];
 
-    internal List<ProductImage> ProductImages { get; } = [];
+    internal List<Image> Images { get; } = [];
 
-    /// <summary>Image data by <see cref="ProductImage.ProductImageId"/>; removed together with the image.</summary>
-    internal Dictionary<int, ProductImageContent> ProductImageContents { get; } = [];
+    /// <summary>Image data by <see cref="Image.ImageId"/>; removed together with the image.</summary>
+    internal Dictionary<int, ImageContent> ImageContents { get; } = [];
 
     internal int LastCategoryId { get; set; }
 
     internal int LastProductId { get; set; }
 
-    internal int LastProductImageId { get; set; }
+    internal int LastImageId { get; set; }
 
     internal static bool SameText(string a, string b) => string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
 
@@ -70,9 +70,9 @@ public sealed class InMemoryStore
         IsVisible = category.IsVisible,
     };
 
-    internal static ProductImage Copy(ProductImage image) => new()
+    internal static Image Copy(Image image) => new()
     {
-        ProductImageId = image.ProductImageId,
+        ImageId = image.ImageId,
         ProductId = image.ProductId,
         FileName = image.FileName,
         Description = image.Description,
@@ -98,10 +98,10 @@ public sealed class InMemoryStore
         IsActive = stored.IsActive,
         Images =
         [
-            .. ProductImages
+            .. Images
                 .Where(i => i.ProductId == stored.ProductId)
                 .OrderBy(i => i.SortOrder)
-                .ThenBy(i => i.ProductImageId)
+                .ThenBy(i => i.ImageId)
                 .Select(Copy),
         ],
     };

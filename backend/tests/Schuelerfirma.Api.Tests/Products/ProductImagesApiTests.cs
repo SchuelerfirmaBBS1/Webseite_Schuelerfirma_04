@@ -83,7 +83,7 @@ public class ProductImagesApiTests : IDisposable
     {
         var admin = await AdminAsync();
         var productId = await CreateProductAsync(admin);
-        var imageId = (await UploadOkAsync(admin, productId, Jpeg()))[0].GetProperty("productImageId").GetInt32();
+        var imageId = (await UploadOkAsync(admin, productId, Jpeg()))[0].GetProperty("imageId").GetInt32();
         var anonymous = factory.CreateHttpsClient();
 
         Assert.Equal(HttpStatusCode.OK, (await anonymous.GetAsync(PublicUrl(productId, imageId))).StatusCode);
@@ -96,7 +96,7 @@ public class ProductImagesApiTests : IDisposable
     {
         var admin = await AdminAsync();
         var productId = await CreateProductAsync(admin);
-        var imageId = (await UploadOkAsync(admin, productId, Jpeg()))[0].GetProperty("productImageId").GetInt32();
+        var imageId = (await UploadOkAsync(admin, productId, Jpeg()))[0].GetProperty("imageId").GetInt32();
         var member = await MemberAsync();
 
         Assert.Equal(HttpStatusCode.OK, (await member.GetAsync(AdminUrl(productId, imageId))).StatusCode);
@@ -115,7 +115,7 @@ public class ProductImagesApiTests : IDisposable
 
         var created = await UploadOkAsync(admin, productId, ("urlaub.jpg", withGps, "image/jpeg"));
         var image = created.EnumerateArray().Single();
-        var imageId = image.GetProperty("productImageId").GetInt32();
+        var imageId = image.GetProperty("imageId").GetInt32();
         var file = await factory.CreateHttpsClient().GetAsync(PublicUrl(productId, imageId));
         var bytes = await file.Content.ReadAsByteArrayAsync();
 
@@ -138,7 +138,7 @@ public class ProductImagesApiTests : IDisposable
     {
         var admin = await AdminAsync();
         var productId = await CreateProductAsync(admin);
-        var imageId = (await UploadOkAsync(admin, productId, Jpeg()))[0].GetProperty("productImageId").GetInt32();
+        var imageId = (await UploadOkAsync(admin, productId, Jpeg()))[0].GetProperty("imageId").GetInt32();
 
         var product = await factory.CreateHttpsClient().GetFromJsonAsync<JsonElement>($"/api/public/products/{productId}");
         var image = product.GetProperty("images").EnumerateArray().Single();
@@ -172,8 +172,8 @@ public class ProductImagesApiTests : IDisposable
         var admin = await AdminAsync();
         var inactive = await CreateProductAsync(admin, isActive: false, name: "Inaktiv");
         var inHidden = await CreateProductAsync(admin, categoryVisible: false, name: "Versteckt");
-        var inactiveImage = (await UploadOkAsync(admin, inactive, Jpeg()))[0].GetProperty("productImageId").GetInt32();
-        var hiddenImage = (await UploadOkAsync(admin, inHidden, Jpeg()))[0].GetProperty("productImageId").GetInt32();
+        var inactiveImage = (await UploadOkAsync(admin, inactive, Jpeg()))[0].GetProperty("imageId").GetInt32();
+        var hiddenImage = (await UploadOkAsync(admin, inHidden, Jpeg()))[0].GetProperty("imageId").GetInt32();
         var anonymous = factory.CreateHttpsClient();
 
         var inactiveFile = await anonymous.GetAsync(PublicUrl(inactive, inactiveImage));
@@ -192,7 +192,7 @@ public class ProductImagesApiTests : IDisposable
         var admin = await AdminAsync();
         var hidden = await CreateProductAsync(admin, isActive: false, name: "Versteckt");
         var visible = await CreateProductAsync(admin, name: "Sichtbar");
-        var hiddenImage = (await UploadOkAsync(admin, hidden, Jpeg()))[0].GetProperty("productImageId").GetInt32();
+        var hiddenImage = (await UploadOkAsync(admin, hidden, Jpeg()))[0].GetProperty("imageId").GetInt32();
         var anonymous = factory.CreateHttpsClient();
 
         // The image of the hidden product must not be reachable through the id of a visible one.
@@ -261,7 +261,7 @@ public class ProductImagesApiTests : IDisposable
         var admin = await AdminAsync();
         var productId = await CreateProductAsync(admin);
 
-        var imageId = (await UploadOkAsync(admin, productId, Jpeg("log.jpg")))[0].GetProperty("productImageId").GetInt32();
+        var imageId = (await UploadOkAsync(admin, productId, Jpeg("log.jpg")))[0].GetProperty("imageId").GetInt32();
 
         Assert.Contains(factory.Logs.Entries, e => e.Message.Contains($"uploaded image {imageId} (log.jpg") && e.Message.StartsWith("User "));
     }
@@ -274,7 +274,7 @@ public class ProductImagesApiTests : IDisposable
         var admin = await AdminAsync();
         var productId = await CreateProductAsync(admin);
         var images = await UploadOkAsync(admin, productId, Jpeg("a.jpg"), Jpeg("b.jpg"));
-        var secondId = images[1].GetProperty("productImageId").GetInt32();
+        var secondId = images[1].GetProperty("imageId").GetInt32();
 
         var response = await admin.PutAsJsonAsync(
             $"/api/admin/products/{productId}/images/{secondId}", new { description = "  Flasche von vorne  ", sortOrder = 5, isPrimary = true });
@@ -292,7 +292,7 @@ public class ProductImagesApiTests : IDisposable
     {
         var admin = await AdminAsync();
         var productId = await CreateProductAsync(admin);
-        var imageId = (await UploadOkAsync(admin, productId, Jpeg()))[0].GetProperty("productImageId").GetInt32();
+        var imageId = (await UploadOkAsync(admin, productId, Jpeg()))[0].GetProperty("imageId").GetInt32();
         var url = $"/api/admin/products/{productId}/images/{imageId}";
 
         var tooLong = await admin.PutAsJsonAsync(url, new { description = new string('a', 501), sortOrder = 0, isPrimary = true });
@@ -312,8 +312,8 @@ public class ProductImagesApiTests : IDisposable
         var admin = await AdminAsync();
         var productId = await CreateProductAsync(admin);
         var images = await UploadOkAsync(admin, productId, Jpeg("a.jpg"), Jpeg("b.jpg"));
-        var firstId = images[0].GetProperty("productImageId").GetInt32();
-        var secondId = images[1].GetProperty("productImageId").GetInt32();
+        var firstId = images[0].GetProperty("imageId").GetInt32();
+        var secondId = images[1].GetProperty("imageId").GetInt32();
         var anonymous = factory.CreateHttpsClient();
 
         Assert.Equal(HttpStatusCode.NoContent, (await admin.DeleteAsync($"/api/admin/products/{productId}/images/{firstId}")).StatusCode);

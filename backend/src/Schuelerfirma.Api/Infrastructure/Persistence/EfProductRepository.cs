@@ -124,7 +124,7 @@ public sealed class EfProductRepository(IDbContextFactory<SchuelerfirmaDbContext
     {
         await using var db = await contextFactory.CreateDbContextAsync(cancellationToken);
 
-        // The foreign key of ProductImages deletes the image rows (ON DELETE CASCADE).
+        // The foreign key of Images deletes the image rows (ON DELETE CASCADE).
         var deleted = await db.Products
             .Where(p => p.ProductId == productId)
             .ExecuteDeleteAsync(cancellationToken);
@@ -136,7 +136,7 @@ public sealed class EfProductRepository(IDbContextFactory<SchuelerfirmaDbContext
             .AsNoTracking()
             .AsSplitQuery()
             .Include(p => p.Category)
-            .Include(p => p.Images.OrderBy(i => i.SortOrder).ThenBy(i => i.ProductImageId));
+            .Include(p => p.Images.OrderBy(i => i.SortOrder).ThenBy(i => i.ImageId));
 
     private static IQueryable<Product> Visible(IQueryable<Product> products) =>
         products.Where(p => p.IsActive && p.Category!.IsVisible);

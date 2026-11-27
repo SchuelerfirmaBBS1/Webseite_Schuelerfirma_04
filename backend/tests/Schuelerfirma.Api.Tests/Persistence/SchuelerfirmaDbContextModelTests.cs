@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Schuelerfirma.Api.Domain;
 using Schuelerfirma.Api.Infrastructure.Persistence;
+using Schuelerfirma.Api.Infrastructure.Persistence.Configurations;
 
 namespace Schuelerfirma.Api.Tests.Infrastructure.Persistence;
 
@@ -32,8 +33,8 @@ public sealed class SchuelerfirmaDbContextModelTests
         Assert.NotNull(model.FindEntityType(typeof(UserSession)));
         Assert.NotNull(model.FindEntityType(typeof(Category)));
         Assert.NotNull(model.FindEntityType(typeof(Product)));
-        Assert.NotNull(model.FindEntityType(typeof(ProductImage)));
-        Assert.NotNull(model.FindEntityType(typeof(ProductImageContent)));
+        Assert.NotNull(model.FindEntityType(typeof(Image)));
+        Assert.NotNull(model.FindEntityType(typeof(ImageContent)));
     }
 
     [Fact]
@@ -49,46 +50,49 @@ public sealed class SchuelerfirmaDbContextModelTests
     }
 
     [Fact]
-    public void ProductImage_is_deleted_with_product()
+    public void Image_has_an_optional_product_and_is_deleted_with_it()
     {
+        // Optional because an image can belong to another owner (events, #14); a check constraint requires one.
         using var context = CreateContext();
-        var foreignKey = GetModel(context).FindEntityType(typeof(ProductImage))!
-            .GetForeignKeys()
-            .Single(key => key.PrincipalEntityType.ClrType == typeof(Product));
+        var image = GetModel(context).FindEntityType(typeof(Image))!;
+        var foreignKey = image.GetForeignKeys().Single(key => key.PrincipalEntityType.ClrType == typeof(Product));
 
+        Assert.Equal("Images", image.GetTableName());
+        Assert.Contains(image.GetCheckConstraints(), c => c.Name == ImageConfiguration.ExactlyOneOwnerConstraint);
+        Assert.False(foreignKey.IsRequired);
         Assert.Equal(DeleteBehavior.Cascade, foreignKey.DeleteBehavior);
     }
 
     [Fact]
-    public void ProductImageContent_has_its_own_table_and_is_deleted_with_the_image()
+    public void ImageContent_has_its_own_table_and_is_deleted_with_the_image()
     {
         using var context = CreateContext();
-        var entity = GetModel(context).FindEntityType(typeof(ProductImageContent))!;
+        var entity = GetModel(context).FindEntityType(typeof(ImageContent))!;
         var foreignKey = entity.GetForeignKeys().Single();
 
-        Assert.Equal("ProductImageContents", entity.GetTableName());
-        Assert.Equal(typeof(ProductImage), foreignKey.PrincipalEntityType.ClrType);
+        Assert.Equal("ImageContents", entity.GetTableName());
+        Assert.Equal(typeof(Image), foreignKey.PrincipalEntityType.ClrType);
         Assert.True(foreignKey.IsUnique);
         Assert.Equal(DeleteBehavior.Cascade, foreignKey.DeleteBehavior);
         Assert.Equal(entity.FindPrimaryKey()!.Properties, foreignKey.Properties);
     }
 
     [Fact]
-    public void ProductImage_has_no_navigation_to_its_data()
+    public void Image_has_no_navigation_to_its_data()
     {
         // Products are loaded with their images in every list; a navigation would invite loading the data too.
         using var context = CreateContext();
-        var image = GetModel(context).FindEntityType(typeof(ProductImage))!;
+        var image = GetModel(context).FindEntityType(typeof(Image))!;
 
-        Assert.DoesNotContain(image.GetNavigations(), navigation => navigation.TargetEntityType.ClrType == typeof(ProductImageContent));
+        Assert.DoesNotContain(image.GetNavigations(), navigation => navigation.TargetEntityType.ClrType == typeof(ImageContent));
     }
 
     [Fact]
-    public void ProductImageContent_data_is_a_mediumblob()
+    public void ImageContent_data_is_a_mediumblob()
     {
         using var context = CreateContext();
-        var data = GetModel(context).FindEntityType(typeof(ProductImageContent))!
-            .FindProperty(nameof(ProductImageContent.Data))!;
+        var data = GetModel(context).FindEntityType(typeof(ImageContent))!
+            .FindProperty(nameof(ImageContent.Data))!;
 
         Assert.Equal("mediumblob", data.GetColumnType());
         Assert.False(data.IsNullable);
