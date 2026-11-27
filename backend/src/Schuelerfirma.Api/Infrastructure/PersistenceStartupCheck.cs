@@ -19,7 +19,11 @@ public static class PersistenceStartupCheck
     /// <exception cref="InvalidOperationException">A repository is not registered.</exception>
     public static void EnsurePersistenceRegistered(this IServiceProvider services)
     {
-        Type[] required = [typeof(IUserRepository), typeof(IRoleRepository), typeof(IUserSessionRepository)];
+        Type[] required =
+        [
+            typeof(IUserRepository), typeof(IRoleRepository), typeof(IUserSessionRepository),
+            typeof(ICategoryRepository), typeof(IProductRepository),
+        ];
 
         var registrations = services.GetRequiredService<IServiceProviderIsService>();
         var missing = required.Where(type => !registrations.IsService(type)).Select(type => type.Name).ToList();

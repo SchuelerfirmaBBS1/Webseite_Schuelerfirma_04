@@ -19,6 +19,8 @@ public static class InMemoryPersistenceExtensions
         services.TryAddSingleton<IUserRepository, InMemoryUserRepository>();
         services.TryAddSingleton<IRoleRepository, InMemoryRoleRepository>();
         services.TryAddSingleton<IUserSessionRepository, InMemoryUserSessionRepository>();
+        services.TryAddSingleton<ICategoryRepository, InMemoryCategoryRepository>();
+        services.TryAddSingleton<IProductRepository, InMemoryProductRepository>();
         return services;
     }
 }

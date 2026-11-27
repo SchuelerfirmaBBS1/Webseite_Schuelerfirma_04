@@ -1,3 +1,4 @@
+using Schuelerfirma.Api.Application.Products;
 using Schuelerfirma.Api.Application.Users;
 using Schuelerfirma.Api.Infrastructure;
 using Schuelerfirma.Api.Infrastructure.Auth;
@@ -16,6 +17,7 @@ builder.Services.AddPasswordSecurity();
 builder.Services.AddSessionAuthentication();
 builder.Services.AddRolePermissions();
 builder.Services.AddScoped<UserAdministrationService>();
+builder.Services.AddScoped<ProductCatalogService>();
 builder.Services.AddCsrfProtection();
 builder.Services.AddClientRateLimiting();
 

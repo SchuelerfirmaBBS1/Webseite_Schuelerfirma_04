@@ -29,6 +29,18 @@ public sealed class SchuelerfirmaDbContext : DbContext
     /// <summary>Server-side login sessions.</summary>
     public DbSet<UserSession> UserSessions => Set<UserSession>();
 
+    /// <summary>Product categories.</summary>
+    public DbSet<Category> Categories => Set<Category>();
+
+    /// <summary>Products of the student company.</summary>
+    public DbSet<Product> Products => Set<Product>();
+
+    /// <summary>Images of the products.</summary>
+    public DbSet<ProductImage> ProductImages => Set<ProductImage>();
+
+    /// <summary>The stored image data of the product images.</summary>
+    public DbSet<ProductImageContent> ProductImageContents => Set<ProductImageContent>();
+
     /// <inheritdoc />
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {

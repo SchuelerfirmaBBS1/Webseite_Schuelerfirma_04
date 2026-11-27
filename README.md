@@ -185,6 +185,32 @@ Alle Endpunkte verlangen die Berechtigung `users.manage` (Standard: nur Admin). 
 - `GET /api/admin/roles` → Rollen mit `roleId`, `name` und `permissions` (für Auswahllisten).
 - Fehler: `400` bei ungültigen Eingaben (Meldung am Feld), `404` bei unbekannter ID, `409` mit deutscher Meldung in `detail` bei vergebenem Benutzernamen oder vergebener E-Mail und bei den Schutzregeln: Niemand kann das eigene Konto deaktivieren, die eigene Rolle ändern oder das eigene Passwort hier zurücksetzen (dafür gibt es `/api/auth/change-password`), und der letzte aktive Benutzer mit `users.manage` bleibt erhalten.
 
+### Produkte und Kategorien
+
+Besucher sehen die Produkte ohne Anmeldung (Produktseite #23). Das Team pflegt Produkte und Kategorien im Verwaltungsbereich (#11). Die Bilder werden in der Datenbank gespeichert (Tabelle `ProductImageContents`, siehe `documentation/Datenbank-Implementierung.md`). Die Bild-Endpunkte (Upload, Bearbeiten, Löschen, Auslieferung) folgen mit #13. Bis dahin ist die Liste `images` immer leer.
+
+**Öffentlich** (anonym):
+
+- `GET /api/public/products` (optional `?categoryId=`) und `GET /api/public/products/{id}` → `id`, `categoryId`, `categoryName`, `name`, `description`, `price`, `images` (`url`, `description`, `isPrimary`, sortiert). Liste nach Name sortiert.
+- `GET /api/public/categories` → `id`, `name`, nur sichtbare Kategorien, nach Name sortiert.
+- Regeln, alle serverseitig in der Repository-Abfrage: Es erscheinen nur aktive Produkte aus sichtbaren Kategorien. Ausgeblendete und unbekannte Produkte antworten gleich mit `404`. Bei ausgeblendetem Preis steht in der Antwort `"price": null`; der echte Preis verlässt den Server nicht. Interne Felder wie `isActive` oder `isPriceVisible` sind nicht enthalten.
+
+**Verwaltung:**
+
+| Endpunkt | Berechtigung |
+|---|---|
+| `GET /api/admin/products` (optional `?categoryId=`), `GET /api/admin/products/{id}`, `GET /api/admin/categories` | `products.read` |
+| `POST /api/admin/products`, `PUT /api/admin/products/{id}`, `DELETE /api/admin/products/{id}` | `products.manage` |
+| `POST /api/admin/categories`, `PUT /api/admin/categories/{id}`, `DELETE /api/admin/categories/{id}` | `products.manage` |
+| `PUT /api/admin/products/{id}/price-visibility` mit `{ "isPriceVisible": false }` → `204` | `products.toggle-price-visibility` |
+
+- Produkt anlegen: `{ "categoryId": 1, "name": "...", "description": "...", "price": 2.5, "isPriceVisible": true, "isActive": true }`. Ohne die beiden Schalter ist ein neues Produkt aktiv und zeigt seinen Preis. `PUT` ersetzt alle Felder; dort sind beide Schalter Pflicht.
+- Kategorie anlegen oder ändern: `{ "name": "...", "isVisible": true }`. Eine ausgeblendete Kategorie blendet auch alle ihre Produkte aus.
+- Die Rolle User hat standardmäßig `products.read` und `products.toggle-price-visibility`: Sie darf also nur den Preis ein- und ausblenden, sonst nichts ändern.
+- Validierung: Name Pflicht (Produkt max. 200, Kategorie max. 100 Zeichen), Beschreibung max. 4000 Zeichen, Preis optional, ≥ 0 und höchstens zwei Nachkommastellen, Kategorie muss existieren. Texte sind reiner Text und werden unverändert gespeichert; das Frontend gibt sie als Text aus (nie `v-html`).
+- Fehler: `400` bei ungültigen Eingaben (Meldung am Feld, z. B. `CategoryId` bei unbekannter Kategorie), `404` bei unbekannter ID, `409` bei doppeltem Kategorienamen (Groß-/Kleinschreibung zählt nicht) und beim Löschen einer Kategorie, die noch Produkte enthält.
+- Löschen eines Produkts löscht auch seine Bilder samt Bilddaten. Jede Änderung wird mit dem handelnden Benutzer geloggt.
+
 ### CSRF-Schutz: Hinweise fürs Frontend
 
 Jede schreibende Anfrage (POST, PUT, PATCH, DELETE) braucht ein CSRF-Token – auch der Login und öffentliche Formulare wie das Kontaktformular. Ohne gültiges Token antwortet die API mit `400` und dem Titel „Sicherheitstoken fehlt oder ist ungültig“.

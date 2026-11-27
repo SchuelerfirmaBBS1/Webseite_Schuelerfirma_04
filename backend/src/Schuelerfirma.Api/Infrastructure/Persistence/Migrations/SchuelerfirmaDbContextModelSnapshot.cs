@@ -23,6 +23,127 @@ namespace Schuelerfirma.Api.Infrastructure.Persistence.Migrations
             MySqlModelBuilderExtensions.HasCharSet(modelBuilder, "utf8mb4");
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
+            modelBuilder.Entity("Schuelerfirma.Api.Domain.Category", b =>
+                {
+                    b.Property<int>("CategoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("CategoryId"));
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .UseCollation("utf8mb4_0900_as_ci");
+
+                    b.HasKey("CategoryId");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Categories_Name");
+
+                    b.ToTable("Categories", (string)null);
+                });
+
+            modelBuilder.Entity("Schuelerfirma.Api.Domain.Product", b =>
+                {
+                    b.Property<int>("ProductId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("ProductId"));
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(4000)
+                        .HasColumnType("varchar(4000)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsPriceVisible")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)")
+                        .UseCollation("utf8mb4_0900_as_ci");
+
+                    b.Property<decimal?>("Price")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
+
+                    b.HasKey("ProductId");
+
+                    b.HasIndex("CategoryId")
+                        .HasDatabaseName("IX_Products_CategoryId");
+
+                    b.ToTable("Products", (string)null);
+                });
+
+            modelBuilder.Entity("Schuelerfirma.Api.Domain.ProductImage", b =>
+                {
+                    b.Property<int>("ProductImageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("ProductImageId"));
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<bool>("IsPrimary")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<long>("Length")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.HasKey("ProductImageId");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("IX_ProductImages_ProductId");
+
+                    b.ToTable("ProductImages", (string)null);
+                });
+
+            modelBuilder.Entity("Schuelerfirma.Api.Domain.ProductImageContent", b =>
+                {
+                    b.Property<int>("ProductImageId")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("Data")
+                        .IsRequired()
+                        .HasColumnType("mediumblob");
+
+                    b.HasKey("ProductImageId");
+
+                    b.ToTable("ProductImageContents", (string)null);
+                });
+
             modelBuilder.Entity("Schuelerfirma.Api.Domain.Role", b =>
                 {
                     b.Property<int>("RoleId")
@@ -154,6 +275,37 @@ namespace Schuelerfirma.Api.Infrastructure.Persistence.Migrations
                     b.ToTable("UserSessions", (string)null);
                 });
 
+            modelBuilder.Entity("Schuelerfirma.Api.Domain.Product", b =>
+                {
+                    b.HasOne("Schuelerfirma.Api.Domain.Category", "Category")
+                        .WithMany("Products")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("Schuelerfirma.Api.Domain.ProductImage", b =>
+                {
+                    b.HasOne("Schuelerfirma.Api.Domain.Product", "Product")
+                        .WithMany("Images")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("Schuelerfirma.Api.Domain.ProductImageContent", b =>
+                {
+                    b.HasOne("Schuelerfirma.Api.Domain.ProductImage", null)
+                        .WithOne()
+                        .HasForeignKey("Schuelerfirma.Api.Domain.ProductImageContent", "ProductImageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Schuelerfirma.Api.Domain.User", b =>
                 {
                     b.HasOne("Schuelerfirma.Api.Domain.Role", "Role")
@@ -174,6 +326,16 @@ namespace Schuelerfirma.Api.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Schuelerfirma.Api.Domain.Category", b =>
+                {
+                    b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("Schuelerfirma.Api.Domain.Product", b =>
+                {
+                    b.Navigation("Images");
                 });
 
             modelBuilder.Entity("Schuelerfirma.Api.Domain.Role", b =>

@@ -52,13 +52,19 @@ class ProductImage {
     +string FileName
     +string? Description
     +string ContentType
-    +string FilePath
+    +long Length
     +int SortOrder
     +bool IsPrimary
 }
 
 Category "1" --> "*" Product
+class ProductImageContent {
+    +int ProductImageId
+    +byte[] Data
+}
+
 Product "1" --> "*" ProductImage
+ProductImage "1" --> "1" ProductImageContent
 
 class Event {
     +int EventId
@@ -75,11 +81,17 @@ class EventImage {
     +string FileName
     +string? Description
     +string ContentType
-    +string FilePath
+    +long Length
     +int SortOrder
 }
 
+class EventImageContent {
+    +int EventImageId
+    +byte[] Data
+}
+
 Event "1" --> "*" EventImage
+EventImage "1" --> "1" EventImageContent
 
 class ContactRequest {
     +int ContactRequestId

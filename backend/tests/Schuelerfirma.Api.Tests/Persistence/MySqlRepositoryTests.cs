@@ -3,6 +3,7 @@ using DotNet.Testcontainers.Configurations;
 using DotNet.Testcontainers.Containers;
 using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
+using Schuelerfirma.Api.Domain;
 using Schuelerfirma.Api.Infrastructure.Persistence;
 using Testcontainers.MySql;
 using Xunit;
@@ -49,13 +50,53 @@ public sealed class MySqlContainerFixture : IAsyncLifetime
         await using var db = await ContextFactory.CreateDbContextAsync();
         await db.UserSessions.ExecuteDeleteAsync();
         await db.Users.ExecuteDeleteAsync();
+        await db.ProductImageContents.ExecuteDeleteAsync();
+        await db.ProductImages.ExecuteDeleteAsync();
+        await db.Products.ExecuteDeleteAsync();
+        await db.Categories.ExecuteDeleteAsync();
     }
 
     public Repositories CreateRepositories() =>
         new(
             new EfUserRepository(ContextFactory),
             new EfRoleRepository(ContextFactory),
-            new EfUserSessionRepository(ContextFactory));
+            new EfUserSessionRepository(ContextFactory),
+            new EfCategoryRepository(ContextFactory),
+            new EfProductRepository(ContextFactory),
+            AddProductImageAsync,
+            GetProductImageDataAsync);
+
+    // Record and data in one transaction, as the upload (#13) will do it.
+    private async Task AddProductImageAsync(ProductImage image, byte[] data)
+    {
+        await using var db = await ContextFactory.CreateDbContextAsync();
+        await using var transaction = await db.Database.BeginTransactionAsync();
+        var entity = new ProductImage
+        {
+            ProductId = image.ProductId,
+            FileName = image.FileName,
+            Description = image.Description,
+            ContentType = image.ContentType,
+            Length = image.Length,
+            SortOrder = image.SortOrder,
+            IsPrimary = image.IsPrimary,
+        };
+        db.ProductImages.Add(entity);
+        await db.SaveChangesAsync();
+        db.ProductImageContents.Add(new ProductImageContent { ProductImageId = entity.ProductImageId, Data = data });
+        await db.SaveChangesAsync();
+        await transaction.CommitAsync();
+        image.ProductImageId = entity.ProductImageId;
+    }
+
+    private async Task<byte[]?> GetProductImageDataAsync(int imageId)
+    {
+        await using var db = await ContextFactory.CreateDbContextAsync();
+        return await db.ProductImageContents
+            .Where(content => content.ProductImageId == imageId)
+            .Select(content => content.Data)
+            .SingleOrDefaultAsync();
+    }
 
     public async Task DisposeAsync()
     {
@@ -116,6 +157,26 @@ public sealed class MySqlUserRepositoryTests(MySqlContainerFixture fixture)
 [Collection(MySqlCollection.Name)]
 public sealed class MySqlUserSessionRepositoryTests(MySqlContainerFixture fixture)
     : UserSessionRepositoryContractTests, IAsyncLifetime
+{
+    public Task InitializeAsync() => fixture.ResetDatabaseAsync();
+    public Task DisposeAsync() => Task.CompletedTask;
+
+    protected override Repositories CreateRepositories() => fixture.CreateRepositories();
+}
+
+[Collection(MySqlCollection.Name)]
+public sealed class MySqlCategoryRepositoryTests(MySqlContainerFixture fixture)
+    : CategoryRepositoryContractTests, IAsyncLifetime
+{
+    public Task InitializeAsync() => fixture.ResetDatabaseAsync();
+    public Task DisposeAsync() => Task.CompletedTask;
+
+    protected override Repositories CreateRepositories() => fixture.CreateRepositories();
+}
+
+[Collection(MySqlCollection.Name)]
+public sealed class MySqlProductRepositoryTests(MySqlContainerFixture fixture)
+    : ProductRepositoryContractTests, IAsyncLifetime
 {
     public Task InitializeAsync() => fixture.ResetDatabaseAsync();
     public Task DisposeAsync() => Task.CompletedTask;
