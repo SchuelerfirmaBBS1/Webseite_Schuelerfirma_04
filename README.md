@@ -133,6 +133,11 @@ Ausführliche Anleitung mit Testfällen und Fehlersuche: [documentation/API-Test
 | `RateLimiting:Auth:PermitLimit` / `:Window` | 5 / `00:01:00` | Login-Versuche pro Client-IP und Zeitfenster |
 | `RateLimiting:Contact:PermitLimit` / `:Window` | 10 / `00:10:00` | Absendungen öffentlicher Formulare (Kontaktformular) pro Client-IP und Zeitfenster; bewusst großzügig, weil sich auf der Messe viele Besucher eine IP teilen |
 | `Authorization:RolePermissions` | siehe unten | Welche Rolle welche Berechtigungen hat |
+| `Images:MaxFileSizeBytes` | 10485760 (10 MiB) | Größte Bilddatei beim Upload und nach der Verarbeitung (höchstens 16777215, Größe der Spalte) |
+| `Images:MaxRequestSizeBytes` | 31457280 (30 MiB) | Größte Upload-Anfrage (alle Dateien zusammen); mindestens `MaxFileSizeBytes`. Der Proxy (`MAX_REQUEST_BODY` in `deploy/.env`) muss etwas mehr erlauben. |
+| `Images:MaxFilesPerRequest` | 10 | Höchstzahl Dateien pro Upload |
+| `Images:MaxDimension` | 2000 | Längste Kante eines gespeicherten Bilds in Pixeln; größere Bilder werden verkleinert |
+| `Images:MaxSourcePixels` | 40000000 | Höchstzahl Pixel (Breite × Höhe) eines hochgeladenen Bilds; schützt vor „Dekompressionsbomben“ |
 
 ### Login-API
 
@@ -187,12 +192,13 @@ Alle Endpunkte verlangen die Berechtigung `users.manage` (Standard: nur Admin). 
 
 ### Produkte und Kategorien
 
-Besucher sehen die Produkte ohne Anmeldung (Produktseite #23). Das Team pflegt Produkte und Kategorien im Verwaltungsbereich (#11). Die Bilder werden in der Datenbank gespeichert (Tabelle `ProductImageContents`, siehe `documentation/Datenbank-Implementierung.md`). Die Bild-Endpunkte (Upload, Bearbeiten, Löschen, Auslieferung) folgen mit #13. Bis dahin ist die Liste `images` immer leer.
+Besucher sehen die Produkte ohne Anmeldung (Produktseite #23). Das Team pflegt Produkte und Kategorien im Verwaltungsbereich (#11). Produktbilder liegen in der Datenbank (Tabelle `ProductImageContents`, siehe `documentation/Datenbank-Implementierung.md` und „Bilder“ unten).
 
 **Öffentlich** (anonym):
 
 - `GET /api/public/products` (optional `?categoryId=`) und `GET /api/public/products/{id}` → `id`, `categoryId`, `categoryName`, `name`, `description`, `price`, `images` (`url`, `description`, `isPrimary`, sortiert). Liste nach Name sortiert.
 - `GET /api/public/categories` → `id`, `name`, nur sichtbare Kategorien, nach Name sortiert.
+- `GET /api/public/products/{id}/images/{imageId}/file` → die Bilddatei (`url` in `images`), mit `Cache-Control: public, max-age=31536000, immutable`. Nur für sichtbare Produkte; sonst, bei unbekannter ID oder bei einem Bild eines anderen Produkts `404`.
 - Regeln, alle serverseitig in der Repository-Abfrage: Es erscheinen nur aktive Produkte aus sichtbaren Kategorien. Ausgeblendete und unbekannte Produkte antworten gleich mit `404`. Bei ausgeblendetem Preis steht in der Antwort `"price": null`; der echte Preis verlässt den Server nicht. Interne Felder wie `isActive` oder `isPriceVisible` sind nicht enthalten.
 
 **Verwaltung:**
@@ -203,13 +209,27 @@ Besucher sehen die Produkte ohne Anmeldung (Produktseite #23). Das Team pflegt P
 | `POST /api/admin/products`, `PUT /api/admin/products/{id}`, `DELETE /api/admin/products/{id}` | `products.manage` |
 | `POST /api/admin/categories`, `PUT /api/admin/categories/{id}`, `DELETE /api/admin/categories/{id}` | `products.manage` |
 | `PUT /api/admin/products/{id}/price-visibility` mit `{ "isPriceVisible": false }` → `204` | `products.toggle-price-visibility` |
+| `GET /api/admin/products/{id}/images/{imageId}/file` (Bild, auch von inaktiven Produkten; nicht cachebar) | `products.read` |
+| `POST /api/admin/products/{id}/images` (Upload, siehe „Bilder“) → `201`, `PUT /api/admin/products/{id}/images/{imageId}` → `200`, `DELETE /api/admin/products/{id}/images/{imageId}` → `204` | `products.manage` |
 
 - Produkt anlegen: `{ "categoryId": 1, "name": "...", "description": "...", "price": 2.5, "isPriceVisible": true, "isActive": true }`. Ohne die beiden Schalter ist ein neues Produkt aktiv und zeigt seinen Preis. `PUT` ersetzt alle Felder; dort sind beide Schalter Pflicht.
 - Kategorie anlegen oder ändern: `{ "name": "...", "isVisible": true }`. Eine ausgeblendete Kategorie blendet auch alle ihre Produkte aus.
 - Die Rolle User hat standardmäßig `products.read` und `products.toggle-price-visibility`: Sie darf also nur den Preis ein- und ausblenden, sonst nichts ändern.
 - Validierung: Name Pflicht (Produkt max. 200, Kategorie max. 100 Zeichen), Beschreibung max. 4000 Zeichen, Preis optional, ≥ 0 und höchstens zwei Nachkommastellen, Kategorie muss existieren. Texte sind reiner Text und werden unverändert gespeichert; das Frontend gibt sie als Text aus (nie `v-html`).
 - Fehler: `400` bei ungültigen Eingaben (Meldung am Feld, z. B. `CategoryId` bei unbekannter Kategorie), `404` bei unbekannter ID, `409` bei doppeltem Kategorienamen (Groß-/Kleinschreibung zählt nicht) und beim Löschen einer Kategorie, die noch Produkte enthält.
+- Bild ändern: `{ "description": "...", "sortOrder": 0, "isPrimary": true }` (alle Felder werden ersetzt; Beschreibung max. 500 Zeichen, reiner Text; Reihenfolge ≥ 0). Wird ein Bild Hauptbild, verlieren die anderen Bilder des Produkts das Kennzeichen; es gibt höchstens eins.
 - Löschen eines Produkts löscht auch seine Bilder samt Bilddaten. Jede Änderung wird mit dem handelnden Benutzer geloggt.
+
+### Bilder
+
+Bilder werden hochgeladen, geprüft, umgewandelt und **in der Datenbank** gespeichert, nie im Dateisystem. Umgesetzt ist das für Produktbilder; Terminbilder (#14) nutzen dieselbe Verarbeitung.
+
+- **Upload:** `multipart/form-data` mit einer oder mehreren Dateien im Feld `files` (in der Swagger UI direkt auswählbar). Neue Bilder kommen ans Ende der Reihenfolge; hat das Produkt noch kein Hauptbild, wird das erste neue Bild Hauptbild. Antwort `201` mit den neuen Bildern (`productImageId`, `fileName`, `description`, `contentType`, `length`, `sortOrder`, `isPrimary`, `url`).
+- **Prüfung:** Erlaubt sind nur JPEG, PNG und WebP, erkannt am **Dateiinhalt**, nicht an Endung oder `Content-Type`. SVG wird nie angenommen: Die Bilder kommen von derselben Domain wie der Verwaltungsbereich, ein Skript im SVG liefe mit der Session des Betrachters. Ist eine Datei ungültig, wird keine gespeichert (`400`, Meldung am Feld `files` mit dem Dateinamen).
+- **Umwandlung:** Das Bild wird nach der EXIF-Ausrichtung aufrecht gedreht, auf höchstens `Images:MaxDimension` Pixel verkleinert und im gleichen Format neu kodiert. Gespeichert wird nur das Ergebnis, ohne Metadaten: keine EXIF-Daten (GPS-Position aus Handyfotos!), kein XMP, keine Textfelder, kein Farbprofil (Farben werden nach sRGB umgerechnet).
+- **Grenzen:** siehe `Images:*` unter „Konfiguration“. Zu große Dateien oder Anfragen → `413`; zu viele Pixel, zu viele Dateien oder beschädigte Dateien → `400`.
+- **Dateiname:** Der Name vom Client wird nur als Text für die Anzeige gespeichert (ohne Pfadanteile und Steuerzeichen, max. 255 Zeichen) und nie als Pfad verwendet.
+- **Bibliothek:** [SkiaSharp](https://github.com/mono/SkiaSharp) (MIT-Lizenz) mit `SkiaSharp.NativeAssets.Linux.NoDependencies`; die native Bibliothek kommt mit dem Paket, das Docker-Image braucht keine zusätzlichen Pakete. ImageSharp wurde bewusst nicht genommen: Es bricht Release-Builds ohne Lizenzschlüssel von Six Labors ab.
 
 ### CSRF-Schutz: Hinweise fürs Frontend
 
@@ -266,7 +286,7 @@ docker compose restart proxy      # nach Änderungen am Caddyfile (Caddy hat kei
 docker compose exec api id        # zeigt uid=1654(app), nicht root
 ```
 
-**Achtung:** `docker compose down -v` löscht die Volumes und damit Datenbank, Bilder, Session-Schlüssel und Zertifikate. Ohne `-v` bleiben sie erhalten.
+**Achtung:** `docker compose down -v` löscht die Volumes und damit Datenbank (samt Bildern), Session-Schlüssel und Zertifikate. Ohne `-v` bleiben sie erhalten.
 
 ### Update
 
@@ -282,15 +302,13 @@ docker compose -f deploy/compose.yaml up -d --build
 
 | Volume | Inhalt | Sichern |
 |---|---|---|
-| `schuelerfirma_db-data` | Datenbank | ja, per Dump (siehe unten) |
-| `schuelerfirma_api-images` | hochgeladene Bilder (#13) | ja |
+| `schuelerfirma_db-data` | Datenbank, auch alle hochgeladenen Bilder | ja, per Dump (siehe unten) |
 | `schuelerfirma_api-keys` | Schlüssel der Session-Cookies (unverschlüsselt, nur für den App-Benutzer lesbar) | ja; ohne sie sind nach einer Wiederherstellung alle abgemeldet |
 | `schuelerfirma_caddy-data` | TLS-Zertifikate | optional; Caddy holt neue, Let's Encrypt begrenzt aber die Anzahl pro Woche |
 
 ```bash
 cd deploy
-docker compose exec -T db sh -c 'exec mysqldump -uroot -p"$MYSQL_ROOT_PASSWORD" --single-transaction "$MYSQL_DATABASE"' > backup-$(date +%F).sql
-docker run --rm -v schuelerfirma_api-images:/data:ro -v "$PWD":/backup docker.io/library/alpine tar czf /backup/images-$(date +%F).tgz -C /data .
+docker compose exec -T db sh -c 'exec mysqldump -uroot -p"$MYSQL_ROOT_PASSWORD" --single-transaction --hex-blob "$MYSQL_DATABASE"' > backup-$(date +%F).sql
 docker run --rm -v schuelerfirma_api-keys:/data:ro -v "$PWD":/backup docker.io/library/alpine tar czf /backup/keys-$(date +%F).tgz -C /data .
 ```
 

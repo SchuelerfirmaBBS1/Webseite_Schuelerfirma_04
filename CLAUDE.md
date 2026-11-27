@@ -91,6 +91,7 @@ dotnet ef database update --project src/Schuelerfirma.Api
 - Passwortwechsel beendet alle Sessions des Benutzers inklusive der aktuellen; der Benutzer meldet sich neu an. Grund: Der Cookie-Handler kann innerhalb eines angemeldeten Requests keinen neuen Session-Schlüssel ausstellen (er erneuert bei `SignInAsync` den alten).
 - Benutzerverwaltung: Fachlogik und Schutzregeln liegen in `UserAdministrationService` (`Application/Users/`), der Controller übersetzt nur in HTTP. Benutzer nie löschen, nur deaktivieren; jede Admin-Aktion mit handelndem Benutzer loggen, temporäre Passwörter nie. Wer `users.manage` hat, ergibt sich aus der Konfiguration, nie aus dem Rollennamen.
 - Eingaben aus dem Kontaktformular validieren.
+- Bilder: Jede hochgeladene Datei läuft durch `IImageProcessor` (`SkiaImageProcessor`, SkiaSharp/MIT); gespeichert wird nur dessen Ergebnis, nie die Originaldatei. Erlaubt sind nur JPEG, PNG und WebP, erkannt am Inhalt; **nie SVG**. Bilddaten liegen in der Datenbank in einer eigenen Tabelle je Bildtyp (`…ImageContents`, `MEDIUMBLOB`), ohne Navigation von der Bild-Entity; gelesen werden sie nur einzeln über das Bild-Repository. Upload-Endpunkte bekommen `[ImageUploadLimits]` (Limits aus `Images:*`, `413`). Den Dateinamen vom Client nie als Pfad verwenden (`ProductImageService.CleanFileName`). Kein ImageSharp: Release-Builds brauchen dort einen Lizenzschlüssel.
 
 ### Deployment
 
