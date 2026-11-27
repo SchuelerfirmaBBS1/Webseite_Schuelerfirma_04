@@ -233,7 +233,7 @@ public abstract class ProductRepositoryContractTests : RepositoryContractTests
         var image = await AddImageAsync(repos, product.ProductId, sortOrder: 0);
 
         Assert.True(await repos.Products.DeleteAsync(product.ProductId));
-        Assert.Null(await repos.GetProductImageData(image.ProductImageId));
+        Assert.Null(await repos.ProductImages.GetFileAsync(product.ProductId, image.ProductImageId));
         Assert.Null(await repos.Products.GetByIdAsync(product.ProductId));
         Assert.False(await repos.Products.DeleteAsync(product.ProductId));
 
@@ -253,9 +253,9 @@ public abstract class ProductRepositoryContractTests : RepositoryContractTests
         var image = NewImage(product.ProductId, sortOrder: 0);
         image.Length = data.Length;
 
-        await repos.AddProductImage(image, data);
+        await repos.ProductImages.AddAsync(image, data);
 
-        Assert.Equal(data, await repos.GetProductImageData(image.ProductImageId));
+        Assert.Equal(data, (await repos.ProductImages.GetFileAsync(product.ProductId, image.ProductImageId))?.Data);
         Assert.Equal(data.Length, (await repos.Products.GetByIdAsync(product.ProductId))!.Images.Single().Length);
     }
 }

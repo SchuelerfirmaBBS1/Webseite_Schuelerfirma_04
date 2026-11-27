@@ -4,19 +4,13 @@ using Schuelerfirma.Api.Domain;
 namespace Schuelerfirma.Api.Tests.Persistence;
 
 /// <summary>The repositories under test; they must share one underlying store.</summary>
-/// <param name="AddProductImage">
-/// Stores an image record together with its image data directly. Test seam until the image upload (#13) brings
-/// repository methods for it.
-/// </param>
-/// <param name="GetProductImageData">Reads the stored image data of an image, <c>null</c> if there is none.</param>
 public sealed record Repositories(
     IUserRepository Users,
     IRoleRepository Roles,
     IUserSessionRepository Sessions,
     ICategoryRepository Categories,
     IProductRepository Products,
-    Func<ProductImage, byte[], Task> AddProductImage,
-    Func<int, Task<byte[]?>> GetProductImageData);
+    IProductImageRepository ProductImages);
 
 /// <summary>
 /// Base class of all repository contract tests. Every storage implementation (in-memory now, EF Core / MySQL
@@ -87,7 +81,7 @@ public abstract class RepositoryContractTests
         Repositories repos, int productId, int sortOrder, bool isPrimary = false)
     {
         var image = NewImage(productId, sortOrder, isPrimary);
-        await repos.AddProductImage(image, ImageData);
+        await repos.ProductImages.AddAsync(image, ImageData);
         return image;
     }
 
