@@ -48,9 +48,11 @@ withDefaults(
   background: var(--color-cream);
 }
 
-/* Dark surface: inverted text, shadows switch to terracotta */
+/* Dark surface: inverted text and surface colours, shadows switch to terracotta */
 .base-section--dark {
   --shadow-color: var(--color-terracotta);
+  --color-fg: var(--color-white);
+  --color-bg: var(--color-ink);
 
   background: var(--color-ink);
   color: var(--color-white);

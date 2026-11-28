@@ -123,8 +123,9 @@ const element = computed(() => {
   color: var(--color-white);
 }
 
+/* Terracotta surface, so the shadow is always blue (also on dark sections) */
 .base-button--accent {
-  --button-shadow: var(--shadow-color);
+  --button-shadow: var(--color-blue);
 
   background: var(--color-terracotta);
   color: var(--color-ink);
@@ -134,19 +135,21 @@ const element = computed(() => {
   color: var(--color-ink);
 }
 
-/* Secondary: outlined, fills on hover */
+/* Secondary: outlined in the surface text colour, fills on hover.
+   Dark on light surfaces, white on dark ones (via --color-fg / --color-bg) */
 .base-button--secondary {
-  border-color: var(--color-ink);
+  border-color: var(--color-fg);
   background: transparent;
-  color: var(--color-ink);
+  color: var(--color-fg);
 }
 
 .base-button--secondary:hover {
-  background: var(--color-ink);
-  color: var(--color-white);
+  background: var(--color-fg);
+  color: var(--color-bg);
 }
 
-/* Text: inline link with an underline that grows */
+/* Text: inline link with an underline that grows; takes the surrounding text colour,
+   so it works on light and dark surfaces */
 .base-button--text {
   min-height: auto;
   padding: 0;
@@ -154,13 +157,13 @@ const element = computed(() => {
   background:
     linear-gradient(var(--color-terracotta), var(--color-terracotta)) left bottom / 0 2px
     no-repeat;
-  color: var(--color-ink);
+  color: inherit;
   transition: background-size var(--duration-normal) var(--ease-out);
 }
 
 .base-button--text:hover {
   background-size: 100% 2px;
-  color: var(--color-ink);
+  color: inherit;
 }
 
 .base-button__arrow {

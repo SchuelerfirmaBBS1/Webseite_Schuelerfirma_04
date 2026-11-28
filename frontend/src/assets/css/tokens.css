@@ -57,6 +57,12 @@
   --border: 2px solid var(--color-ink);
   --border-frame: 6px solid var(--color-white); /* white passe-partout of BaseFrame */
 
+  /* Surface colours: text (fg) and background (bg) of the surface an element sits on.
+     Dark surfaces (BaseSection tone="dark", header, footer) swap them, so outlined
+     elements like the secondary button work everywhere */
+  --color-fg: var(--color-ink);
+  --color-bg: var(--color-white);
+
   /* One hard offset shadow. Colour: blue by default; terracotta on dark or blue
      surfaces (set --shadow-color on the surface, BaseSection tone="dark" does it) */
   --shadow-color: var(--color-blue);

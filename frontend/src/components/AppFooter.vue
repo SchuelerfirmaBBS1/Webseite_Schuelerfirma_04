@@ -1,3 +1,7 @@
+<script setup lang="ts">
+import logoText from '@/assets/brand/logo-text-light.svg'
+import BaseButton from '@/components/base/BaseButton.vue'
+</script>
 
 <template>
   <footer class="site-footer">
@@ -8,43 +12,60 @@
 
         <!-- Brand -->
         <div class="footer-brand">
+          <!-- Logo: text version, light for the dark footer (styleguide logo rules) -->
           <RouterLink to="/" class="footer-logo">
-            <img
-              src="/images/white_logo.png"
-              alt="PRINT&BITE – ein Schülerunternehmen der BBS I Lüneburg"
-            />
+            <img :src="logoText" alt="PRINT&BITE – Startseite" />
           </RouterLink>
 
-          <div class="footer-brand-text">
-            <p class="footer-subtitle">
-              SCHÜLERUNTERNEHMEN · BBS I LÜNEBURG
-            </p>
+          <p class="footer-description">
+            Kreative Ideen. Nachhaltige Produkte. Echter Genuss.
+            Wir verbinden moderne Technik, kreatives Handwerk
+            und gemeinsames Engagement.
+          </p>
+        </div>
 
-            <p class="footer-description">
-              Kreative Ideen. Nachhaltige Produkte. Echter Genuss.
-              Wir verbinden moderne Technik, kreatives Handwerk
-              und gemeinsames Engagement.
-            </p>
-          </div>
+        <!-- Link groups -->
+        <div class="footer-link-group footer-link-group--discover">
+          <h3 class="footer-label">Entdecken</h3>
+
+          <nav class="footer-nav" aria-label="Footer-Navigation">
+            <RouterLink to="/">Startseite</RouterLink>
+            <a href="/#produkte">Produkte</a>
+            <RouterLink to="/termine">Termine</RouterLink>
+            <RouterLink to="/archiv">Archiv</RouterLink>
+            <RouterLink to="/kontakt">Kontakt</RouterLink>
+          </nav>
+        </div>
+
+        <div class="footer-link-group footer-link-group--legal">
+          <h3 class="footer-label">Rechtliches</h3>
+
+          <nav class="footer-nav" aria-label="Rechtliche Informationen">
+            <RouterLink to="/impressum">Impressum</RouterLink>
+            <RouterLink to="/datenschutz">Datenschutz</RouterLink>
+          </nav>
         </div>
 
         <!-- Location -->
         <div class="footer-location">
           <div class="location-info">
-            <h3>HIER FINDEST DU UNS</h3>
+            <h3 class="footer-label">Hier findest du uns</h3>
 
             <p class="footer-school-name">BBS I Lüneburg</p>
             <p>Spillbrunnenweg 1</p>
             <p>21337 Lüneburg</p>
 
-            <a
+            <BaseButton
+              variant="text"
+              size="sm"
+              arrow
               href="https://www.google.com/maps/dir/?api=1&destination=BBS+I+L%C3%BCneburg%2C+Spillbrunnenweg+1%2C+21337+L%C3%BCneburg"
               target="_blank"
               rel="noopener noreferrer"
               class="route-link"
             >
-              Route planen <span aria-hidden="true">↗</span>
-            </a>
+              Route planen
+            </BaseButton>
           </div>
 
           <a
@@ -67,32 +88,6 @@
 
       </div>
 
-      <!-- Bottom navigation section -->
-      <div class="footer-links">
-
-        <div class="footer-link-group">
-          <h3>ENTDECKEN</h3>
-
-          <nav class="footer-nav" aria-label="Footer-Navigation">
-            <RouterLink to="/">Startseite</RouterLink>
-            <a href="/#produkte">Produkte</a>
-            <RouterLink to="/termine">Termine</RouterLink>
-            <RouterLink to="/archiv">Archiv</RouterLink>
-            <RouterLink to="/kontakt">Kontakt</RouterLink>
-          </nav>
-        </div>
-
-        <div class="footer-link-group">
-          <h3>RECHTLICHES</h3>
-
-          <nav class="footer-nav" aria-label="Rechtliche Informationen">
-            <RouterLink to="/impressum">Impressum</RouterLink>
-            <RouterLink to="/datenschutz">Datenschutz</RouterLink>
-          </nav>
-        </div>
-
-      </div>
-
       <!-- Copyright -->
       <div class="footer-bottom">
         <p>© 2026 PRINT&BITE · HA26B</p>
@@ -104,117 +99,97 @@
 </template>
 
 <style scoped>
+/* Built on the design tokens (see /styleguide); dark surface, so shadows are terracotta */
 .site-footer {
-  padding: 3.5rem 7% 1.4rem;
-  background: #1e222c;
-  color: #ffffff;
+  --shadow-color: var(--color-terracotta);
+  --color-fg: var(--color-white);
+  --color-bg: var(--color-ink);
+  --footer-line: 1px solid color-mix(in srgb, var(--color-white) 15%, transparent);
+
+  padding: var(--space-xl) 0 var(--space-md);
+  background: var(--color-ink);
+  color: var(--color-white);
+  font-size: var(--text-sm);
 }
 
+/* Same container as BaseSection and the header */
 .footer-inner {
-  max-width: 1400px;
+  max-width: var(--container-width);
   margin: 0 auto;
+  padding: 0 var(--container-padding);
 }
 
-/* Top section */
+/* One row: brand | link groups | location (text + map) */
 .footer-top {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: center;
-  gap: 5rem;
-  padding-bottom: 3rem;
+  grid-template-areas: 'brand discover legal location';
+  grid-template-columns: minmax(14rem, 1.2fr) auto auto minmax(0, 2fr);
+  align-items: start;
+  gap: var(--space-lg);
+  padding-bottom: var(--space-lg);
 }
 
-/* Brand */
+.footer-brand {
+  grid-area: brand;
+}
+
+.footer-link-group--discover {
+  grid-area: discover;
+}
+
+.footer-link-group--legal {
+  grid-area: legal;
+}
+
+/* Logo above the text, so the wide wordmark keeps its clear space */
 .footer-brand {
   display: flex;
-  align-items: center;
-  gap: 2rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-md);
 }
 
 .footer-logo {
   display: block;
-  flex-shrink: 0;
-  width: 1px;
+  width: 220px;
 }
 
 .footer-logo img {
   display: block;
   width: 100%;
   height: auto;
-  object-fit: contain;
-}
-
-.footer-brand-text {
-  max-width: 310px;
-}
-
-.footer-subtitle {
-  margin: 0 0 0.9rem;
-  color: #d9a477;
-  font-family: "Trebuchet MS", sans-serif;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  line-height: 1.6;
 }
 
 .footer-description {
-  margin: 0;
-  color: #c5cbd2;
-  font-family: "Trebuchet MS", sans-serif;
-  font-size: 0.9rem;
-  line-height: 1.9;
+  max-width: 20rem;
+}
+
+/* Small uppercase labels, terracotta on the dark surface */
+.footer-label {
+  margin-bottom: var(--space-sm);
+  color: var(--color-terracotta);
+  font-family: var(--font-body), sans-serif;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
 }
 
 /* Location */
 .footer-location {
   display: grid;
+  grid-area: location;
   grid-template-columns: 0.8fr 1.2fr;
-  align-items: center;
-  gap: 1.8rem;
+  align-items: start;
+  gap: var(--space-lg);
 }
 
-.location-info h3,
-.footer-link-group h3 {
-  margin: 0 0 1.1rem;
-  color: #d9a477;
-  font-family: "Trebuchet MS", sans-serif;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-}
-
-.location-info p {
-  margin: 0;
-  color: #c5cbd2;
-  font-family: "Trebuchet MS", sans-serif;
-  font-size: 0.9rem;
-  line-height: 1.9;
-}
-
-.location-info .footer-school-name {
-  color: #ffffff;
-  font-weight: 600;
+.footer-school-name {
+  font-weight: var(--weight-bold);
 }
 
 .route-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin-top: 1.1rem;
-  padding-bottom: 0.3rem;
-  border-bottom: 1px solid #d9a477;
-  color: #ffffff;
-  font-family: "Trebuchet MS", sans-serif;
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-decoration: none;
-  transition: gap 0.2s ease, color 0.2s ease;
-}
-
-.route-link:hover {
-  gap: 1rem;
-  color: #d9a477;
+  margin-top: var(--space-sm);
 }
 
 /* Map */
@@ -223,9 +198,9 @@
   display: block;
   height: 165px;
   overflow: hidden;
-  border: 1px solid rgb(255 255 255 / 12%);
-  border-radius: 12px;
-  background: #394b64;
+  border: 2px solid var(--color-white);
+  border-radius: var(--radius-md);
+  background: var(--color-blue);
 }
 
 .footer-map iframe {
@@ -233,7 +208,6 @@
   width: 100%;
   height: 100%;
   border: 0;
-  filter: grayscale(25%);
   pointer-events: none;
 }
 
@@ -242,14 +216,13 @@
   right: 0;
   bottom: 0;
   left: 0;
-  padding: 0.7rem;
-  background: rgb(30 34 44 / 88%);
-  color: #ffffff;
-  font-family: "Trebuchet MS", sans-serif;
-  font-size: 0.75rem;
+  padding: var(--space-xs);
+  background: var(--color-ink);
+  color: var(--color-white);
+  font-size: var(--text-xs);
   text-align: center;
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity var(--duration-fast) var(--ease-out);
 }
 
 .footer-map:hover .map-overlay,
@@ -257,44 +230,24 @@
   opacity: 1;
 }
 
-/* Navigation and legal links */
-.footer-links {
-  display: flex;
-  align-items: flex-start;
-  gap: 6rem;
-  padding: 2rem 0;
-  border-top: 1px solid rgb(255 255 255 / 15%);
-}
-
-.footer-link-group {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.footer-link-group h3 {
-  margin: 0;
-}
-
+/* Link groups: label with the links stacked below */
 .footer-nav {
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1.6rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-xs);
 }
 
 .footer-nav a {
-  color: #d1d7df;
-  font-family: "Trebuchet MS", sans-serif;
-  font-size: 0.9rem;
-  font-weight: 500;
+  color: var(--color-white);
   text-decoration: none;
-  transition: color 0.2s ease;
+  text-underline-offset: 0.3em;
 }
 
 .footer-nav a:hover {
-  color: #d9a477;
+  color: var(--color-white);
+  text-decoration: underline;
+  text-decoration-color: var(--color-terracotta);
 }
 
 /* Copyright */
@@ -302,121 +255,53 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  padding-top: 1.2rem;
-  border-top: 1px solid rgb(255 255 255 / 15%);
-  color: #aeb7c2;
-  font-family: "Trebuchet MS", sans-serif;
-  font-size: 0.78rem;
-}
-
-.footer-bottom p {
-  margin: 0;
+  gap: var(--space-sm);
+  padding-top: var(--space-md);
+  border-top: var(--footer-line);
+  font-size: var(--text-xs);
 }
 
 /* Responsive */
 @media (max-width: 1100px) {
+  /* Brand and links on top, location below */
   .footer-top {
-    gap: 3rem;
-  }
-
-  .footer-brand {
-    gap: 1.2rem;
+    grid-template-areas:
+      'brand discover legal'
+      'location location location';
+    grid-template-columns: 1fr auto auto;
   }
 
   .footer-logo {
-    width: 125px;
-  }
-
-  .footer-location {
-    grid-template-columns: 1fr;
-    gap: 1.2rem;
+    width: 200px;
   }
 
   .footer-map {
     height: 150px;
   }
-
-  .footer-links {
-    gap: 3rem;
-  }
 }
 
 @media (max-width: 700px) {
-  .site-footer {
-    padding: 2.8rem 1.5rem 1rem;
-  }
-
   .footer-top {
-    grid-template-columns: 1fr;
-    gap: 2.5rem;
-    padding-bottom: 2.5rem;
-  }
-
-  .footer-brand {
-    gap: 1.5rem;
-  }
-
-  .footer-logo {
-    width: 125px;
-  }
-
-  .footer-brand-text {
-    max-width: 360px;
-  }
-
-  .footer-location {
+    grid-template-areas:
+      'brand brand'
+      'discover legal'
+      'location location';
     grid-template-columns: 1fr 1fr;
-  }
-
-  .footer-map {
-    height: 130px;
-  }
-
-  .footer-links {
-    flex-direction: column;
-    gap: 2rem;
-  }
-
-  .footer-nav {
-    gap: 1rem;
   }
 }
 
 @media (max-width: 480px) {
-  .footer-brand {
-    align-items: flex-start;
-    gap: 1rem;
-  }
-
   .footer-logo {
-    width: 95px;
-  }
-
-  .footer-subtitle {
-    font-size: 0.6rem;
-  }
-
-  .footer-description {
-    font-size: 0.8rem;
+    width: 180px;
   }
 
   .footer-location {
     grid-template-columns: 1fr;
   }
 
-  .footer-map {
-    height: 160px;
-  }
-
-  .footer-nav {
-    gap: 0.8rem 1rem;
-  }
-
   .footer-bottom {
-    align-items: flex-start;
     flex-direction: column;
-    gap: 0.6rem;
+    align-items: flex-start;
   }
 }
 </style>

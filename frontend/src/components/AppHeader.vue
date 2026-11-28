@@ -1,7 +1,8 @@
-
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import logoWordmark from '@/assets/brand/logo-wordmark.png'
+import logoText from '@/assets/brand/logo-text-light.svg'
+import BaseButton from '@/components/base/BaseButton.vue'
+import ThemeToggle from '@/components/ThemeToggle.vue'
 
 const { t, locale } = useI18n()
 
@@ -18,13 +19,9 @@ function toggleLanguage() {
     <div class="header-inner">
 
       <!-- Brand -->
-      <!-- The wordmark image already contains the name and subtitle -->
-      <RouterLink to="/" class="brand" aria-label="PRINT&BITE – Startseite">
-        <img
-          :src="logoWordmark"
-          alt="PRINT&BITE – ein Schülerunternehmen der BBS I Lüneburg"
-          class="brand-wordmark"
-        />
+      <!-- Logo: text version, light for the dark header (styleguide logo rules) -->
+      <RouterLink to="/" class="brand">
+        <img :src="logoText" alt="PRINT&BITE – Startseite" class="brand-wordmark" />
       </RouterLink>
 
       <!-- Navigation -->
@@ -49,20 +46,22 @@ function toggleLanguage() {
           {{ t('navigation.about') }}
         </a>
 
-        <RouterLink to="/kontakt" class="contact-link">
+        <BaseButton variant="secondary" size="sm" to="/kontakt" arrow>
           {{ t('navigation.contact') }}
-          <span aria-hidden="true">↗</span>
-        </RouterLink>
+        </BaseButton>
 
         <!-- Language Switch -->
         <button
           class="language-button"
           type="button"
-          @click="toggleLanguage"
           :aria-label="locale === 'de' ? 'Switch to English' : 'Zu Deutsch wechseln'"
+          @click="toggleLanguage"
         >
           {{ locale === 'de' ? 'EN' : 'DE' }}
         </button>
+
+        <!-- Light/dark mode (not functional yet) -->
+        <ThemeToggle />
       </nav>
 
     </div>
@@ -70,141 +69,111 @@ function toggleLanguage() {
 </template>
 
 <style scoped>
+/* Built on the design tokens (see /styleguide); dark surface, so shadows are terracotta */
 .header {
+  --shadow-color: var(--color-terracotta);
+  --color-fg: var(--color-white);
+  --color-bg: var(--color-ink);
+
   position: sticky;
   top: 0;
   z-index: 100;
   width: 100%;
-  background: #1e222c;
-  border-bottom: 1px solid rgb(255 255 255 / 10%);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-white) 12%, transparent);
+  background: var(--color-ink);
+  color: var(--color-white);
 }
 
+/* Same container as BaseSection, so logo and content line up */
 .header-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 2rem;
-  max-width: 1500px;
-  min-height: 74px;
+  gap: var(--space-lg);
+  max-width: var(--container-width);
   margin: 0 auto;
-  padding: 0.5rem 5%;
+  padding: var(--space-sm) var(--container-padding);
 }
 
-/* Brand */
 .brand {
-  display: flex;
   flex-shrink: 0;
-  align-items: center;
-  gap: 0.9rem;
-  color: #ffffff;
-  text-decoration: none;
 }
 
-/* The wordmark is dark on transparent; invert it to white for the dark header */
 .brand-wordmark {
   display: block;
   width: 240px;
   height: auto;
-  filter: invert(1);
 }
 
 /* Navigation */
 .navigation {
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: var(--space-md);
 }
 
 .nav-link {
   position: relative;
-  padding: 0.7rem 0;
-  color: #e1e4e9;
-  font-family: "Trebuchet MS", sans-serif;
-  font-size: 1rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  padding: var(--space-xs) 0;
+  color: var(--color-white);
+  font-family: var(--font-body), sans-serif;
+  font-size: var(--text-md);
+  font-weight: var(--weight-bold);
   text-decoration: none;
-  transition: color 0.25s ease;
 }
 
+/* Terracotta underline grows in on hover and marks the active page */
 .nav-link::after {
   position: absolute;
   right: 0;
   bottom: 0;
   left: 0;
   height: 2px;
-  border-radius: 2px;
-  background: #d9a477;
-  content: "";
+  background: var(--color-terracotta);
+  content: '';
   transform: scaleX(0);
   transform-origin: left;
-  transition: transform 0.25s ease;
+  transition: transform var(--duration-normal) var(--ease-out);
 }
 
+/* RouterLink sets aria-current="page" on the link of the current page */
 .nav-link:hover,
-.nav-link.router-link-active {
-  color: #ffffff;
+.nav-link[aria-current='page'] {
+  color: var(--color-white);
 }
 
 .nav-link:hover::after,
-.nav-link.router-link-active::after {
+.nav-link[aria-current='page']::after {
   transform: scaleX(1);
 }
 
-/* Contact link */
-.contact-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.7rem;
-  padding: 0.85rem 1.5rem;
-  border: 1px solid #d9a477;
-  border-radius: 50px;
-  background: #d9a477;
-  color: #1e222c;
-  font-family: "Trebuchet MS", sans-serif;
-  font-size: 0.95rem;
-  font-weight: 700;
-  text-decoration: none;
-  transition: background 0.25s ease, color 0.25s ease;
-}
-
-.contact-link:hover {
-  background: transparent;
-  color: #d9a477;
-}
-
-.contact-link span {
-  font-size: 1rem;
-}
-
-/* Language Switch */
+/* Language switch: small outlined pill */
 .language-button {
-  padding: 0.55rem 0.8rem;
-  border: 1px solid rgb(255 255 255 / 35%);
-  border-radius: 50px;
+  min-height: 36px;
+  padding: 0 var(--space-xs);
+  border: 2px solid var(--color-white);
+  border-radius: var(--radius-pill);
   background: transparent;
-  color: #ffffff;
-  font-family: "Trebuchet MS", sans-serif;
-  font-size: 0.85rem;
-  font-weight: 700;
+  color: var(--color-white);
+  font-family: var(--font-body), sans-serif;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
   letter-spacing: 0.04em;
   cursor: pointer;
-  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+  transition:
+    background-color var(--duration-normal) var(--ease-out),
+    color var(--duration-normal) var(--ease-out);
 }
 
 .language-button:hover {
-  border-color: #d9a477;
-  background: #d9a477;
-  color: #1e222c;
+  background: var(--color-white);
+  color: var(--color-ink);
 }
 
 /* Responsive */
 @media (max-width: 1150px) {
   .header-inner {
-    padding-right: 4%;
-    padding-left: 4%;
-    gap: 1.2rem;
+    gap: var(--space-md);
   }
 
   .brand-wordmark {
@@ -212,20 +181,18 @@ function toggleLanguage() {
   }
 
   .navigation {
-    gap: 1.1rem;
+    gap: var(--space-sm);
   }
 
   .nav-link {
-    font-size: 0.9rem;
+    font-size: var(--text-sm);
   }
 }
 
 @media (max-width: 850px) {
   .header-inner {
     flex-direction: column;
-    justify-content: center;
-    gap: 1rem;
-    padding: 0.9rem 1rem;
+    gap: var(--space-sm);
   }
 
   .brand-wordmark {
@@ -233,33 +200,19 @@ function toggleLanguage() {
   }
 
   .navigation {
-    justify-content: center;
     flex-wrap: wrap;
-    gap: 0.6rem 1.3rem;
-  }
-
-  .contact-link {
-    padding: 0.6rem 1rem;
+    justify-content: center;
+    gap: var(--space-xs) var(--space-md);
   }
 }
 
 @media (max-width: 420px) {
   .brand-wordmark {
-    width: 190px;
+    width: 180px;
   }
 
   .navigation {
-    gap: 0.5rem 0.9rem;
-  }
-
-  .nav-link,
-  .contact-link {
-    font-size: 0.76rem;
-  }
-
-  .language-button {
-    font-size: 0.76rem;
-    padding: 0.45rem 0.65rem;
+    gap: var(--space-xs) var(--space-sm);
   }
 }
 </style>
