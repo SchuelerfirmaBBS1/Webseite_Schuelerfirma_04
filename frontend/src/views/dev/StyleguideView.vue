@@ -25,6 +25,14 @@ import BaseDecor from '@/components/base/BaseDecor.vue'
 // One sample photo for every image demo (from the project documentation), only bundled with this dev page
 import samplePhoto from './images/holzprodukte.jpg'
 
+// Logo set (vector): text = wordmark + subtitle, mark = printer, full = both
+import logoTextDark from '@/assets/brand/logo-text-dark.svg'
+import logoTextLight from '@/assets/brand/logo-text-light.svg'
+import logoMarkDark from '@/assets/brand/logo-mark-dark.svg'
+import logoMarkLight from '@/assets/brand/logo-mark-light.svg'
+import logoFullDark from '@/assets/brand/logo-full-dark.svg'
+import logoFullLight from '@/assets/brand/logo-full-light.svg'
+
 const colors = [
   { name: 'Blau (Primär)', token: '--color-blue', use: 'Buttons, Hervorhebungen, Schatten' },
   { name: 'Dunkelblau (Kontrast)', token: '--color-ink', use: 'Alle Texte, Header, Footer, Rahmen' },
@@ -51,6 +59,35 @@ const spacing = [
   { token: '--space-md', use: 'Zwischen Blöcken in einer Karte oder einem Formular' },
   { token: '--space-lg', use: 'Zwischen Gruppen, kleine Abschnitte' },
   { token: '--space-xl', use: 'Abschnitte, Bild zu Text' },
+]
+
+const logoAlt = 'PRINT&BITE – ein Schülerunternehmen der BBS I Lüneburg'
+
+const logoVariants = [
+  {
+    name: 'Schriftzug',
+    file: 'logo-text',
+    dark: logoTextDark,
+    light: logoTextLight,
+    use: 'Standard: Header, Footer, schmale Querformate.',
+    minimum: 'mind. 160 px breit',
+  },
+  {
+    name: 'Bildmarke',
+    file: 'logo-mark',
+    dark: logoMarkDark,
+    light: logoMarkLight,
+    use: 'Nur wo der Name schon daneben steht oder bekannt ist: Hero, Favicon, Stempel.',
+    minimum: 'mind. 40 px hoch',
+  },
+  {
+    name: 'Komplett',
+    file: 'logo-full',
+    dark: logoFullDark,
+    light: logoFullLight,
+    use: 'Große Markenmomente: Über-uns, Druck, Social Media, Messe.',
+    minimum: 'mind. 200 px breit',
+  },
 ]
 
 const radii = [
@@ -108,6 +145,88 @@ function fakeSubmit() {
           <BaseDecor kind="dots" color="blue" class="intro__dots" />
           <BaseSticker class="intro__sticker">Mit Ideen gemacht!</BaseSticker>
         </div>
+      </div>
+    </BaseSection>
+
+    <!-- Logo -->
+    <BaseSection tone="light" spacing="md">
+      <BaseHeading eyebrow="Marke" title="Logo" :level="2">
+        <p>
+          Drei Versionen, jede in Dunkel (auf hellen Flächen) und Hell (auf dunklen Flächen). Die Dateien
+          liegen als SVG in <code>src/assets/brand/</code> und sind in jeder Größe scharf. Das Logo wird
+          immer als Bild eingebunden, nie als Text nachgebaut und nie verändert.
+        </p>
+      </BaseHeading>
+
+      <div class="logo-grid">
+        <article v-for="logo in logoVariants" :key="logo.file" class="logo-card">
+          <div class="logo-card__stage logo-card__stage--light">
+            <img :src="logo.dark" :alt="logoAlt" class="logo-card__img" />
+          </div>
+          <div class="logo-card__stage logo-card__stage--dark">
+            <img :src="logo.light" :alt="logoAlt" class="logo-card__img" />
+          </div>
+          <h3 class="logo-card__name">{{ logo.name }}</h3>
+          <p><code>{{ logo.file }}-dark.svg</code> / <code>{{ logo.file }}-light.svg</code></p>
+          <p>{{ logo.use }}</p>
+          <p class="note">{{ logo.minimum }}</p>
+        </article>
+      </div>
+
+      <h3 class="sub-title">Regeln</h3>
+      <ul class="rule-list">
+        <li>
+          <strong>Farbe nach Hintergrund:</strong> <code>-dark</code> auf Weiß und Creme,
+          <code>-light</code> auf Dunkelblau und Blau. Andere Farben oder CSS-Filter sind tabu.
+        </li>
+        <li>
+          <strong>Schutzzone:</strong> rundum frei mindestens die halbe Höhe des Schriftzugs
+          „PRINT&amp;BITE“. Keine Texte, Sticker oder Deko in diesem Bereich.
+        </li>
+        <li>
+          <strong>Ruhig und gerade:</strong> Das Logo ist der feste Anker der Seite. Keine Drehung, kein
+          Rahmen (<code>BaseFrame</code>), kein Sticker darüber, keine Schatten. Verspielt sind nur die
+          Elemente drumherum.
+        </li>
+        <li>
+          <strong>Proportionen:</strong> nur über Breite <em>oder</em> Höhe skalieren, nie beides fest
+          setzen. Nicht beschneiden.
+        </li>
+        <li>
+          <strong>Einmal pro Ansicht groß:</strong> Header und Footer zeigen den Schriftzug; darüber
+          hinaus höchstens eine große Logo-Platzierung pro Seite.
+        </li>
+        <li>
+          <strong>Barrierefreiheit:</strong> <code>alt="{{ logoAlt }}"</code>. Ist das Logo ein Link zur
+          Startseite, beschreibt der Alt-Text das Ziel („PRINT&amp;BITE – Startseite“).
+        </li>
+      </ul>
+
+      <h3 class="sub-title">Schutzzone</h3>
+      <div class="logo-clearspace">
+        <img :src="logoTextDark" :alt="logoAlt" class="logo-clearspace__img" />
+      </div>
+
+      <h3 class="sub-title">Nicht so</h3>
+      <div class="logo-donts">
+        <figure class="logo-dont logo-dont--stretch">
+          <div class="logo-dont__stage"><img :src="logoTextDark" alt="" class="logo-dont__img" /></div>
+          <figcaption><span aria-hidden="true">✕</span> Nicht verzerren</figcaption>
+        </figure>
+        <figure class="logo-dont logo-dont--rotate">
+          <div class="logo-dont__stage"><img :src="logoTextDark" alt="" class="logo-dont__img" /></div>
+          <figcaption><span aria-hidden="true">✕</span> Nicht drehen</figcaption>
+        </figure>
+        <figure class="logo-dont logo-dont--shadow">
+          <div class="logo-dont__stage"><img :src="logoTextDark" alt="" class="logo-dont__img" /></div>
+          <figcaption><span aria-hidden="true">✕</span> Keine Effekte oder Schatten</figcaption>
+        </figure>
+        <figure class="logo-dont logo-dont--photo">
+          <div class="logo-dont__stage" :style="{ backgroundImage: `url(${samplePhoto})` }">
+            <img :src="logoTextDark" alt="" class="logo-dont__img" />
+          </div>
+          <figcaption><span aria-hidden="true">✕</span> Nicht auf unruhigen Fotos</figcaption>
+        </figure>
       </div>
     </BaseSection>
 
@@ -517,6 +636,120 @@ code {
   position: absolute;
   bottom: 10%;
   left: -22%;
+}
+
+/* Logo */
+.logo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  gap: var(--space-lg);
+  margin-top: var(--space-lg);
+}
+
+.logo-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  font-size: var(--text-sm);
+}
+
+.logo-card__stage {
+  height: 11rem;
+  padding: var(--space-md);
+  border: var(--border);
+  border-radius: var(--radius-md);
+}
+
+.logo-card__stage--light {
+  background: var(--color-cream);
+}
+
+.logo-card__stage--dark {
+  background: var(--color-ink);
+}
+
+.logo-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.logo-card__name {
+  margin-top: var(--space-xs);
+  font-size: var(--text-lg);
+}
+
+.rule-list {
+  display: grid;
+  gap: var(--space-sm);
+  max-width: 48rem;
+  margin: 0;
+  padding-left: var(--space-md);
+}
+
+/* Clear space: grey outline = logo, terracotta box = clear space.
+   PRINT&BITE is 157 of 1514 units tall, so half its height is 5.2 % of the logo width */
+.logo-clearspace {
+  --logo-width: 20rem;
+
+  display: inline-block;
+  padding: calc(var(--logo-width) * 0.052);
+  border: 2px dashed var(--color-terracotta);
+  background: var(--color-cream);
+}
+
+.logo-clearspace__img {
+  width: var(--logo-width);
+  outline: 1px dashed var(--color-grey);
+}
+
+.logo-donts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: var(--space-md);
+}
+
+.logo-dont {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+.logo-dont figcaption span {
+  color: var(--color-error);
+  font-weight: var(--weight-bold);
+}
+
+.logo-dont__stage {
+  display: grid;
+  place-items: center;
+  height: 8rem;
+  overflow: hidden;
+  border: 2px solid var(--color-error);
+  border-radius: var(--radius-md);
+  background: var(--color-cream);
+}
+
+.logo-dont__img {
+  width: 75%;
+}
+
+.logo-dont--stretch .logo-dont__img {
+  transform: scale(1.3, 0.7);
+}
+
+.logo-dont--rotate .logo-dont__img {
+  transform: rotate(-8deg);
+}
+
+.logo-dont--shadow .logo-dont__img {
+  filter: drop-shadow(var(--shadow-offset) var(--color-terracotta));
+}
+
+.logo-dont--photo .logo-dont__stage {
+  background: center / cover;
 }
 
 /* Colours */
