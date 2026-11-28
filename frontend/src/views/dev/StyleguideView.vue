@@ -176,6 +176,12 @@ function fakeSubmit() {
       <h3 class="sub-title">Regeln</h3>
       <ul class="rule-list">
         <li>
+          <strong>Immer die SVG-Logos:</strong> nur die sechs Dateien
+          <code>logo-{text,mark,full}-{dark,light}.svg</code> aus <code>src/assets/brand/</code>, per
+          <code>import</code> eingebunden. Keine PNG/JPG-Versionen, keine Screenshots oder alten Dateien aus
+          <code>public/images/</code>. Nur SVG ist in jeder Größe scharf.
+        </li>
+        <li>
           <strong>Farbe nach Hintergrund:</strong> <code>-dark</code> auf Weiß und Creme,
           <code>-light</code> auf Dunkelblau und Blau. Andere Farben oder CSS-Filter sind tabu.
         </li>
@@ -329,6 +335,13 @@ function fakeSubmit() {
           <BaseButton variant="primary" disabled>Deaktiviert</BaseButton>
           <BaseButton variant="primary" loading>Wird gesendet</BaseButton>
           <BaseButton variant="secondary" to="/termine" arrow>Als Router-Link</BaseButton>
+        </div>
+        <div class="demo-row demo-row--dark">
+          <BaseButton variant="primary" arrow>Primary</BaseButton>
+          <BaseButton variant="accent" arrow>Accent</BaseButton>
+          <BaseButton variant="secondary">Secondary</BaseButton>
+          <BaseButton variant="text" arrow>Text-Link</BaseButton>
+          <span class="note">Auf dunklen Flächen (Header, Footer, <code>tone="dark"</code>)</span>
         </div>
       </div>
     </BaseSection>
@@ -889,6 +902,23 @@ code {
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-md);
+}
+
+/* Dark demo surface: sets the same surface tokens as BaseSection tone="dark" */
+.demo-row--dark {
+  --shadow-color: var(--color-terracotta);
+  --color-fg: var(--color-white);
+  --color-bg: var(--color-ink);
+
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  background: var(--color-ink);
+  color: var(--color-white);
+}
+
+.demo-row--dark code {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--color-grey);
 }
 
 .demo-row--roomy {
